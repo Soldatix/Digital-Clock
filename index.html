@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="hr"> <head>
+    <meta charset="UTF-8">
+    <title>Digitalni Sat s Datumom - Prilagodljiv Online Sat</title> <meta name="description" content="Interaktivni digitalni sat s prikazom datuma, prilagodljivim postavkama jezika, boja, fontova i formata. Spremite svoje postavke kao profile.">
+    <meta name="keywords" content="digitalni sat, online sat, vrijeme, datum, prilagodljivi sat, clock, digital clock, sat za web stranicu, sat s datumom, besplatni sat">
+    <meta name="author" content="Tvorac Sata"> <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta property="og:title" content="Digitalni Sat s Datumom - Prilagodljiv Online Sat">
+    <meta property="og:description" content="Interaktivni digitalni sat s prikazom datuma, prilagodljivim postavkama jezika, boja, fontova i formata.">
+    <meta property="og:image" content="URL_DO_SLIKE_VASA_SATA.png"> <meta property="og:url" content="URL_VASE_WEB_STRANICE"> <meta property="og:type" content="website">
+    <meta property="og:locale" content="hr_HR"> <meta name="twitter:card" content="summary_large_image"> <meta name="twitter:title" content="Digitalni Sat s Datumom - Prilagodljiv Online Sat">
+    <meta name="twitter:description" content="Interaktivni digitalni sat s prikazom datuma, prilagodljivim postavkama jezika, boja, fontova i formata.">
+    <meta name="twitter:image" content="URL_DO_SLIKE_VASA_SATA.png"> <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png"> <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Roboto+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Digital+Numbers&display=swap" rel="stylesheet">
+    <style>
+        /* --- CSS --- */
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #000000;
+            --font-family: Arial, sans-serif;
+            --brightness: 1;
+            --contrast: 1;
+            --button-bg: #f0f0f0;
+            --button-hover-bg: #e0e0e0;
+            --button-icon-color: #333;
+            --button-border-color: #ccc;
+            --button-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-family);
+            transition: background-color 0.3s ease, color 0.3s ease;
+            filter: brightness(var(--brightness)) contrast(var(--contrast));
+            overflow: hidden;
+        }
+        #sat, #datum {
+            transition: color 0.3s ease, font-size 0.1s linear;
+            background-color: transparent;
+            text-align: center;
+            white-space: nowrap;
+        }
+        #sat {
+            line-height: 1;
+            color: var(--text-color);
+            /* Font-size is set via JavaScript */
+        }
+        #datum {
+            margin-top: 1vh;
+            color: var(--text-color);
+            /* Font-size is set via JavaScript */
+        }
+        .icon-button-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 1001;
+        }
+        .icon-button {
+            background-color: var(--button-bg);
+            color: var(--button-icon-color);
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            font-size: 1.2em;
+            border: 1px solid var(--button-border-color);
+            outline: none;
+            box-shadow: var(--button-shadow);
+            transition: background-color 0.2s ease;
+        }
+        .icon-button:hover {
+            background-color: var(--button-hover-bg);
+        }
+        .settings-panel {
+            position: absolute;
+            top: 70px;
+            right: 20px;
+            background-color: #ffffff;
+            color: #333333;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+            z-index: 1000;
+            max-height: calc(100vh - 90px);
+            overflow-y: auto;
+            width: 320px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border: 1px solid #ddd;
+        }
+        .settings-panel h3, .settings-panel h4 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .settings-panel h4 {
+            margin-top: 20px;
+            font-size: 1.1em;
+        }
+        .settings-panel label {
+            display: block;
+            margin: 15px 0 5px;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .settings-panel label.disabled {
+            color: #aaa !important;
+            cursor: not-allowed !important;
+        }
+        .settings-panel input[type="text"] {
+            width: calc(100% - 16px);
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        .settings-panel input[type="checkbox"] {
+            width: auto;
+            margin-right: 5px;
+            accent-color: #007bff;
+            flex-shrink: 0;
+        }
+        .settings-panel input[type="range"] {
+            accent-color: #007bff;
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 15px;
+        }
+        .settings-panel input[type="range"]:disabled {
+            cursor: not-allowed;
+        }
+        .settings-panel select, .settings-panel input[type="color"] {
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 15px;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        .settings-panel input[type="color"] {
+            padding: 2px;
+            height: 35px;
+        }
+        .settings-panel select option {
+            background-color: #fff;
+            color: #333;
+        }
+        .settings-panel button {
+            margin-top: 10px;
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: background-color 0.2s ease;
+        }
+        .settings-panel button:hover {
+            background-color: #0056b3;
+        }
+        .settings-panel button.delete-button {
+            background-color: #dc3545;
+            margin-top:5px;
+        }
+        .settings-panel button.delete-button:hover {
+            background-color: #c82333;
+        }
+        .checkbox-group-inline {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 5px;
+        }
+        .settings-panel::-webkit-scrollbar {
+            width: 8px;
+        }
+        .settings-panel::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        .settings-panel::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 10px;
+        }
+        .settings-panel::-webkit-scrollbar-thumb:hover {
+            background: #bbb;
+        }
+        .fullscreen-toggle {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background-color: var(--button-bg);
+            color: var(--button-icon-color);
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            font-size: 1.2em;
+            border: 1px solid var(--button-border-color);
+            outline: none;
+            box-shadow: var(--button-shadow);
+            transition: background-color 0.2s ease;
+        }
+        .fullscreen-toggle:hover {
+            background-color: var(--button-hover-bg);
+        }
+        .font-digital-7 { font-family: 'Digital-7', monospace; }
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        .font-roboto-mono { font-family: 'Roboto Mono', monospace; }
+        .font-digital-numbers { font-family: 'Digital Numbers', sans-serif; }
+
+        #infoSidePanel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 350px;
+            max-width: 90%;
+            height: 100%;
+            background-color: #fefefe;
+            color: #333;
+            box-shadow: -3px 0 6px rgba(0,0,0,0.15);
+            z-index: 1040;
+            transform: translateX(100%);
+            transition: transform 0.3s ease-in-out;
+            padding: 20px;
+            padding-top: 50px;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+        #infoSidePanel.info-panel-visible {
+            transform: translateX(0);
+        }
+        #infoSidePanelCloseButton {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #aaa;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            line-height: 1;
+        }
+        #infoSidePanelCloseButton:hover {
+            color: #333;
+        }
+        #infoSidePanelContent h4 {
+            margin-top: 0;
+            color: #0056b3;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        #infoSidePanelContent p {
+            margin: 10px 0;
+            line-height: 1.6;
+            font-size: 0.9em;
+        }
+        #infoSidePanelContent strong {
+            display: block;
+            margin-top: 15px;
+            color: #555;
+        }
+        #infoSidePanelContent code {
+            display: block;
+            background-color: #f0f0f0;
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-size: 0.9em;
+            word-break: break-all;
+            margin-bottom: 5px;
+        }
+        #infoSidePanelContent a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        #infoSidePanelContent a:hover {
+            text-decoration: underline;
+        }
+        @media (max-width: 768px) {
+            .icon-button-container { top: 15px; right: 15px; gap: 8px; }
+            .settings-panel { width: calc(100% - 40px); right: 20px; left: 20px; top: 70px; }
+            .fullscreen-toggle { top: 15px; left: 15px; }
+            #infoSidePanel { width: 300px; }
+        }
+        @media (max-width: 480px) {
+            .settings-panel { padding: 15px; }
+            .settings-panel label { font-size: 0.9em; }
+            .settings-panel input[type="range"], .settings-panel select, .settings-panel input[type="color"], .settings-panel button { padding: 10px; font-size: 0.9em; }
+            .checkbox-group-inline { flex-direction: column; align-items: flex-start; }
+            #infoSidePanel { width: 100%; max-width: 100%; right: -100%; transform: translateX(100%);}
+            #infoSidePanel.info-panel-visible { right:0; transform: translateX(0);}
+        }
+
+    </style>
+</head>
+<body>
+
+    <button class="fullscreen-toggle" title="Toggle Fullscreen" aria-label="Fullscreen">
+        <i class="fas fa-expand" id="fullscreenIcon"></i>
+    </button>
+
+    <div class="icon-button-container">
+        <button id="infoButton" class="icon-button" title="Info / Donations" aria-label="Information">
+            <i class="fas fa-info-circle"></i>
+        </button>
+        <button id="nightModeToggle" class="icon-button" title="Toggle Night Mode" aria-label="Night Mode">
+            <i class="fas fa-moon" id="nightModeIcon"></i>
+        </button>
+        <button class="settings-menu icon-button" title="Settings" aria-label="Settings">
+            <i class="fas fa-cog"></i>
+        </button>
+    </div>
+
+    <div class="settings-panel">
+        <h3><i class="fas fa-cog"></i> <span id="settingsTitle">Settings</span></h3>
+        <label for="languageSelect" id="languageLabel"><i class="fas fa-language"></i> <span>Language:</span></label>
+        <select id="languageSelect">
+            <option value="hr">Hrvatski</option>
+            <option value="en">English</option>
+            <option value="de">Deutsch</option>
+            <option value="it">Italiano</option>
+            <option value="es">Español</option>
+        </select>
+        <label for="brightness" id="brightnessLabel"><i class="fas fa-sun"></i> <span>Brightness:</span></label>
+        <input type="range" id="brightness" min="0" max="1" step="0.1" value="1">
+        <label for="contrast" id="contrastLabel"><i class="fas fa-adjust"></i> <span>Contrast:</span></label>
+        <input type="range" id="contrast" min="0" max="1" step="0.1" value="1">
+        <label for="timeFormat" id="timeFormatLabel"><i class="fas fa-clock"></i> <span>Time format:</span></label>
+        <select id="timeFormat">
+            <option value="24">24-hour</option>
+            <option value="12">12-hour</option>
+        </select>
+        <div class="checkbox-group-inline">
+            <div class="checkbox-item">
+                <input type="checkbox" id="showSecondsCheckbox" checked>
+                <label for="showSecondsCheckbox" id="showSecondsLabel"><i class="fas fa-stopwatch"></i> <span>Show seconds:</span></label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="showDateCheckbox" checked>
+                <label for="showDateCheckbox" id="showDateLabel"><i class="far fa-calendar-alt"></i> <span>Show date:</span></label>
+            </div>
+        </div>
+        <label for="fontSelect" id="fontLabel"><i class="fas fa-font"></i> <span>Font:</span></label>
+        <select id="fontSelect">
+            <option value="Arial, sans-serif">Arial</option>
+            <option value="'Orbitron', sans-serif">Orbitron</option>
+            <option value="'Roboto Mono', monospace">Roboto Mono</option>
+            <option value="'Digital Numbers', sans-serif">Digital Numbers</option>
+            <option value="Times New Roman, serif">Times New Roman</option>
+            <option value="Courier New, monospace">Courier New</option>
+            <option value="Verdana, sans-serif">Verdana</option>
+            <option value="'Segment7Standard', monospace">Segment7Standard</option>
+            <option value="monospace">Monospace</option>
+        </select>
+        <label for="dateFormat" id="dateFormatLabel"><i class="far fa-calendar"></i> <span>Date format:</span></label>
+        <select id="dateFormat">
+            <option value="dd.mm.yyyy.">dd.mm.yyyy.</option>
+            <option value="mm.dd.yyyy.">mm.dd.yyyy.</option>
+            <option value="dd.mmm.yyyy.">dd.mmm.yyyy.</option>
+            <option value="ddd dd.mm.yyyy.">ddd dd.mm.yyyy.</option>
+            <option value="day dd.mm.yyyy.">day dd.mm.yyyy.</option>
+        </select>
+        <div class="checkbox-item" style="margin-top: 20px;">
+            <input type="checkbox" id="autoSizeCheckbox" checked>
+            <label for="autoSizeCheckbox" id="autoSizeLabel"><i class="fas fa-expand-arrows-alt"></i> <span id="autoSizeLabelSpan">Automatic font size</span></label>
+        </div>
+        <label for="satFontSize" id="satFontSizeLabel"><i class="fas fa-text-height"></i> <span>Clock font size:</span></label>
+        <input type="range" id="satFontSize" min="5" max="40" step="1" value="20">
+        <label for="datumFontSize" id="datumFontSizeLabel"><i class="fas fa-text-height"></i> <span>Date font size:</span></label>
+        <input type="range" id="datumFontSize" min="3" max="25" step="1" value="10">
+        <label for="satFontColor" id="satFontColorLabel"><i class="fas fa-palette"></i> <span>Clock color:</span></label>
+        <input type="color" id="satFontColor" value="#000000">
+        <label for="datumFontColor" id="datumFontColorLabel"><i class="fas fa-palette"></i> <span>Date color:</span></label>
+        <input type="color" id="datumFontColor" value="#000000">
+        <label for="backgroundColor" id="backgroundColorLabel"><i class="fas fa-fill-drip"></i> <span>Background color:</span></label>
+        <input type="color" id="backgroundColor" value="#ffffff">
+
+        <h4 id="profilesHeaderLabel">Profiles</h4>
+        <div>
+            <label for="profileName" id="profileNameLabel">Profile Name:</label>
+            <input type="text" id="profileName" placeholder="Enter profile name">
+            <button id="saveProfileButton"><i class="fas fa-save"></i> <span id="saveProfileButtonText">Save Current Profile</span></button>
+        </div>
+        <div style="margin-top:15px;">
+            <label for="profileSelect" id="profileSelectLabel">Manage Profiles:</label>
+            <select id="profileSelect" style="margin-bottom: 5px;">
+            </select>
+            <button id="loadProfileButton"><i class="fas fa-download"></i> <span id="loadProfileButtonText">Load Selected</span></button>
+            <button id="deleteProfileButton" class="delete-button"><i class="fas fa-trash-alt"></i> <span id="deleteProfileButtonText">Delete Selected</span></button>
+        </div>
+        <button id="resetButton" style="margin-top:25px;"><i class="fas fa-undo"></i> <span id="resetButtonText">Reset All Settings</span></button>
+    </div>
+
+    <div id="sat">00:00:00</div>
+    <div id="datum">01.01.2023.</div>
+
+    <div id="infoSidePanel">
+        <button id="infoSidePanelCloseButton" title="Zatvori">&times;</button>
+        <div id="infoSidePanelContent"></div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Element cache
+            const elements = {
+                sat: document.getElementById('sat'),
+                datum: document.getElementById('datum'),
+                settingsMenu: document.querySelector('.settings-menu'),
+                settingsPanel: document.querySelector('.settings-panel'),
+                brightness: document.getElementById('brightness'),
+                contrast: document.getElementById('contrast'),
+                showSecondsCheckbox: document.getElementById('showSecondsCheckbox'),
+                showDateCheckbox: document.getElementById('showDateCheckbox'),
+                timeFormatSelect: document.getElementById('timeFormat'),
+                dateFormatSelect: document.getElementById('dateFormat'),
+                languageSelect: document.getElementById('languageSelect'),
+                fontSelect: document.getElementById('fontSelect'),
+                satFontSize: document.getElementById('satFontSize'),
+                datumFontSize: document.getElementById('datumFontSize'),
+                satFontColor: document.getElementById('satFontColor'),
+                datumFontColor: document.getElementById('datumFontColor'),
+                backgroundColor: document.getElementById('backgroundColor'),
+                resetButton: document.getElementById('resetButton'),
+                nightModeToggle: document.getElementById('nightModeToggle'),
+                nightModeIcon: document.getElementById('nightModeIcon'),
+                autoSizeCheckbox: document.getElementById('autoSizeCheckbox'),
+                autoSizeLabel: document.getElementById('autoSizeLabel'),
+                autoSizeLabelSpan: document.getElementById('autoSizeLabelSpan'),
+                satFontSizeLabel: document.getElementById('satFontSizeLabel'),
+                datumFontSizeLabel: document.getElementById('datumFontSizeLabel'),
+
+                infoButton: document.getElementById('infoButton'),
+                infoSidePanel: document.getElementById('infoSidePanel'),
+                infoSidePanelCloseButton: document.getElementById('infoSidePanelCloseButton'),
+                infoSidePanelContent: document.getElementById('infoSidePanelContent'),
+
+                settingsTitle: document.getElementById('settingsTitle'),
+                languageLabelSpan: document.querySelector('#languageLabel span'),
+                brightnessLabelSpan: document.querySelector('#brightnessLabel span'),
+                contrastLabelSpan: document.querySelector('#contrastLabel span'),
+                timeFormatLabelSpan: document.querySelector('#timeFormatLabel span'),
+                showSecondsLabelSpan: document.querySelector('#showSecondsLabel span'),
+                showDateLabelSpan: document.querySelector('#showDateLabel span'),
+                fontLabelSpan: document.querySelector('#fontLabel span'),
+                dateFormatLabelSpan: document.querySelector('#dateFormatLabel span'),
+                satFontSizeLabelSpan: document.querySelector('#satFontSizeLabel span'),
+                datumFontSizeLabelSpan: document.querySelector('#datumFontSizeLabel span'),
+                satFontColorLabelSpan: document.querySelector('#satFontColorLabel span'),
+                datumFontColorLabelSpan: document.querySelector('#datumFontColorLabel span'),
+                backgroundColorLabelSpan: document.querySelector('#backgroundColorLabel span'),
+                resetButtonText: document.getElementById('resetButtonText'),
+
+                profilesHeaderLabel: document.getElementById('profilesHeaderLabel'),
+                profileNameInput: document.getElementById('profileName'),
+                profileNameLabel: document.getElementById('profileNameLabel'),
+                saveProfileButton: document.getElementById('saveProfileButton'),
+                saveProfileButtonText: document.getElementById('saveProfileButtonText'),
+                profileSelect: document.getElementById('profileSelect'),
+                profileSelectLabel: document.getElementById('profileSelectLabel'),
+                loadProfileButton: document.getElementById('loadProfileButton'),
+                loadProfileButtonText: document.getElementById('loadProfileButtonText'),
+                deleteProfileButton: document.getElementById('deleteProfileButton'),
+                deleteProfileButtonText: document.getElementById('deleteProfileButtonText'),
+                fullscreenButton: document.querySelector('.fullscreen-toggle'),
+                fullscreenIcon: document.getElementById('fullscreenIcon')
+            };
+
+            let isNightModeActive = false;
+            let isAutoSizeActive = true;
+            let currentTranslations = {}; // Holds translations for the current language
+
+            const AUTO_SIZE_SAT_VW = 18;
+            const AUTO_SIZE_DATUM_VW = 8;
+            const DEFAULT_MANUAL_SAT_EM = 20;
+            const DEFAULT_MANUAL_DATUM_EM = 10;
+            const PAYPAL_LINK = "https://www.paypal.com/ncp/payment/RU2CWCNVQ7XD6";
+            const CRYPTO_ADDRESSES = {
+                BTC: "bc1qwlrxrh64peukga0fp59m9yg7gpf0yj8q7fxnsc",
+                ETH: "0xA99A52085c6725854daa46bb302041569c8bA4E3",
+                XRP: "rP43SsrkhPkxTsFohMAm32sAQg7vqwmDpr",
+                SOL: "8xkdVTEaDGuWu4aE3HpEx8r9Aux98JZbdsMiDQvJWBWR",
+                DOGE: "DGAT32ku8WmFaTDxCgVuRuVpUFmfdmD5Jb",
+                XML: "GCYH4OD4I2GNRKFFOYROE3N3S2HCT5RXIML3TZV5DP3TLTLXPXQXIJZ3",
+                LTC: "LWtaFniqdYpv2xJtqo9WqDwCsQ2cW6PYWi",
+                RVN: "RAtXzKZyB3awfq2u2cK8YppC9kJamU5tPQ"
+            };
+
+            const CURRENT_SETTINGS_KEY = 'clockCurrentSettings';
+            const PROFILES_STORAGE_KEY = 'clockAppProfiles';
+
+            const translations = {
+                hr: { settings: "Postavke", language: "Jezik:", brightness: "Svjetlina:", contrast: "Kontrast:", timeFormat: "Format sata:", showSeconds: "Prikaži sekunde:", showDate: "Prikaži datum:", font: "Font:", dateFormat: "Format datuma:", satSize: "Veličina fonta sata:", datumSize: "Veličina fonta datuma:", satColor: "Boja fonta sata:", datumColor: "Boja fonta datuma:", bgColor: "Boja pozadine:", reset: "Resetiraj sve postavke", time24: "24-satni", time12: "12-satni", dateFormats: { 'dd.mm.yyyy.': 'dd.mm.yyyy.', 'mm.dd.yyyy.': 'mm.dd.yyyy.', 'dd.mmm.yyyy.': 'dd.mmm.yyyy.', 'ddd dd.mm.yyyy.': 'ddd dd.mm.yyyy.', 'day dd.mm.yyyy.': 'dan dd.mm.yyyy.' }, days: ['Nedjelja', 'Ponedjeljak', 'Utorak', 'Srijeda', 'Četvrtak', 'Petak', 'Subota'], months: ['sij', 'velj', 'ožu', 'tra', 'svi', 'lip', 'srp', 'kol', 'ruj', 'lis', 'stu', 'pro'], languageNames: { hr: "Hrvatski", en: "English", de: "Deutsch", it: "Italiano", es: "Español" }, autoSize: "Automatska veličina fonta", info: { title: "Informacije / Donacije", line1: "Aplikacija je besplatna za upotrebu ali su donacije dobrodošle.", line2: "Jedan dio primljenih donacija ću ja dalje donirati za razne dobrotvorne organizacije,", line3: "a najveći dio ću donirati za institucije koje se brinu za djecu bez odgovarajuće roditeljske skrbi.", donationHeader: "Donacije možete uplatiti na:", paypal: "PayPal račun:", cryptoHeader: "Kripto novčanik:", btc: "BTC:", eth: "ETH:", xrp: "XRP:", sol: "SOL:", doge: "DOGE:", xml: "XML/XLM:", ltc: "LTC:", rvn: "RVN:" }, profileHeader: "Profili", profileName: "Naziv profila:", saveProfile: "Spremi trenutni profil", manageProfiles: "Upravljaj profilima:", loadProfile: "Učitaj odabrani", deleteProfile: "Obriši odabrani", noProfiles: "Nema spremljenih profila", enterProfileName: "Molimo unesite naziv profila.", overwriteProfileConfirm: "Profil '", overwriteProfileConfirm2: "' već postoji. Želite li ga prepisati?", profileSaved: "Profil '", profileSaved2: "' spremljen!", profileLoaded: "Profil '", profileLoaded2: "' učitan!", deleteProfileConfirm: "Jeste li sigurni da želite obrisati profil '", profileDeleted: "Profil '", profileDeleted2: "' obrisan!", resetConfirm: "Jeste li sigurni da želite resetirati sve postavke na zadane vrijednosti? Ovo neće obrisati spremljene profile.", toggleDayMode: "Uključi dnevni način", toggleNightMode: "Uključi noćni način", enterFullscreen: "Puni zaslon", exitFullscreen: "Izađi iz punog zaslona" },
+                en: { settings: "Settings", language: "Language:", brightness: "Brightness:", contrast: "Contrast:", timeFormat: "Time format:", showSeconds: "Show seconds:", showDate: "Show date:", font: "Font:", dateFormat: "Date format:", satSize: "Clock font size:", datumSize: "Date font size:", satColor: "Clock color:", datumColor: "Date color:", bgColor: "Background color:", reset: "Reset All Settings", time24: "24-hour", time12: "12-hour", dateFormats: { 'dd.mm.yyyy.': 'dd.mm.yyyy.', 'mm.dd.yyyy.': 'mm.dd.yyyy.', 'dd.mmm.yyyy.': 'dd mmm yy.', 'ddd dd.mm.yyyy.': 'ddd dd.mm.yyyy.', 'day dd.mm.yyyy.': 'day, dd mmm yy.' }, days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], languageNames: { hr: "Hrvatski", en: "English", de: "Deutsch", it: "Italiano", es: "Español" }, autoSize: "Automatic font size", info: { title: "Information / Donations", line1: "The application is free to use, but donations are welcome.", line2: "A part of the received donations will be forwarded to various charitable organizations,", line3: "the largest part will be donated to institutions caring for children without adequate parental care.", donationHeader: "You can make donations to:", paypal: "PayPal account:", cryptoHeader: "Crypto Wallet:", btc: "BTC:", eth: "ETH:", xrp: "XRP:", sol: "SOL:", doge: "DOGE:", xml: "XML/XLM:", ltc: "LTC:", rvn: "RVN:" }, profileHeader: "Profiles", profileName: "Profile Name:", saveProfile: "Save Current Profile", manageProfiles: "Manage Profiles:", loadProfile: "Load Selected", deleteProfile: "Delete Selected", noProfiles: "No profiles saved", enterProfileName: "Please enter a profile name.", overwriteProfileConfirm: "Profile '", overwriteProfileConfirm2: "' already exists. Overwrite?", profileSaved: "Profile '", profileSaved2: "' saved!", profileLoaded: "Profile '", profileLoaded2: "' loaded!", deleteProfileConfirm: "Are you sure you want to delete profile '", profileDeleted: "Profil '", profileDeleted2: "' deleted!", resetConfirm: "Are you sure you want to reset all settings to default? This will not delete saved profiles.", toggleDayMode: "Toggle Day Mode", toggleNightMode: "Toggle Night Mode", enterFullscreen: "Enter Fullscreen", exitFullscreen: "Exit Fullscreen" },
+                de: { settings: "Einstellungen", language: "Sprache:", brightness: "Helligkeit:", contrast: "Kontrast:", timeFormat: "Zeitformat:", showSeconds: "Sekunden anzeigen:", showDate: "Datum anzeigen:", font: "Schriftart:", dateFormat: "Datumsformat:", satSize: "Uhr Schriftgröße:", datumSize: "Datum Schriftgröße:", satColor: "Uhr Farbe:", datumColor: "Datum Farbe:", bgColor: "Hintergrundfarbe:", reset: "Alle Einstellungen zurücksetzen", time24: "24-Stunden", time12: "12-Stunden", dateFormats: { 'dd.mm.yyyy.': 'TT.MM.JJJJ.', 'mm.dd.yyyy.': 'MM.TT.JJJJ.', 'dd.mmm.yyyy.': 'TT.MMM.JJJJ.', 'ddd dd.mm.yyyy.': 'Tag TT.MM.JJJJ.', 'day dd.mm.yyyy.': 'Tag, TT. MMM JJJJ.' }, days: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'], months: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'], languageNames: { hr: "Hrvatski", en: "English", de: "Deutsch", it: "Italiano", es: "Español" }, autoSize: "Automatische Schriftgröße", info: { title: "Informationen / Spenden", line1: "Die Anwendung ist kostenlos nutzbar, Spenden sind jedoch willkommen.", line2: "Ein Teil der erhaltenen Spenden werde ich an verschiedene wohltätige Organisationen weiterleiten,", line3: "und der größte Teil wird an Einrichtungen gespendet, die sich um Kinder ohne angemessene elterliche Fürsorge kümmern.", donationHeader: "Spenden können Sie an:", paypal: "PayPal-Konto:", cryptoHeader: "Krypto-Wallet:", btc: "BTC:", eth: "ETH:", xrp: "XRP:", sol: "SOL:", doge: "DOGE:", xml: "XML/XLM:", ltc: "LTC:", rvn: "RVN:" }, profileHeader: "Profile", profileName: "Profilname:", saveProfile: "Aktuelles Profil speichern", manageProfiles: "Profile verwalten:", loadProfile: "Ausgewählte laden", deleteProfile: "Ausgewählte löschen", noProfiles: "Keine Profile gespeichert", enterProfileName: "Bitte geben Sie einen Profilnamen ein.", overwriteProfileConfirm: "Profil '", overwriteProfileConfirm2: "' existiert bereits. Überschreiben?", profileSaved: "Profil '", profileSaved2: "' gespeichert!", profileLoaded: "Profil '", profileLoaded2: "' geladen!", deleteProfileConfirm: "Sind Sie sicher, dass Sie das Profil '", profileDeleted: "Profil '", profileDeleted2: "' löschen möchten?", resetConfirm: "Sind Sie sicher, dass Sie alle Einstellungen auf Standard zurücksetzen möchten? Gespeicherte Profile werden dadurch nicht gelöscht.", toggleDayMode: "Tagesmodus umschalten", toggleNightMode: "Nachtmodus umschalten", enterFullscreen: "Vollbild", exitFullscreen: "Vollbild verlassen" },
+                it: { settings: "Impostazioni", language: "Lingua:", brightness: "Luminosità:", contrast: "Contrasto:", timeFormat: "Formato orario:", showSeconds: "Mostra secondi:", showDate: "Mostra data:", font: "Carattere:", dateFormat: "Formato data:", satSize: "Dimensione carattere orologio:", datumSize: "Dimensione carattere data:", satColor: "Colore orologio:", datumColor: "Colore data:", bgColor: "Colore sfondo:", reset: "Reimposta tutte le impostazioni", time24: "24-ore", time12: "12-ore", dateFormats: { 'dd.mm.yyyy.': 'gg.mm.aaaa.', 'mm.dd.yyyy.': 'mm.gg.aaaa.', 'dd.mmm.yyyy.': 'gg mmm aaaa.', 'ddd dd.mm.yyyy.': 'ggg gg.mm.aaaa.', 'day dd.mm.yyyy.': 'giorno, gg mmm aaaa.' }, days: ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'], months: ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'], languageNames: { hr: "Hrvatski", en: "English", de: "Deutsch", it: "Italiano", es: "Español" }, autoSize: "Dimensione carattere automatica", info: { title: "Informazioni / Donazioni", line1: "L'applicazione è gratuita, ma le donazioni sono benvenute.", line2: "Una parte delle donazioni ricevute sarà da me devoluta a varie organizzazioni di beneficenza,", line3: "e la maggior parte sarà donata a istituzioni che si prendono cura di bambini senza un'adeguata assistenza genitoriale.", donationHeader: "Puoi effettuare donazioni a:", paypal: "Conto PayPal:", cryptoHeader: "Portafoglio Crypto:", btc: "BTC:", eth: "ETH:", xrp: "XRP:", sol: "SOL:", doge: "DOGE:", xml: "XML/XLM:", ltc: "LTC:", rvn: "RVN:" }, profileHeader: "Profili", profileName: "Nome profilo:", saveProfile: "Salva profilo corrente", manageProfiles: "Gestisci profili:", loadProfile: "Carica selezionato", deleteProfile: "Elimina selezionato", noProfiles: "Nessun profilo salvato", enterProfileName: "Inserisci un nome per il profilo.", overwriteProfileConfirm: "Profilo '", overwriteProfileConfirm2: "' esiste già. Sovrascrivere?", profileSaved: "Profilo '", profileSaved2: "' salvato!", profileLoaded: "Profilo '", profileLoaded2: "' caricato!", deleteProfileConfirm: "Sei sicuro di voler eliminare il profilo '", profileDeleted: "Profilo '", profileDeleted2: "' eliminato?", resetConfirm: "Sei sicuro di voler reimpostare tutte le impostazioni ai valori predefiniti? Questo non eliminerà i profili salvati.", toggleDayMode: "Attiva modalità giorno", toggleNightMode: "Attiva modalità notte", enterFullscreen: "Schermo intero", exitFullscreen: "Esci da schermo intero" },
+                es: { settings: "Configuración", language: "Idioma:", brightness: "Brillo:", contrast: "Contraste:", timeFormat: "Formato de hora:", showSeconds: "Mostrar segundos:", showDate: "Mostrar fecha:", font: "Fuente:", dateFormat: "Formato de fecha:", satSize: "Tamaño de fuente del reloj:", datumSize: "Tamaño de fuente de fecha:", satColor: "Color del reloj:", datumColor: "Color de fecha:", bgColor: "Color de fondo:", reset: "Restablecer todas las configuraciones", time24: "24-horas", time12: "12-horas", dateFormats: { 'dd.mm.yyyy.': 'dd.mm.aaaa.', 'mm.dd.yyyy.': 'mm.dd.aaaa.', 'dd.mmm.yyyy.': 'dd mmm aaaa.', 'ddd dd.mm.aaaa.': 'ddd dd.mm.aaaa.', 'day dd.mm.aaaa.': 'día, dd mmm aaaa.' }, days: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'], months: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'], languageNames: { hr: "Hrvatski", en: "English", de: "Deutsch", it: "Italiano", es: "Español" }, autoSize: "Tamaño de fuente automático", info: { title: "Información / Donaciones", line1: "La aplicación es de uso gratuito, pero las donaciones son bienvenidas.", line2: "Una parte de las donaciones recibidas será transferida por mí a diversas organizaciones benéficas,", line3: "y la mayor parte se donará a instituciones que cuidan a niños sin el cuidado parental adecuado.", donationHeader: "Puede hacer donaciones a:", paypal: "Cuenta PayPal:", cryptoHeader: "Monedero Crypto:", btc: "BTC:", eth: "ETH:", xrp: "XRP:", sol: "SOL:", doge: "DOGE:", xml: "XML/XLM:", ltc: "LTC:", rvn: "RVN:" }, profileHeader: "Perfiles", profileName: "Nombre del perfil:", saveProfile: "Guardar perfil actual", manageProfiles: "Administrar perfiles:", loadProfile: "Cargar seleccionado", deleteProfile: "Eliminar seleccionado", noProfiles: "No hay perfiles guardados", enterProfileName: "Por favor, ingrese un nombre de perfil.", overwriteProfileConfirm: "El perfil '", overwriteProfileConfirm2: "' ya existe. ¿Sobrescribir?", profileSaved: "Perfil '", profileSaved2: "' guardado!", profileLoaded: "Profil '", profileLoaded2: "' cargado!", deleteProfileConfirm: "¿Está seguro de que desea eliminar el perfil '", profileDeleted: "Perfil '", profileDeleted2: "' eliminado?", resetConfirm: "¿Está seguro de que desea restablecer todas las configuraciones a los valores predeterminados? Esto no eliminará los perfiles guardados.", toggleDayMode: "Alternar modo día", toggleNightMode: "Alternar modo noche", enterFullscreen: "Pantalla completa", exitFullscreen: "Salir de pantalla completa" }
+            };
+
+            // --- Helper to get current language's translation object ---
+            function T(key) {
+                // Access nested keys like 'info.title'
+                const keys = key.split('.');
+                let result = currentTranslations;
+                for (const k of keys) {
+                    result = result?.[k];
+                    if (result === undefined) {
+                        // Fallback to English if a specific key is missing in the current language
+                        let fallbackResult = translations.en;
+                        for (const fk of keys) {
+                            fallbackResult = fallbackResult?.[fk];
+                            if (fallbackResult === undefined) return key; // Return key itself if not found anywhere
+                        }
+                        return fallbackResult;
+                    }
+                }
+                return result || key; // Return key if result is null/undefined after traversal
+            }
+
+
+            function applyNightModeStyles() {
+                document.documentElement.style.setProperty('--bg-color', '#000000');
+                elements.sat.style.color = '#ffffff';
+                elements.datum.style.color = '#ffffff';
+                document.documentElement.style.setProperty('--brightness', '0.5');
+                document.documentElement.style.setProperty('--button-bg', '#333');
+                document.documentElement.style.setProperty('--button-hover-bg', '#444');
+                document.documentElement.style.setProperty('--button-icon-color', '#fff');
+                document.documentElement.style.setProperty('--button-border-color', '#555');
+                document.documentElement.style.setProperty('--button-shadow', '0 2px 4px rgba(0,0,0,0.3)');
+            }
+
+            function applyDayModeStyles() {
+                document.documentElement.style.setProperty('--bg-color', elements.backgroundColor.value);
+                elements.sat.style.color = elements.satFontColor.value;
+                elements.datum.style.color = elements.datumFontColor.value;
+                document.documentElement.style.setProperty('--brightness', elements.brightness.value);
+                document.documentElement.style.setProperty('--button-bg', '#f0f0f0');
+                document.documentElement.style.setProperty('--button-hover-bg', '#e0e0e0');
+                document.documentElement.style.setProperty('--button-icon-color', '#333');
+                document.documentElement.style.setProperty('--button-border-color', '#ccc');
+                document.documentElement.style.setProperty('--button-shadow', '0 2px 4px rgba(0,0,0,0.1)');
+            }
+
+            function updateNightModeIcon() {
+                if (isNightModeActive) {
+                    elements.nightModeIcon.classList.remove('fa-moon');
+                    elements.nightModeIcon.classList.add('fa-sun');
+                    elements.nightModeToggle.title = T('toggleDayMode');
+                } else {
+                    elements.nightModeIcon.classList.remove('fa-sun');
+                    elements.nightModeIcon.classList.add('fa-moon');
+                    elements.nightModeToggle.title = T('toggleNightMode');
+                }
+            }
+
+            function toggleNightMode() {
+                isNightModeActive = !isNightModeActive;
+                if (isNightModeActive) {
+                    applyNightModeStyles();
+                } else {
+                    applyDayModeStyles();
+                }
+                updateNightModeIcon();
+                saveCurrentSettings();
+            }
+
+            function updateSizingMode() {
+                if (isAutoSizeActive) {
+                    elements.satFontSize.disabled = true;
+                    elements.datumFontSize.disabled = true;
+                    elements.satFontSizeLabel.classList.add('disabled');
+                    elements.datumFontSizeLabel.classList.add('disabled');
+                    elements.sat.style.fontSize = `${AUTO_SIZE_SAT_VW}vw`;
+                    elements.datum.style.fontSize = `${AUTO_SIZE_DATUM_VW}vw`;
+                    document.documentElement.style.removeProperty('--sat-font-size-manual');
+                    document.documentElement.style.removeProperty('--datum-font-size-manual');
+                } else {
+                    elements.satFontSize.disabled = false;
+                    elements.datumFontSize.disabled = false;
+                    elements.satFontSizeLabel.classList.remove('disabled');
+                    elements.datumFontSizeLabel.classList.remove('disabled');
+                    document.documentElement.style.setProperty('--sat-font-size-manual', `${elements.satFontSize.value}em`);
+                    document.documentElement.style.setProperty('--datum-font-size-manual', `${elements.datumFontSize.value}em`);
+                    elements.sat.style.fontSize = `var(--sat-font-size-manual)`;
+                    elements.datum.style.fontSize = `var(--datum-font-size-manual)`;
+                }
+            }
+
+            function populateInfoPanel() {
+                const tInfo = T('info'); // Get the whole info object for the current language
+                let contentHTML = `<h4>${tInfo.title}</h4>`;
+                contentHTML += `<p>${tInfo.line1}</p><p>${tInfo.line2}</p><p>${tInfo.line3}</p><strong>${tInfo.donationHeader}</strong>`;
+                contentHTML += `<p>${tInfo.paypal} <a href="${PAYPAL_LINK}" target="_blank" rel="noopener noreferrer">${PAYPAL_LINK}</a></p>`;
+                contentHTML += `<strong>${tInfo.cryptoHeader}</strong>`;
+                Object.keys(CRYPTO_ADDRESSES).forEach(key => {
+                    const label = tInfo[key.toLowerCase()] || key;
+                    contentHTML += `<p>${label}: <code>${CRYPTO_ADDRESSES[key]}</code></p>`;
+                });
+                elements.infoSidePanelContent.innerHTML = contentHTML;
+            }
+
+            function showInfoPanel() {
+                populateInfoPanel();
+                elements.infoSidePanel.classList.add('info-panel-visible');
+            }
+
+            function hideInfoPanel() {
+                elements.infoSidePanel.classList.remove('info-panel-visible');
+            }
+
+            function toggleInfoPanel() {
+                if (elements.infoSidePanel.classList.contains('info-panel-visible')) {
+                    hideInfoPanel();
+                } else {
+                    showInfoPanel();
+                }
+            }
+
+            function getProfiles() {
+                const profiles = localStorage.getItem(PROFILES_STORAGE_KEY);
+                return profiles ? JSON.parse(profiles) : [];
+            }
+
+            function saveProfiles(profiles) {
+                localStorage.setItem(PROFILES_STORAGE_KEY, JSON.stringify(profiles));
+            }
+
+            function populateProfileDropdown() {
+                const profiles = getProfiles();
+                elements.profileSelect.innerHTML = '';
+
+                if (profiles.length === 0) {
+                    const option = document.createElement('option');
+                    option.value = "";
+                    option.textContent = T('noProfiles');
+                    option.disabled = true;
+                    elements.profileSelect.appendChild(option);
+                    elements.loadProfileButton.disabled = true;
+                    elements.deleteProfileButton.disabled = true;
+                } else {
+                    profiles.forEach(profile => {
+                        const option = document.createElement('option');
+                        option.value = profile.name;
+                        option.textContent = profile.name;
+                        elements.profileSelect.appendChild(option);
+                    });
+                    elements.loadProfileButton.disabled = false;
+                    elements.deleteProfileButton.disabled = false;
+                }
+            }
+
+            function getCurrentSettingsObject() {
+                return {
+                    backgroundColor: elements.backgroundColor.value,
+                    satFontColor: elements.satFontColor.value,
+                    datumFontColor: elements.datumFontColor.value,
+                    fontSelect: elements.fontSelect.value,
+                    satFontSize: elements.satFontSize.value,
+                    datumFontSize: elements.datumFontSize.value,
+                    brightness: elements.brightness.value,
+                    contrast: elements.contrast.value,
+                    timeFormat: elements.timeFormatSelect.value,
+                    dateFormat: elements.dateFormatSelect.value,
+                    showSeconds: elements.showSecondsCheckbox.checked,
+                    showDate: elements.showDateCheckbox.checked,
+                    language: elements.languageSelect.value,
+                    isNightModeActive: isNightModeActive,
+                    isAutoSizeActive: isAutoSizeActive
+                };
+            }
+
+            function applySettingsFromObject(settingsObj) {
+                // Apply basic values first
+                elements.backgroundColor.value = settingsObj.backgroundColor;
+                elements.satFontColor.value = settingsObj.satFontColor;
+                elements.datumFontColor.value = settingsObj.datumFontColor;
+                elements.fontSelect.value = settingsObj.fontSelect;
+                elements.satFontSize.value = settingsObj.satFontSize;
+                elements.datumFontSize.value = settingsObj.datumFontSize;
+                elements.brightness.value = settingsObj.brightness;
+                elements.contrast.value = settingsObj.contrast;
+                elements.timeFormatSelect.value = settingsObj.timeFormat;
+                elements.dateFormatSelect.value = settingsObj.dateFormat;
+                elements.showSecondsCheckbox.checked = settingsObj.showSeconds;
+                elements.showDateCheckbox.checked = settingsObj.showDate;
+
+                // Set language and update translations object
+                elements.languageSelect.value = settingsObj.language;
+                currentTranslations = translations[settingsObj.language] || translations.en;
+                updateLanguageUI(); // Update UI text elements
+
+                // Set state variables
+                isNightModeActive = settingsObj.isNightModeActive;
+                isAutoSizeActive = settingsObj.isAutoSizeActive;
+                elements.autoSizeCheckbox.checked = isAutoSizeActive;
+
+                // Apply visual styles based on the new state
+                applyBasicVisualSettings(); // Applies font, contrast, and day/night mode related colors
+                updateSizingMode();       // Applies font sizing
+
+                // Ensure night/day mode icon and styles are correctly set after all other visual changes
+                if (isNightModeActive) {
+                    applyNightModeStyles(); // Re-apply night mode if it was active
+                } else {
+                    applyDayModeStyles();   // Ensure day mode reflects loaded settings
+                }
+                updateNightModeIcon();
+            }
+
+            elements.saveProfileButton.addEventListener('click', () => {
+                const profileName = elements.profileNameInput.value.trim();
+                if (!profileName) {
+                    alert(T('enterProfileName'));
+                    return;
+                }
+                const profiles = getProfiles();
+                const existingProfileIndex = profiles.findIndex(p => p.name === profileName);
+                const currentSettings = getCurrentSettingsObject();
+
+                if (existingProfileIndex > -1) {
+                    if (confirm(T('overwriteProfileConfirm') + profileName + T('overwriteProfileConfirm2'))) {
+                        profiles[existingProfileIndex].settings = currentSettings;
+                    } else {
+                        return;
+                    }
+                } else {
+                    profiles.push({ name: profileName, settings: currentSettings });
+                }
+                saveProfiles(profiles);
+                populateProfileDropdown();
+                elements.profileNameInput.value = '';
+                alert(T('profileSaved') + profileName + T('profileSaved2'));
+            });
+
+            elements.loadProfileButton.addEventListener('click', () => {
+                const profileName = elements.profileSelect.value;
+                if (!profileName) return;
+
+                const profiles = getProfiles();
+                const profileToLoad = profiles.find(p => p.name === profileName);
+                if (profileToLoad) {
+                    applySettingsFromObject(profileToLoad.settings);
+                    saveCurrentSettings();
+                    alert(T('profileLoaded') + profileName + T('profileLoaded2'));
+                }
+            });
+
+            elements.deleteProfileButton.addEventListener('click', () => {
+                const profileName = elements.profileSelect.value;
+                if (!profileName) return;
+
+                if (confirm(T('deleteProfileConfirm') + profileName + "'?")) { // Added question mark
+                    let profiles = getProfiles();
+                    profiles = profiles.filter(p => p.name !== profileName);
+                    saveProfiles(profiles);
+                    populateProfileDropdown();
+                       alert(T('profileDeleted') + profileName + T('profileDeleted2'));
+                }
+            });
+
+            function populateLanguageOptions() {
+                const langSelect = elements.languageSelect;
+                const currentLangValue = langSelect.value || 'en';
+                langSelect.innerHTML = '';
+
+                const nativeLanguageNames = translations.en.languageNames;
+                Object.keys(nativeLanguageNames).forEach(langCode => {
+                    const option = document.createElement('option');
+                    option.value = langCode;
+                    option.textContent = nativeLanguageNames[langCode];
+                    langSelect.appendChild(option);
+                });
+                langSelect.value = currentLangValue;
+            }
+
+            function saveCurrentSettings() {
+                const currentSettings = getCurrentSettingsObject();
+                localStorage.setItem(CURRENT_SETTINGS_KEY, JSON.stringify(currentSettings));
+            }
+
+            function loadSettings() {
+                const defaultSettings = {
+                    backgroundColor: "#ffffff", satFontColor: "#000000", datumFontColor: "#000000",
+                    fontSelect: "Arial, sans-serif",
+                    satFontSize: DEFAULT_MANUAL_SAT_EM.toString(),
+                    datumFontSize: DEFAULT_MANUAL_DATUM_EM.toString(),
+                    brightness: "1", contrast: "1", timeFormat: "24", dateFormat: "dd.mm.yyyy.",
+                    showSeconds: true, showDate: true, language: "en",
+                    isNightModeActive: false, isAutoSizeActive: true
+                };
+                const storedSettings = JSON.parse(localStorage.getItem(CURRENT_SETTINGS_KEY)) || {};
+                const settingsToApply = { ...defaultSettings, ...storedSettings };
+
+                // Set currentTranslations before applying settings that depend on it
+                currentTranslations = translations[settingsToApply.language] || translations.en;
+                applySettingsFromObject(settingsToApply); // This will also call updateLanguageUI
+                populateProfileDropdown();
+            }
+
+            // Renamed from updateLanguage to avoid confusion, this only updates the UI text
+            function updateLanguageUI() {
+                elements.settingsTitle.textContent = T('settings');
+                elements.languageLabelSpan.textContent = T('language');
+                elements.brightnessLabelSpan.textContent = T('brightness');
+                elements.contrastLabelSpan.textContent = T('contrast');
+                elements.timeFormatLabelSpan.textContent = T('timeFormat');
+                elements.showSecondsLabelSpan.textContent = T('showSeconds');
+                elements.showDateLabelSpan.textContent = T('showDate');
+                elements.fontLabelSpan.textContent = T('font');
+                elements.dateFormatLabelSpan.textContent = T('dateFormat');
+                elements.satFontSizeLabelSpan.textContent = T('satSize');
+                elements.datumFontSizeLabelSpan.textContent = T('datumSize');
+                elements.satFontColorLabelSpan.textContent = T('satColor');
+                elements.datumFontColorLabelSpan.textContent = T('datumColor');
+                elements.backgroundColorLabelSpan.textContent = T('bgColor');
+                elements.resetButtonText.textContent = T('reset');
+                elements.autoSizeLabelSpan.textContent = T('autoSize');
+
+                elements.infoButton.title = T('info.title');
+
+                elements.profilesHeaderLabel.textContent = T('profileHeader');
+                elements.profileNameLabel.textContent = T('profileName');
+                elements.saveProfileButtonText.textContent = T('saveProfile');
+                elements.profileSelectLabel.textContent = T('manageProfiles');
+                elements.loadProfileButtonText.textContent = T('loadProfile');
+                elements.deleteProfileButtonText.textContent = T('deleteProfile');
+
+                if(elements.profileSelect.options.length > 0 && elements.profileSelect.options[0].disabled) {
+                    elements.profileSelect.options[0].textContent = T('noProfiles');
+                }
+
+                elements.timeFormatSelect.options[0].textContent = T('time24');
+                elements.timeFormatSelect.options[1].textContent = T('time12');
+                const dateFormatOptions = elements.dateFormatSelect.options;
+                const tDateFormats = T('dateFormats');
+                for (let i = 0; i < dateFormatOptions.length; i++) {
+                    const value = dateFormatOptions[i].value;
+                    if (tDateFormats && tDateFormats[value]) {
+                        dateFormatOptions[i].textContent = tDateFormats[value];
+                    } else {
+                        dateFormatOptions[i].textContent = value;
+                    }
+                }
+
+                elements.settingsMenu.title = T('settings');
+                // Ažuriranje naslova dokumenta na temelju odabranog jezika
+                const lang = elements.languageSelect.value;
+                if (lang === 'hr') {
+                    document.title = "Digitalni Sat s Datumom - Prilagodljiv Online Sat";
+                } else if (lang === 'de') {
+                    document.title = "Digitaluhr mit Datum - Anpassbare Online-Uhr";
+                } else if (lang === 'it') {
+                    document.title = "Orologio Digitale con Data - Orologio Online Personalizzabile";
+                } else if (lang === 'es') {
+                    document.title = "Reloj Digital con Fecha - Reloj Online Personalizable";
+                } else { // Default na engleski
+                    document.title = "Digital Clock with Date - Customizable Online Clock";
+                }
+
+
+                updateNightModeIcon();
+                updateFullscreenIcon();
+                updateTime();
+                updateDate();
+            }
+
+            function updateTime() {
+                const now = new Date();
+                let hours = now.getHours();
+                const minutes = now.getMinutes().toString().padStart(2, '0');
+                const seconds = now.getSeconds().toString().padStart(2, '0');
+
+                if (elements.timeFormatSelect.value === '12') {
+                    const ampm = hours >= 12 ? 'PM' : 'AM';
+                    hours = hours % 12 || 12;
+                    elements.sat.textContent = `${hours}:${minutes}${elements.showSecondsCheckbox.checked ? `:${seconds} ${ampm}` : ` ${ampm}`}`;
+                } else {
+                    hours = hours.toString().padStart(2, '0');
+                    elements.sat.textContent = `${hours}:${minutes}${elements.showSecondsCheckbox.checked ? `:${seconds}` : ''}`;
+                }
+            }
+
+            function updateDate() {
+                if (!elements.showDateCheckbox.checked) {
+                    elements.datum.style.display = 'none';
+                    return;
+                }
+                elements.datum.style.display = 'block';
+
+                const now = new Date();
+                const day = now.getDate().toString();
+                const monthNum = now.getMonth();
+                const year = now.getFullYear();
+                const dayOfWeek = now.getDay();
+
+                const tMonths = T('months');
+                const tDays = T('days');
+                let dateString;
+
+                const currentDateFormat = elements.dateFormatSelect.value;
+                const monthName = tMonths[monthNum];
+                const dayName = tDays[dayOfWeek];
+                const dayAbbr = tDays[dayOfWeek].substring(0,3);
+
+                switch(currentDateFormat) {
+                    case 'dd.mm.yyyy.':
+                        dateString = `${day.padStart(2, '0')}.${(monthNum + 1).toString().padStart(2, '0')}.${year}.`;
+                        break;
+                    case 'mm.dd.yyyy.':
+                        dateString = `${(monthNum + 1).toString().padStart(2, '0')}.${day.padStart(2, '0')}.${year}.`;
+                        break;
+                    case 'dd.mmm.yyyy.':
+                        dateString = `${day}. ${monthName} ${year}.`;
+                        break;
+                    case 'ddd dd.mm.yyyy.':
+                        dateString = `${dayAbbr} ${day.padStart(2, '0')}.${(monthNum + 1).toString().padStart(2, '0')}.${year}.`;
+                        break;
+                    case 'day dd.mm.yyyy.':
+                        // Using translated day name and month name as per common expectation for this format
+                        dateString = `${dayName}, ${day}. ${monthName} ${year}.`;
+                        break;
+                    default:
+                        dateString = `${day.padStart(2, '0')}.${(monthNum + 1).toString().padStart(2, '0')}.${year}.`;
+                }
+                elements.datum.textContent = dateString;
+            }
+
+            function applyBasicVisualSettings() {
+                document.documentElement.style.setProperty('--font-family', elements.fontSelect.value);
+                document.documentElement.style.setProperty('--contrast', elements.contrast.value);
+
+                if (!isNightModeActive) {
+                    applyDayModeStyles();
+                }
+
+                elements.satFontColor.style.backgroundColor = elements.satFontColor.value;
+                elements.datumFontColor.style.backgroundColor = elements.datumFontColor.value;
+                elements.backgroundColor.style.backgroundColor = elements.backgroundColor.value;
+            }
+
+            function resetSettings() {
+                if (!confirm(T('resetConfirm'))) {
+                    return;
+                }
+
+                isNightModeActive = false;
+                isAutoSizeActive = true;
+
+                elements.backgroundColor.value = "#ffffff";
+                elements.satFontColor.value = "#000000";
+                elements.datumFontColor.value = "#000000";
+                elements.fontSelect.value = "Arial, sans-serif";
+                elements.satFontSize.value = DEFAULT_MANUAL_SAT_EM.toString();
+                elements.datumFontSize.value = DEFAULT_MANUAL_DATUM_EM.toString();
+                elements.brightness.value = "1";
+                elements.contrast.value = "1";
+                elements.timeFormatSelect.value = "24";
+                elements.dateFormatSelect.value = "dd.mm.yyyy.";
+                elements.showSecondsCheckbox.checked = true;
+                elements.showDateCheckbox.checked = true;
+                elements.languageSelect.value = "en";
+                elements.autoSizeCheckbox.checked = true;
+
+                currentTranslations = translations.en; // Reset to English translations
+
+                populateLanguageOptions(); // Ensure language options are correctly populated
+                updateLanguageUI();       // Update all text labels
+                applyBasicVisualSettings();
+                updateSizingMode();
+                updateNightModeIcon();
+                hideInfoPanel();
+
+                saveCurrentSettings();
+            }
+
+            function updateFullscreenIcon() {
+                if (document.fullscreenElement) {
+                    elements.fullscreenIcon.classList.remove('fa-expand');
+                    elements.fullscreenIcon.classList.add('fa-compress');
+                    elements.fullscreenButton.title = T('exitFullscreen');
+                } else {
+                    elements.fullscreenIcon.classList.remove('fa-compress');
+                    elements.fullscreenIcon.classList.add('fa-expand');
+                    elements.fullscreenButton.title = T('enterFullscreen');
+                }
+            }
+
+            // --- Event Listeners ---
+            elements.settingsMenu.addEventListener('click', () => {
+                elements.settingsPanel.style.display = elements.settingsPanel.style.display === 'block' ? 'none' : 'block';
+                if (elements.settingsPanel.style.display === 'block') {
+                    hideInfoPanel();
+                }
+            });
+
+            elements.nightModeToggle.addEventListener('click', toggleNightMode);
+            elements.infoButton.addEventListener('click', () => {
+                toggleInfoPanel();
+                if (elements.infoSidePanel.classList.contains('info-panel-visible')) {
+                    elements.settingsPanel.style.display = 'none';
+                }
+            });
+            elements.infoSidePanelCloseButton.addEventListener('click', hideInfoPanel);
+
+            elements.languageSelect.addEventListener('change', (event) => {
+                currentTranslations = translations[event.target.value] || translations.en;
+                updateLanguageUI();
+                if(elements.infoSidePanel.classList.contains('info-panel-visible')) {
+                    populateInfoPanel();
+                }
+                saveCurrentSettings();
+            });
+
+            elements.showSecondsCheckbox.addEventListener('change', () => { updateTime(); saveCurrentSettings(); });
+            elements.showDateCheckbox.addEventListener('change', () => { updateDate(); saveCurrentSettings(); });
+            elements.timeFormatSelect.addEventListener('change', () => { updateTime(); saveCurrentSettings(); });
+            elements.dateFormatSelect.addEventListener('change', () => { updateDate(); saveCurrentSettings(); });
+
+            elements.autoSizeCheckbox.addEventListener('change', () => {
+                isAutoSizeActive = elements.autoSizeCheckbox.checked;
+                updateSizingMode();
+                saveCurrentSettings();
+            });
+
+            [elements.satFontSize, elements.datumFontSize].forEach(slider => {
+                slider.addEventListener('input', () => {
+                    if (isAutoSizeActive) {
+                        isAutoSizeActive = false;
+                        elements.autoSizeCheckbox.checked = false;
+                    }
+                    updateSizingMode();
+                    saveCurrentSettings();
+                });
+            });
+
+            const otherVisualInputs = [
+                elements.brightness, elements.contrast, elements.fontSelect,
+                elements.satFontColor, elements.datumFontColor, elements.backgroundColor
+            ];
+            otherVisualInputs.forEach(input => {
+                const eventType = (input.type === 'range' || input.type === 'color') ? 'input' : 'change';
+                input.addEventListener(eventType, (event) => {
+                    const targetId = event.target.id;
+                    if (isNightModeActive && ['backgroundColor', 'satFontColor', 'datumFontColor', 'brightness'].includes(targetId)) {
+                        isNightModeActive = false;
+                        updateNightModeIcon();
+                    }
+                    applyBasicVisualSettings();
+                    saveCurrentSettings();
+                });
+            });
+
+            elements.resetButton.addEventListener('click', resetSettings);
+
+            elements.fullscreenButton.addEventListener('click', () => {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch(err => {
+                        console.warn(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+                    });
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    }
+                }
+            });
+            document.addEventListener('fullscreenchange', updateFullscreenIcon);
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && document.fullscreenElement) {
+                    // Icon update will be handled by 'fullscreenchange' event
+                }
+            });
+
+            // --- Initialization ---
+            populateLanguageOptions(); // Populate language dropdown first
+            loadSettings();       // Load saved settings or defaults
+
+            // Main interval to update time and date every second
+            setInterval(() => {
+                updateTime();
+                updateDate();
+            }, 1000);
+
+        });
+    </script>
+</body>
+</html>
