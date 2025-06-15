@@ -2,22 +2,22 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Digital Clock: Stopwatch, Timer & Time Zones</title>
-    <meta name="description" content="Free online digital clock with a customizable date display, stopwatch, timer, and world time zones. Fully customizable with profiles, themes, and languages.">
-    <meta name="keywords" content="digital clock, online clock, stopwatch, online stopwatch, timer, online timer, world clock, time zones, accurate time, date, customizable clock, free digital clock, digitalni sat, online sat, štoperica, mjerač vremena, vremenske zone">
+    <title>Digital Clock: Alarm, Stopwatch, Timer & Time Zones</title>
+    <meta name="description" content="Free online digital clock with a customizable date display, alarm, stopwatch, timer, and world time zones. Fully customizable with profiles, themes, and languages.">
+    <meta name="keywords" content="digital clock, online clock, alarm, online alarm, stopwatch, online stopwatch, timer, online timer, world clock, time zones, accurate time, date, customizable clock, free digital clock, digitalni sat, online sat, alarm, štoperica, mjerač vremena, vremenske zone">
     <meta name="author" content="Clock Creator">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Meta tags for social media -->
-    <meta property="og:title" content="Multifunctional Digital Clock: Stopwatch, Timer & Time Zones">
-    <meta property="og:description" content="Explore time like never before with our online digital clock. Use the precise stopwatch, set countdown timers, and track time zones across the globe. All in one place.">
+    <meta property="og:title" content="Multifunctional Digital Clock: Alarm, Stopwatch, Timer & Time Zones">
+    <meta property="og:description" content="Explore time like never before with our online digital clock. Set alarms, use the precise stopwatch, set countdown timers, and track time zones across the globe. All in one place.">
     <meta property="og:image" content="https://github.com/Soldatix/Digital-Clock/blob/4d6430c75f1a2e1c28e480f51b1b0fd2575923e5/Digital%20Clock%20Social.png">
     <meta property="og:url" content="URL_OF_YOUR_WEBSITE">
     <meta property="og:type" content="website">
     <meta property="og:locale" content="en_US">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Multifunctional Digital Clock: Stopwatch, Timer & Time Zones">
-    <meta name="twitter:description" content="Explore time like never before with our online digital clock. Use the precise stopwatch, set countdown timers, and track time zones across the globe. All in one place.">
+    <meta name="twitter:title" content="Multifunctional Digital Clock: Alarm, Stopwatch, Timer & Time Zones">
+    <meta name="twitter:description" content="Explore time like never before with our online digital clock. Set alarms, use the precise stopwatch, set countdown timers, and track time zones across the globe. All in one place.">
     <meta name="twitter:image" content="https://github.com/Soldatix/Digital-Clock/blob/4d6430c75f1a2e1c28e480f51b1b0fd2575923e5/Digital%20Clock%20Social.png">
     
     <!-- Links and Fonts -->
@@ -179,6 +179,108 @@
         .app-panel-body { padding: 20px; text-align: center; }
         .app-controls { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
         .app-controls button { padding: 10px 20px; font-size: 1em; border-radius: 6px; border: 1px solid transparent; cursor: pointer; transition: all 0.2s ease; min-width: 100px; }
+        
+        /* --- Custom Notification --- */
+        .custom-notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #17a2b8;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            z-index: 2000;
+            font-size: 1.2em;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease, top 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .alarm-stop-button {
+            padding: 8px 12px;
+            font-size: 0.9em;
+            background-color: #ffc107;
+            color: #212529;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 15px;
+            transition: background-color 0.2s;
+        }
+        .alarm-stop-button:hover {
+            background-color: #e0a800;
+        }
+        
+        /* --- Alarm Specific Styles --- */
+        #alarmPanel { top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        #setAlarmLabel {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 1em;
+            color: #333;
+        }
+        #activeAlarmsLabel {
+            display: block;
+            margin-top: 25px;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            color: #333;
+            font-weight: bold;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+        #alarmInputs { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; align-items: flex-end; }
+        #alarmInputs input[type="time"] {
+            font-family: 'Roboto Mono', monospace;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1.2em;
+        }
+        #alarmInputs input[type="number"] {
+             width: 60px;
+        }
+        #setAlarmButton {
+            padding: 10px 15px;
+            font-size: 1em;
+            border-radius: 6px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+        }
+        #setAlarmButton:hover { background-color: #0056b3; }
+        #alarmList { list-style: none; padding: 0; margin: 0; max-height: 250px; overflow-y: auto; border: 1px solid #eee; border-radius: 6px; }
+        #alarmList:empty::after {
+            content: attr(data-empty-text);
+            display: block;
+            padding: 20px;
+            font-size: 1em;
+            color: #888;
+        }
+        #alarmList li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 1.4em;
+        }
+        #alarmList li:last-child { border-bottom: none; }
+        .remove-alarm-btn {
+            background: none;
+            border: none;
+            color: #dc3545;
+            cursor: pointer;
+            font-size: 1.2em;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+        }
+        #alarmList li:hover .remove-alarm-btn { opacity: 1; }
 
         /* --- Stopwatch Specific Styles --- */
         #stopwatchPanel { top: 50%; left: 50%; transform: translate(-50%, -50%); }
@@ -200,10 +302,14 @@
         /* --- Timer Specific Styles --- */
         #timerPanel { top: 50%; left: 50%; transform: translate(-50%, -50%); }
         #timerDisplay { font-size: 3em; font-weight: 500; color: #333; margin-bottom: 20px; letter-spacing: 2px; }
-        #timerInputs { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
-        #timerInputs input { width: 60px; text-align: center; font-size: 1.5em; border: 1px solid #ccc; border-radius: 6px; padding: 5px; }
-        #timerInputs input::-webkit-outer-spin-button, #timerInputs input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        #timerInputs input[type=number] { -moz-appearance: textfield; }
+        #timerInputs { display: flex; justify-content: center; align-items: flex-end; gap: 5px; margin-bottom: 20px; }
+        .timer-input-group { display: flex; flex-direction: column; align-items: center; }
+        .timer-input-group label { font-size: 0.8em; color: #666; margin-bottom: 4px; }
+        #timerInputs input, .timer-input-group input { width: 55px; text-align: center; font-size: 1.5em; border: 1px solid #ccc; border-radius: 6px; padding: 5px; }
+        #timerInputs input::-webkit-outer-spin-button, #timerInputs input::-webkit-inner-spin-button,
+        .timer-input-group input::-webkit-outer-spin-button, .timer-input-group input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        #timerInputs input[type=number], .timer-input-group input[type=number] { -moz-appearance: textfield; }
+        #timerInputs > span { font-size: 1.5em; padding-bottom: 5px; }
         #timerStartPauseButton { background-color: #28a745; color: white; }
         #timerStartPauseButton.paused { background-color: #007bff; }
         #timerResetButton { background-color: #dc3545; color: white; }
@@ -230,7 +336,7 @@
             .fullscreen-toggle { left: 15px; }
             .settings-panel { width: calc(100% - 40px); right: 20px; left: 20px; top: 70px; }
             #infoSidePanel { width: 300px; }
-            #stopwatchDisplay, #timerDisplay { font-size: 2.5em; }
+            #stopwatchDisplay, #timerDisplay, #alarmList li { font-size: 2.5em; }
         }
         @media (max-width: 480px) {
             .settings-panel { padding: 15px; }
@@ -239,7 +345,7 @@
             .checkbox-group-inline { flex-direction: column; align-items: flex-start; }
             #infoSidePanel { width: 100%; max-width: 100%; right: -100%; transform: translateX(100%);}
             #infoSidePanel.info-panel-visible { right:0; transform: translateX(0);}
-            #stopwatchDisplay, #timerDisplay { font-size: 2em; }
+            #stopwatchDisplay, #timerDisplay, #alarmList li { font-size: 2em; }
             .app-controls { flex-direction: column; align-items: stretch;}
         }
 
@@ -252,6 +358,9 @@
     </button>
     
     <div class="top-center-container">
+        <button id="alarmButton" class="icon-button" title="Alarm" aria-label="Alarm">
+            <i class="fas fa-bell"></i>
+        </button>
         <button id="worldClockButton" class="icon-button" title="Vremenske zone" aria-label="World Clock">
             <i class="fas fa-globe-americas"></i>
         </button>
@@ -290,12 +399,6 @@
         
         <label for="contrast" id="contrastLabel"><i class="fas fa-adjust"></i> <span id="contrastLabelSpan"></span></label>
         <input type="range" id="contrast" min="0.5" max="2" step="0.1" value="1">
-        
-        <label for="timeFormat" id="timeFormatLabel"><i class="fas fa-clock"></i> <span id="timeFormatLabelSpan"></span></label>
-        <select id="timeFormat">
-            <option value="24"></option>
-            <option value="12"></option>
-        </select>
         
         <div class="checkbox-group-inline">
             <div class="checkbox-item">
@@ -369,6 +472,30 @@
         <div id="infoSidePanelContent"></div>
     </div>
     
+    <!-- Alarm Panel -->
+    <div id="alarmPanel" class="app-panel">
+        <div class="app-panel-header">
+            <h3 id="alarmTitle"></h3>
+            <button id="alarmCloseButton" class="app-panel-close-button">&times;</button>
+        </div>
+        <div class="app-panel-body">
+            <label for="alarmTimeInput" id="setAlarmLabel"></label>
+            <div id="alarmInputs">
+                 <div class="timer-input-group">
+                    <label for="alarmTimeInput" id="alarmTimeLabel"></label>
+                    <input type="time" id="alarmTimeInput" step="1">
+                </div>
+                <div class="timer-input-group">
+                    <label for="alarmDuration" id="alarmDurationLabel"></label>
+                    <input type="number" id="alarmDuration" min="1" max="60" value="5">
+                </div>
+                <button id="setAlarmButton"></button>
+            </div>
+            <h4 id="activeAlarmsLabel"></h4>
+            <ul id="alarmList" data-empty-text=""></ul>
+        </div>
+    </div>
+
     <!-- Stopwatch Panel -->
     <div id="stopwatchPanel" class="app-panel">
         <div class="app-panel-header">
@@ -397,11 +524,20 @@
         <div class="app-panel-body">
             <div id="timerDisplay">00:00:00</div>
             <div id="timerInputs">
-                <input type="number" id="timerHours" min="0" max="99" value="0">
+                <div class="timer-input-group">
+                    <label for="timerHours" id="timerHoursLabel"></label>
+                    <input type="number" id="timerHours" min="0" max="99" value="0">
+                </div>
                 <span>:</span>
-                <input type="number" id="timerMinutes" min="0" max="59" value="1">
+                <div class="timer-input-group">
+                    <label for="timerMinutes" id="timerMinutesLabel"></label>
+                    <input type="number" id="timerMinutes" min="0" max="59" value="1">
+                </div>
                 <span>:</span>
-                <input type="number" id="timerSeconds" min="0" max="59" value="0">
+                <div class="timer-input-group">
+                     <label for="timerSeconds" id="timerSecondsLabel"></label>
+                    <input type="number" id="timerSeconds" min="0" max="59" value="0">
+                </div>
             </div>
             <div class="app-controls">
                 <button id="timerStartPauseButton"><span id="timerStartPauseButtonText"></span></button>
@@ -437,7 +573,6 @@
                 contrast: document.getElementById('contrast'),
                 showSecondsCheckbox: document.getElementById('showSecondsCheckbox'),
                 showDateCheckbox: document.getElementById('showDateCheckbox'),
-                timeFormatSelect: document.getElementById('timeFormat'),
                 dateFormatSelect: document.getElementById('dateFormat'),
                 languageSelect: document.getElementById('languageSelect'),
                 fontSelect: document.getElementById('fontSelect'),
@@ -460,7 +595,6 @@
                 languageLabelSpan: document.querySelector('#languageLabel span'),
                 brightnessLabelSpan: document.querySelector('#brightnessLabel span'),
                 contrastLabelSpan: document.querySelector('#contrastLabel span'),
-                timeFormatLabelSpan: document.querySelector('#timeFormatLabel span'),
                 showSecondsLabelSpan: document.querySelector('#showSecondsLabel span'),
                 showDateLabelSpan: document.querySelector('#showDateLabel span'),
                 fontLabelSpan: document.querySelector('#fontLabel span'),
@@ -486,6 +620,21 @@
                 fullscreenButton: document.querySelector('.fullscreen-toggle'),
                 fullscreenIcon: document.getElementById('fullscreenIcon'),
                 
+                // Alarm elements
+                alarmButton: document.getElementById('alarmButton'),
+                alarmPanel: document.getElementById('alarmPanel'),
+                alarmHeader: document.querySelector('#alarmPanel .app-panel-header'),
+                alarmCloseButton: document.getElementById('alarmCloseButton'),
+                alarmTitle: document.getElementById('alarmTitle'),
+                setAlarmLabel: document.getElementById('setAlarmLabel'),
+                alarmTimeInput: document.getElementById('alarmTimeInput'),
+                alarmTimeLabel: document.getElementById('alarmTimeLabel'),
+                alarmDuration: document.getElementById('alarmDuration'),
+                alarmDurationLabel: document.getElementById('alarmDurationLabel'),
+                setAlarmButton: document.getElementById('setAlarmButton'),
+                activeAlarmsLabel: document.getElementById('activeAlarmsLabel'),
+                alarmList: document.getElementById('alarmList'),
+
                 // Stopwatch elements
                 stopwatchButton: document.getElementById('stopwatchButton'),
                 stopwatchPanel: document.getElementById('stopwatchPanel'),
@@ -512,6 +661,9 @@
                 timerHours: document.getElementById('timerHours'),
                 timerMinutes: document.getElementById('timerMinutes'),
                 timerSeconds: document.getElementById('timerSeconds'),
+                timerHoursLabel: document.getElementById('timerHoursLabel'),
+                timerMinutesLabel: document.getElementById('timerMinutesLabel'),
+                timerSecondsLabel: document.getElementById('timerSecondsLabel'),
                 timerStartPauseButton: document.getElementById('timerStartPauseButton'),
                 timerResetButton: document.getElementById('timerResetButton'),
                 timerStartPauseButtonText: document.getElementById('timerStartPauseButtonText'),
@@ -535,19 +687,24 @@
             let stopwatchInterval = null, stopwatchStartTime = 0, stopwatchElapsedTime = 0, isStopwatchRunning = false, laps = [];
             let timerInterval = null, timeRemaining = 0, isTimerRunning = false;
             let worldClockInterval = null, worldClockTimezones = [];
+            let alarms = []; 
+            let alarmCheckInterval = null;
+            let activeAlarmTimeout = null;
+            let isAlarmRinging = false;
+
 
             const AUTO_SIZE_SAT_VW = 18, AUTO_SIZE_DATUM_VW = 8, DEFAULT_MANUAL_SAT_VH = 20, DEFAULT_MANUAL_DATUM_VH = 10;
             const PAYPAL_LINK = "https://www.paypal.com/ncp/payment/RU2CWCNVQ7XD6";
             const CRYPTO_ADDRESSES = { BTC: "bc1qwlrxrh64peukga0fp59m9yg7gpf0yj8q7fxnsc", ETH: "0xA99A52085c6725854daa46bb302041569c8bA4E3", XRP: "rP43SsrkhPkxTsFohMAm32sAQg7vqwmDpr", SOL: "8xkdVTEaDGuWu4aE3HpEx8r9Aux98JZbdsMiDQvJWBWR", DOGE: "DGAT32ku8WmFaTDxCgVuRuVpUFmfdmD5Jb", XML: "GCYH4OD4I2GNRKFFOYROE3N3S2HCT5RXIML3TZV5DP3TLTLXPXQXIJZ3", LTC: "LWtaFniqdYpv2xJtqo9WqDwCsQ2cW6PYWi", RVN: "RAtXzKZyB3awfq2u2cK8YppC9kJamU5tPQ" };
-            const CURRENT_SETTINGS_KEY = 'clockCurrentSettings', PROFILES_STORAGE_KEY = 'clockAppProfiles', WORLD_CLOCK_CITIES_KEY = 'worldClockCities';
-            const alarmSound = new Tone.Synth().toDestination();
+            const CURRENT_SETTINGS_KEY = 'clockCurrentSettings', PROFILES_STORAGE_KEY = 'clockAppProfiles', WORLD_CLOCK_CITIES_KEY = 'worldClockCities', ALARMS_STORAGE_KEY = 'clockAlarms';
+            const alarmSound = new Tone.Synth({ oscillator: { type: 'sine' }, envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 } }).toDestination();
 
             const translations = {
-                hr: { settings: "Postavke", language: "Jezik", brightness: "Svjetlina", contrast: "Kontrast", timeFormat: "Format sata", showSeconds: "Prikaži sekunde", showDate: "Prikaži datum", font: "Font", dateFormat: "Format datuma", satSize: "Veličina fonta sata", datumSize: "Veličina fonta datuma", satColor: "Boja fonta sata", datumColor: "Boja fonta datuma", bgColor: "Boja pozadine", reset: "Resetiraj sve postavke", time24: "24-satni", time12: "12-satni", dateFormats: { 'dd.mm.yyyy.': 'dd.mm.yyyy.', 'mm.dd.yyyy.': 'mm.dd.yyyy.', 'dd.mmm.yyyy.': 'dd.mmm.yyyy.', 'ddd dd.mm.yyyy.': 'ddd dd.mm.yyyy.', 'day dd.mm.yyyy.': 'dan, dd.mm.yyyy.' }, days: ['Nedjelja', 'Ponedjeljak', 'Utorak', 'Srijeda', 'Četvrtak', 'Petak', 'Subota'], months: ['sij', 'velj', 'ožu', 'tra', 'svi', 'lip', 'srp', 'kol', 'ruj', 'lis', 'stu', 'pro'], languageNames: { hr: "Hrvatski", en: "English", de: "Deutsch", it: "Italiano", es: "Español" }, autoSize: "Automatska veličina fonta", info: { title: "Informacije / Donacije", line1: "Aplikacija je besplatna za upotrebu ali su donacije dobrodošle.", line2: "Jedan dio primljenih donacija ću ja dalje donirati za razne dobrotvorne organizacije,", line3: "a najveći dio ću donirati za institucije koje se brinu za djecu bez odgovarajuće roditeljske skrbi.", donationHeader: "Donacije možete uplatiti na:", paypal: "PayPal račun:", cryptoHeader: "Kripto novčanik:", btc: "BTC:", eth: "ETH:", xrp: "XRP:", sol: "SOL:", doge: "DOGE:", xml: "XML/XLM:", ltc: "LTC:", rvn: "RVN:" }, profileHeader: "Profili", profileName: "Naziv profila:", saveProfile: "Spremi trenutni profil", manageProfiles: "Upravljaj profilima:", loadProfile: "Učitaj odabrani", deleteProfile: "Obriši odabrani", noProfiles: "Nema spremljenih profila", enterProfileName: "Molimo unesite naziv profila.", overwriteProfileConfirm: "Profil '", overwriteProfileConfirm2: "' već postoji. Želite li ga prepisati?", profileSaved: "Profil '", profileSaved2: "' spremljen!", profileLoaded: "Profil '", profileLoaded2: "' učitan!", deleteProfileConfirm: "Jeste li sigurni da želite obrisati profil '", profileDeleted: "Profil '", profileDeleted2: "' obrisan!", resetConfirm: "Jeste li sigurni da želite resetirati sve postavke na zadane vrijednosti? Ovo neće obrisati spremljene profile.", toggleDayMode: "Uključi dnevni način", toggleNightMode: "Uključi noćni način", enterFullscreen: "Puni zaslon", exitFullscreen: "Izađi iz punog zaslona", stopwatch: { title: "Štoperica", start: "Start", pause: "Pauza", reset: "Reset", lap: "Krug", lapTitle: "Krug" }, timer: { title: "Mjerač vremena", start: "Start", pause: "Pauza", reset: "Reset" }, worldClock: { title: "Vremenske zone", add: "Dodaj", placeholder: "Ime grada...", notFound: "Grad nije pronađen." } },
-                en: { settings: "Settings", language: "Language", brightness: "Brightness", contrast: "Contrast", timeFormat: "Time format", showSeconds: "Show seconds", showDate: "Show date", font: "Font", dateFormat: "Date format", satSize: "Clock font size", datumSize: "Date font size", satColor: "Clock color", datumColor: "Date color", bgColor: "Background color", reset: "Reset All Settings", time24: "24-hour", time12: "12-hour", dateFormats: { 'dd.mm.yyyy.': 'dd/mm/yyyy', 'mm.dd.yyyy.': 'mm/dd/yyyy', 'dd.mmm.yyyy.': 'dd mmm yyyy', 'ddd dd.mm.yyyy.': 'ddd, dd/mm/yyyy', 'day dd.mm.yyyy.': 'day, dd mmm yyyy' }, days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], languageNames: { hr: "Hrvatski", en: "English", de: "Deutsch", it: "Italiano", es: "Español" }, autoSize: "Automatic font size", info: { title: "Information / Donations", line1: "The application is free to use, but donations are welcome.", line2: "A part of the received donations will be forwarded to various charitable organizations,", line3: "the largest part will be donated to institutions caring for children without adequate parental care.", donationHeader: "You can make donations to:", paypal: "PayPal account:", cryptoHeader: "Crypto Wallet:", btc: "BTC:", eth: "ETH:", xrp: "XRP:", sol: "SOL:", doge: "DOGE:", xml: "XML/XLM:", ltc: "LTC:", rvn: "RVN:" }, profileHeader: "Profiles", profileName: "Profile Name:", saveProfile: "Save Current Profile", manageProfiles: "Manage Profiles:", loadProfile: "Load Selected", deleteProfile: "Delete Selected", noProfiles: "No profiles saved", enterProfileName: "Please enter a profile name.", overwriteProfileConfirm: "Profile '", overwriteProfileConfirm2: "' already exists. Overwrite?", profileSaved: "Profile '", profileSaved2: "' saved!", profileLoaded: "Profile '", profileLoaded2: "' loaded!", deleteProfileConfirm: "Are you sure you want to delete profile '", profileDeleted: "Profil '", profileDeleted2: "' deleted!", resetConfirm: "Are you sure you want to reset all settings to default? This will not delete saved profiles.", toggleDayMode: "Toggle Day Mode", toggleNightMode: "Toggle Night Mode", enterFullscreen: "Enter Fullscreen", exitFullscreen: "Exit Fullscreen", stopwatch: { title: "Stopwatch", start: "Start", pause: "Pause", reset: "Reset", lap: "Lap", lapTitle: "Lap" }, timer: { title: "Timer", start: "Start", pause: "Pause", reset: "Reset" }, worldClock: { title: "World Clock", add: "Add", placeholder: "City name...", notFound: "City not found." } },
-                de: { settings: "Einstellungen", language: "Sprache", brightness: "Helligkeit", contrast: "Kontrast", timeFormat: "Zeitformat", showSeconds: "Sekunden anzeigen", showDate: "Datum anzeigen", font: "Schriftart", dateFormat: "Datumsformat", satSize: "Uhr Schriftgröße", datumSize: "Datum Schriftgröße", satColor: "Uhr Farbe", datumColor: "Datum Farbe", bgColor: "Hintergrundfarbe", reset: "Alle Einstellungen zurücksetzen", time24: "24-Stunden", time12: "12-Stunden", dateFormats: { 'dd.mm.yyyy.': 'TT.MM.JJJJ', 'mm.dd.yyyy.': 'MM.TT.JJJJ', 'dd.mmm.yyyy.': 'TT. MMM JJJJ', 'ddd dd.mm.yyyy.': 'Tag, TT.MM.JJJJ', 'day dd.mm.yyyy.': 'Tag, TT. MMM JJJJ' }, days: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'], months: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'], languageNames: { hr: "Hrvatski", en: "English", de: "Deutsch", it: "Italiano", es: "Español" }, autoSize: "Automatische Schriftgröße", info: { title: "Informationen / Spenden", line1: "Die Anwendung ist kostenlos nutzbar, Spenden sind jedoch willkommen.", line2: "Ein Teil der erhaltenen Spenden werde ich an verschiedene wohltätige Organisationen weiterleiten,", line3: "und der größte Teil wird an Einrichtungen gespendet, die sich um Kinder ohne angemessene elterliche Fürsorge kümmern.", donationHeader: "Spenden können Sie an:", paypal: "PayPal-Konto:", cryptoHeader: "Krypto-Wallet:", btc: "BTC:", eth: "ETH:", xrp: "XRP:", sol: "SOL:", doge: "DOGE:", xml: "XML/XLM:", ltc: "LTC:", rvn: "RVN:" }, profileHeader: "Profile", profileName: "Profilname:", saveProfile: "Aktuelles Profil speichern", manageProfiles: "Profile verwalten:", loadProfile: "Ausgewählte laden", deleteProfile: "Ausgewählte löschen", noProfiles: "Keine Profile gespeichert", enterProfileName: "Bitte geben Sie einen Profilnamen ein.", overwriteProfileConfirm: "Profil '", overwriteProfileConfirm2: "' existiert bereits. Überschreiben?", profileSaved: "Profil '", profileSaved2: "' gespeichert!", profileLoaded: "Profil '", profileLoaded2: "' geladen!", deleteProfileConfirm: "Sind Sie sicher, dass Sie das Profil '", profileDeleted: "Profil '", profileDeleted2: "' löschen möchten?", resetConfirm: "Sind Sie sicher, dass Sie alle Einstellungen auf Standard zurücksetzen möchten? Gespeicherte Profile werden dadurch nicht gelöscht.", toggleDayMode: "Tagesmodus umschalten", toggleNightMode: "Nachtmodus umschalten", enterFullscreen: "Vollbild", exitFullscreen: "Vollbild verlassen", stopwatch: { title: "Stoppuhr", start: "Start", pause: "Pause", reset: "Zurücksetzen", lap: "Runde", lapTitle: "Runde" }, timer: { title: "Timer", start: "Start", pause: "Pause", reset: "Zurücksetzen" }, worldClock: { title: "Weltzeituhr", add: "Hinzufügen", placeholder: "Stadtname...", notFound: "Stadt nicht gefunden." } },
-                it: { settings: "Impostazioni", language: "Lingua", brightness: "Luminosità", contrast: "Contrasto", timeFormat: "Formato orario", showSeconds: "Mostra secondi", showDate: "Mostra data", font: "Carattere", dateFormat: "Formato data", satSize: "Dimensione orologio", datumSize: "Dimensione data", satColor: "Colore orologio", datumColor: "Colore data", bgColor: "Colore sfondo", reset: "Reimposta tutto", time24: "24-ore", time12: "12-ore", dateFormats: { 'dd.mm.yyyy.': 'gg/mm/aaaa', 'mm.dd.yyyy.': 'mm/gg/aaaa', 'dd.mmm.yyyy.': 'gg mmm aaaa', 'ddd dd.mm.yyyy.': 'ggg, gg/mm/aaaa', 'day dd.mm.yyyy.': 'giorno, gg mmm aaaa' }, days: ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'], months: ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'], languageNames: { hr: "Hrvatski", en: "English", de: "Deutsch", it: "Italiano", es: "Español" }, autoSize: "Dimensione automatica", info: { title: "Informazioni / Donazioni", line1: "L'applicazione è gratuita, ma le donazioni sono benvenute.", line2: "Una parte delle donazioni ricevute sarà da me devoluta a varie organizzazioni di beneficenza,", line3: "e la maggior parte sarà donata a istituzioni che si prendono cura di bambini senza un'adeguata assistenza genitoriale.", donationHeader: "Puoi effettuare donazioni a:", paypal: "Conto PayPal:", cryptoHeader: "Portafoglio Crypto:", btc: "BTC:", eth: "ETH:", xrp: "XRP:", sol: "SOL:", doge: "DOGE:", xml: "XML/XLM:", ltc: "LTC:", rvn: "RVN:" }, profileHeader: "Profili", profileName: "Nome profilo:", saveProfile: "Salva profilo corrente", manageProfiles: "Gestisci profili:", loadProfile: "Carica selezionato", deleteProfile: "Elimina selezionato", noProfiles: "Nessun profilo salvato", enterProfileName: "Inserisci un nome per il profilo.", overwriteProfileConfirm: "Profilo '", overwriteProfileConfirm2: "' esiste già. Sovrascrivere?", profileSaved: "Profilo '", profileSaved2: "' salvato!", profileLoaded: "Profilo '", profileLoaded2: "' caricato!", deleteProfileConfirm: "Sei sicuro di voler eliminare il profilo '", profileDeleted: "Profilo '", profileDeleted2: "' eliminato?", resetConfirm: "Sei sicuro di voler reimpostare tutte le impostazioni ai valori predefiniti? Questo non eliminerà i profili salvati.", toggleDayMode: "Attiva modalità giorno", toggleNightMode: "Attiva modalità notte", enterFullscreen: "Schermo intero", exitFullscreen: "Esci da schermo intero", stopwatch: { title: "Cronometro", start: "Avvia", pause: "Pausa", reset: "Azzera", lap: "Giro", lapTitle: "Giro" }, timer: { title: "Timer", start: "Avvia", pause: "Pausa", reset: "Azzera" }, worldClock: { title: "Orologio mondiale", add: "Aggiungi", placeholder: "Nome della città...", notFound: "Città non trovata." } },
-                es: { settings: "Configuración", language: "Idioma", brightness: "Brillo", contrast: "Contraste", timeFormat: "Formato de hora", showSeconds: "Mostrar segundos", showDate: "Mostrar fecha", font: "Fuente", dateFormat: "Formato de fecha", satSize: "Tamaño del reloj", datumSize: "Tamaño de fecha", satColor: "Color del reloj", datumColor: "Color de fecha", bgColor: "Color de fondo", reset: "Restablecer todo", time24: "24-horas", time12: "12-horas", dateFormats: { 'dd.mm.yyyy.': 'dd/mm/aaaa', 'mm.dd.yyyy.': 'mm/dd/aaaa', 'dd.mmm.yyyy.': 'dd mmm aaaa', 'ddd dd.mm.aaaa.': 'ddd, dd/mm/aaaa', 'day dd.mm.aaaa.': 'día, dd mmm aaaa' }, days: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'], months: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'], languageNames: { hr: "Hrvatski", en: "English", de: "Deutsch", it: "Italiano", es: "Español" }, autoSize: "Tamaño automático", info: { title: "Información / Donaciones", line1: "La aplicación es de uso gratuito, pero las donaciones son bienvenidas.", line2: "Una parte de las donaciones recibidas será transferida por mí a diversas organizaciones benéficas,", line3: "y la mayor parte se donará a instituciones que cuidan a niños sin el cuidado parental adecuado.", donationHeader: "Puede hacer donaciones a:", paypal: "Cuenta PayPal:", cryptoHeader: "Monedero Crypto:", btc: "BTC:", eth: "ETH:", xrp: "XRP:", sol: "SOL:", doge: "DOGE:", xml: "XML/XLM:", ltc: "LTC:", rvn: "RVN:" }, profileHeader: "Perfiles", profileName: "Nombre del perfil:", saveProfile: "Guardar perfil actual", manageProfiles: "Administrar perfiles:", loadProfile: "Cargar seleccionado", deleteProfile: "Eliminar seleccionado", noProfiles: "No hay perfiles guardados", enterProfileName: "Por favor, ingrese un nombre de perfil.", overwriteProfileConfirm: "El perfil '", overwriteProfileConfirm2: "' ya existe. ¿Sobrescribir?", profileSaved: "Perfil '", profileSaved2: "' guardado!", profileLoaded: "Profil '", profileLoaded2: "' cargado!", deleteProfileConfirm: "¿Está seguro de que desea eliminar el perfil '", profileDeleted: "Perfil '", profileDeleted2: "' eliminado?", resetConfirm: "¿Está seguro de que desea restablecer todas las configuraciones a los valores predeterminados? Esto no eliminará los perfiles guardados.", toggleDayMode: "Alternar modo día", toggleNightMode: "Alternar modo noche", enterFullscreen: "Pantalla completa", exitFullscreen: "Salir de pantalla completa", stopwatch: { title: "Cronómetro", start: "Iniciar", pause: "Pausar", reset: "Reiniciar", lap: "Vuelta", lapTitle: "Vuelta" }, timer: { title: "Temporizador", start: "Iniciar", pause: "Pausar", reset: "Reiniciar" }, worldClock: { title: "Reloj Mundial", add: "Añadir", placeholder: "Nombre de la ciudad...", notFound: "Ciudad no encontrada." } }
+                hr: { settings: "Postavke", language: "Jezik", brightness: "Svjetlina", contrast: "Kontrast", showSeconds: "Prikaži sekunde", showDate: "Prikaži datum", font: "Font", dateFormat: "Format datuma", satSize: "Veličina fonta sata", datumSize: "Veličina fonta datuma", satColor: "Boja fonta sata", datumColor: "Boja fonta datuma", bgColor: "Boja pozadine", reset: "Resetiraj sve postavke", dateFormats: { 'dd.mm.yyyy.': 'dd.mm.yyyy.', 'mm.dd.yyyy.': 'mm.dd.yyyy.', 'dd.mmm.yyyy.': 'dd.mmm.yyyy.', 'ddd dd.mm.yyyy.': 'ddd dd.mm.yyyy.', 'day dd.mm.yyyy.': 'dan, dd.mm.yyyy.' }, days: ['Nedjelja', 'Ponedjeljak', 'Utorak', 'Srijeda', 'Četvrtak', 'Petak', 'Subota'], months: ['sij', 'velj', 'ožu', 'tra', 'svi', 'lip', 'srp', 'kol', 'ruj', 'lis', 'stu', 'pro'], languageNames: { hr: "Hrvatski", en: "English", de: "Deutsch", it: "Italiano", es: "Español" }, autoSize: "Automatska veličina fonta", info: { title: "Informacije / Donacije", line1: "Aplikacija je besplatna za upotrebu ali su donacije dobrodošle.", line2: "Jedan dio primljenih donacija ću ja dalje donirati za razne dobrotvorne organizacije,", line3: "a najveći dio ću donirati za institucije koje se brinu za djecu bez odgovarajuće roditeljske skrbi.", donationHeader: "Donacije možete uplatiti na:", paypal: "PayPal račun:", cryptoHeader: "Kripto novčanik:", btc: "BTC:", eth: "ETH:", xrp: "XRP:", sol: "SOL:", doge: "DOGE:", xml: "XML/XLM:", ltc: "LTC:", rvn: "RVN:" }, profileHeader: "Profili", profileName: "Naziv profila:", saveProfile: "Spremi trenutni profil", manageProfiles: "Upravljaj profilima:", loadProfile: "Učitaj odabrani", deleteProfile: "Obriši odabrani", noProfiles: "Nema spremljenih profila", enterProfileName: "Molimo unesite naziv profila.", overwriteProfileConfirm: "Profil '", overwriteProfileConfirm2: "' već postoji. Želite li ga prepisati?", profileSaved: "Profil '", profileSaved2: "' spremljen!", profileLoaded: "Profil '", profileLoaded2: "' učitan!", deleteProfileConfirm: "Jeste li sigurni da želite obrisati profil '", profileDeleted: "Profil '", profileDeleted2: "' obrisan!", resetConfirm: "Jeste li sigurni da želite resetirati sve postavke na zadane vrijednosti? Ovo neće obrisati spremljene profile.", toggleDayMode: "Uključi dnevni način", toggleNightMode: "Uključi noćni način", enterFullscreen: "Puni zaslon", exitFullscreen: "Izađi iz punog zaslona", alarm: { title: "Alarm", set: "Postavi", remove: "Ukloni", alarmTriggered: "Alarm!", timeLabel: "Vrijeme", alarmDuration: "Trajanje (s)", setAlarmLabel: "Postavi novi alarm:", activeAlarmsLabel: "Aktivni alarmi:", noAlarms: "Nema postavljenih alarma", stopAlarm: "Zaustavi Alarm" }, stopwatch: { title: "Štoperica", start: "Start", pause: "Pauza", reset: "Reset", lap: "Krug", lapTitle: "Krug" }, timer: { title: "Mjerač vremena", start: "Start", pause: "Pauza", reset: "Reset", hours: "Sati", minutes: "Minute", seconds: "Sekunde" }, worldClock: { title: "Vremenske zone", add: "Dodaj", placeholder: "Ime grada...", notFound: "Grad nije pronađen." } },
+                en: { settings: "Settings", language: "Language", brightness: "Brightness", contrast: "Contrast", showSeconds: "Show seconds", showDate: "Show date", font: "Font", dateFormat: "Date format", satSize: "Clock font size", datumSize: "Date font size", satColor: "Clock color", datumColor: "Date color", bgColor: "Background color", reset: "Reset All Settings", dateFormats: { 'dd.mm.yyyy.': 'dd/mm/yyyy', 'mm.dd.yyyy.': 'mm/dd/yyyy', 'dd.mmm.yyyy.': 'dd mmmcameraContinuous', 'ddd dd.mm.yyyy.': 'ddd, dd/mm/yyyy', 'day dd.mm.yyyy.': 'day, dd mmm𒁑' }, days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'], months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], languageNames: { hr: "Hrvatski", en: "English", de: "Deutsch", it: "Italiano", es: "Español" }, autoSize: "Automatic font size", info: { title: "Information / Donations", line1: "The application is free to use, but donations are welcome.", line2: "A part of the received donations will be forwarded to various charitable organizations,", line3: "the largest part will be donated to institutions caring for children without adequate parental care.", donationHeader: "You can make donations to:", paypal: "PayPal account:", cryptoHeader: "Crypto Wallet:", btc: "BTC:", eth: "ETH:", xrp: "XRP:", sol: "SOL:", doge: "DOGE:", xml: "XML/XLM:", ltc: "LTC:", rvn: "RVN:" }, profileHeader: "Profiles", profileName: "Profile Name:", saveProfile: "Save Current Profile", manageProfiles: "Manage Profiles:", loadProfile: "Load Selected", deleteProfile: "Delete Selected", noProfiles: "No profiles saved", enterProfileName: "Please enter a profile name.", overwriteProfileConfirm: "Profile '", overwriteProfileConfirm2: "' already exists. Overwrite?", profileSaved: "Profile '", profileSaved2: "' saved!", profileLoaded: "Profile '", profileLoaded2: "' loaded!", deleteProfileConfirm: "Are you sure you want to delete profile '", profileDeleted: "Profile '", profileDeleted2: "' deleted!", resetConfirm: "Are you sure you want to reset all settings to default? This will not delete saved profiles.", toggleDayMode: "Toggle Day Mode", toggleNightMode: "Toggle Night Mode", enterFullscreen: "Enter Fullscreen", exitFullscreen: "Exit Fullscreen", alarm: { title: "Alarm", set: "Set", remove: "Remove", alarmTriggered: "Alarm!", timeLabel: "Time", alarmDuration: "Duration (s)", setAlarmLabel: "Set a new alarm:", activeAlarmsLabel: "Active Alarms:", noAlarms: "No alarms set", stopAlarm: "Stop Alarm" }, stopwatch: { title: "Stopwatch", start: "Start", pause: "Pause", reset: "Reset", lap: "Lap", lapTitle: "Lap" }, timer: { title: "Timer", start: "Start", pause: "Pause", reset: "Reset", hours: "Hours", minutes: "Minutes", seconds: "Seconds" }, worldClock: { title: "World Clock", add: "Add", placeholder: "City name...", notFound: "City not found." } },
+                de: { settings: "Einstellungen", language: "Sprache", brightness: "Helligkeit", contrast: "Kontrast", showSeconds: "Sekunden anzeigen", showDate: "Datum anzeigen", font: "Schriftart", dateFormat: "Datumsformat", satSize: "Uhr Schriftgröße", datumSize: "Datum Schriftgröße", satColor: "Uhr Farbe", datumColor: "Datum Farbe", bgColor: "Hintergrundfarbe", reset: "Alle Einstellungen zurücksetzen", dateFormats: { 'dd.mm.yyyy.': 'TT.MM.JJJJ', 'mm.dd.yyyy.': 'MM.TT.JJJJ', 'dd.mmm.yyyy.': 'TT. MMM JJJJ', 'ddd dd.mm.yyyy.': 'Tag, TT.MM.JJJJ', 'day dd.mm.yyyy.': 'Tag, TT. MMM JJJJ' }, days: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'], months: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'], languageNames: { hr: "Hrvatski", en: "English", de: "Deutsch", it: "Italiano", es: "Español" }, autoSize: "Automatische Schriftgröße", info: { title: "Informationen / Spenden", line1: "Die Anwendung ist kostenlos nutzbar, Spenden sind jedoch willkommen.", line2: "Ein Teil der erhaltenen Spenden werde ich an verschiedene wohltätige Organisationen weiterleiten,", line3: "und der größte Teil wird an Einrichtungen gespendet, die sich um Kinder ohne angemessene elterliche Fürsorge kümmern.", donationHeader: "Spenden können Sie an:", paypal: "PayPal-Konto:", cryptoHeader: "Krypto-Wallet:", btc: "BTC:", eth: "ETH:", xrp: "XRP:", sol: "SOL:", doge: "DOGE:", xml: "XML/XLM:", ltc: "LTC:", rvn: "RVN:" }, profileHeader: "Profile", profileName: "Profilname:", saveProfile: "Aktuelles Profil speichern", manageProfiles: "Profile verwalten:", loadProfile: "Ausgewählte laden", deleteProfile: "Ausgewählte löschen", noProfiles: "Keine Profile gespeichert", enterProfileName: "Bitte geben Sie einen Profilnamen ein.", overwriteProfileConfirm: "Profil '", overwriteProfileConfirm2: "' existiert bereits. Überschreiben?", profileSaved: "Profil '", profileSaved2: "' gespeichert!", profileLoaded: "Profil '", profileLoaded2: "' geladen!", deleteProfileConfirm: "Sind Sie sicher, dass Sie das Profil '", profileDeleted: "Profil '", profileDeleted2: "' löschen möchten?", resetConfirm: "Sind Sie sicher, dass Sie alle Einstellungen auf Standard zurücksetzen möchten? Gespeicherte Profile werden dadurch nicht gelöscht.", toggleDayMode: "Tagesmodus umschalten", toggleNightMode: "Nachtmodus umschalten", enterFullscreen: "Vollbild", exitFullscreen: "Vollbild verlassen", alarm: { title: "Alarm", set: "Einstellen", remove: "Entfernen", alarmTriggered: "Alarm!", timeLabel: "Uhrzeit", alarmDuration: "Dauer (s)", setAlarmLabel: "Neuen Alarm stellen:", activeAlarmsLabel: "Aktive Alarme:", noAlarms: "Keine Alarme eingestellt", stopAlarm: "Alarm stoppen" }, stopwatch: { title: "Stoppuhr", start: "Start", pause: "Pause", reset: "Zurücksetzen", lap: "Runde", lapTitle: "Runde" }, timer: { title: "Timer", start: "Start", pause: "Pause", reset: "Zurücksetzen", hours: "Stunden", minutes: "Minuten", seconds: "Sekunden" }, worldClock: { title: "Weltzeituhr", add: "Hinzufügen", placeholder: "Stadtname...", notFound: "Stadt nicht gefunden." } },
+                it: { settings: "Impostazioni", language: "Lingua", brightness: "Luminosità", contrast: "Contrasto", showSeconds: "Mostra secondi", showDate: "Mostra data", font: "Carattere", dateFormat: "Formato data", satSize: "Dimensione orologio", datumSize: "Dimensione data", satColor: "Colore orologio", datumColor: "Colore data", bgColor: "Colore sfondo", reset: "Reimposta tutto", dateFormats: { 'dd.mm.yyyy.': 'gg/mm/aaaa', 'mm.dd.yyyy.': 'mm/gg/aaaa', 'dd.mmm.yyyy.': 'gg mmm aaaa', 'ddd dd.mm.yyyy.': 'ggg, gg/mm/aaaa', 'day dd.mm.yyyy.': 'giorno, gg mmm aaaa' }, days: ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'], months: ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'], languageNames: { hr: "Hrvatski", en: "English", de: "Deutsch", it: "Italiano", es: "Español" }, autoSize: "Dimensione automatica", info: { title: "Informazioni / Donazioni", line1: "L'applicazione è gratuita, ma le donazioni sono benvenute.", line2: "Una parte delle donazioni ricevute sarà da me devoluta a varie organizzazioni di beneficenza,", line3: "e la maggior parte sarà donata a istituzioni che si prendono cura di bambini senza un'adeguata assistenza genitoriale.", donationHeader: "Puoi effettuare donazioni a:", paypal: "Conto PayPal:", cryptoHeader: "Portafoglio Crypto:", btc: "BTC:", eth: "ETH:", xrp: "XRP:", sol: "SOL:", doge: "DOGE:", xml: "XML/XLM:", ltc: "LTC:", rvn: "RVN:" }, profileHeader: "Profili", profileName: "Nome profilo:", saveProfile: "Salva profilo corrente", manageProfiles: "Gestisci profili:", loadProfile: "Carica selezionato", deleteProfile: "Elimina selezionato", noProfiles: "Nessun profilo salvato", enterProfileName: "Inserisci un nome per il profilo.", overwriteProfileConfirm: "Profilo '", overwriteProfileConfirm2: "' esiste già. Sovrascrivere?", profileSaved: "Profilo '", profileSaved2: "' salvato!", profileLoaded: "Profilo '", profileLoaded2: "' caricato!", deleteProfileConfirm: "Sei sicuro di voler eliminare il profilo '", profileDeleted: "Profilo '", profileDeleted2: "' eliminato?", resetConfirm: "Sei sicuro di voler reimpostare tutte le impostazioni ai valori predefiniti? Questo non eliminerà i profili salvati.", toggleDayMode: "Attiva modalità giorno", toggleNightMode: "Attiva modalità notte", enterFullscreen: "Schermo intero", exitFullscreen: "Esci da schermo intero", alarm: { title: "Sveglia", set: "Imposta", remove: "Rimuovi", alarmTriggered: "Sveglia!", timeLabel: "Orario", alarmDuration: "Durata (s)", setAlarmLabel: "Imposta una nuova sveglia:", activeAlarmsLabel: "Sveglie attive:", noAlarms: "Nessuna sveglia impostata", stopAlarm: "Ferma Sveglia" }, stopwatch: { title: "Cronometro", start: "Avvia", pause: "Pausa", reset: "Azzera", lap: "Giro", lapTitle: "Giro" }, timer: { title: "Timer", start: "Avvia", pause: "Pausa", reset: "Azzera", hours: "Ore", minutes: "Minuti", seconds: "Secondi" }, worldClock: { title: "Orologio mondiale", add: "Aggiungi", placeholder: "Nome della città...", notFound: "Città non trovata." } },
+                es: { settings: "Configuración", language: "Idioma", brightness: "Brillo", contrast: "Contraste", showSeconds: "Mostrar segundos", showDate: "Mostrar fecha", font: "Fuente", dateFormat: "Formato de fecha", satSize: "Tamaño del reloj", datumSize: "Tamaño de fecha", satColor: "Color del reloj", datumColor: "Color de fecha", bgColor: "Color de fondo", reset: "Restablecer todo", dateFormats: { 'dd.mm.yyyy.': 'dd/mm/aaaa', 'mm.dd.yyyy.': 'mm/dd/aaaa', 'dd.mmm.yyyy.': 'dd mmm aaaa', 'ddd dd.mm.aaaa.': 'ddd, dd/mm/aaaa', 'day dd.mm.aaaa.': 'día, dd mmm aaaa' }, days: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'], months: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'], languageNames: { hr: "Hrvatski", en: "English", de: "Deutsch", it: "Italiano", es: "Español" }, autoSize: "Tamaño automático", info: { title: "Información / Donaciones", line1: "La aplicación es de uso gratuito, pero las donaciones son bienvenidas.", line2: "Una parte de las donaciones recibidas será transferida por mí a diversas organizaciones benéficas,", line3: "y la mayor parte se donará a instituciones que cuidan a niños sin el cuidado parental adecuado.", donationHeader: "Puede hacer donaciones a:", paypal: "Cuenta PayPal:", cryptoHeader: "Monedero Crypto:", btc: "BTC:", eth: "ETH:", xrp: "XRP:", sol: "SOL:", doge: "DOGE:", xml: "XML/XLM:", ltc: "LTC:", rvn: "RVN:" }, profileHeader: "Perfiles", profileName: "Nombre del perfil:", saveProfile: "Guardar perfil actual", manageProfiles: "Administrar perfiles:", loadProfile: "Cargar seleccionado", deleteProfile: "Eliminar seleccionado", noProfiles: "No hay perfiles guardados", enterProfileName: "Por favor, ingrese un nombre de perfil.", overwriteProfileConfirm: "El perfil '", overwriteProfileConfirm2: "' ya existe. ¿Sobrescribir?", profileSaved: "Profil '", profileSaved2: "' guardado!", profileLoaded: "Profil '", profileLoaded2: "' cargado!", deleteProfileConfirm: "¿Está seguro de que desea eliminar el perfil '", profileDeleted: "Perfil '", profileDeleted2: "' eliminado?", resetConfirm: "¿Está seguro de que desea restablecer todas las configuraciones a los valores predeterminados? Esto no eliminará los perfiles guardados.", toggleDayMode: "Alternar modo día", toggleNightMode: "Alternar modo noche", enterFullscreen: "Pantalla completa", exitFullscreen: "Salir de pantalla completa", alarm: { title: "Alarma", set: "Establecer", remove: "Eliminar", alarmTriggered: "¡Alarma!", timeLabel: "Hora", alarmDuration: "Duración (s)", setAlarmLabel: "Establecer nueva alarma:", activeAlarmsLabel: "Alarmas activas:", noAlarms: "No hay alarmas configuradas", stopAlarm: "Detener Alarma" }, stopwatch: { title: "Cronómetro", start: "Iniciar", pause: "Pausar", reset: "Reiniciar", lap: "Vuelta", lapTitle: "Vuelta" }, timer: { title: "Temporizador", start: "Iniciar", pause: "Pausar", reset: "Reiniciar", hours: "Horas", minutes: "Minutos", seconds: "Segundos" }, worldClock: { title: "Reloj Mundial", add: "Añadir", placeholder: "Nombre de la ciudad...", notFound: "Ciudad no encontrada." } }
             };
             const cityTimezoneMap = {
                 'london': 'Europe/London', 'pariz': 'Europe/Paris', 'paris': 'Europe/Paris', 'berlin': 'Europe/Berlin',
@@ -562,6 +719,136 @@
             // --- Translation Helper ---
             function T(key) { return key.split('.').reduce((o, i) => o?.[i], currentTranslations) || key.split('.').reduce((o, i) => o?.[i], translations.en) || key; }
             
+            // --- Notification Function ---
+            function showNotification(message, isAlarm = false) {
+                let notification = document.getElementById('customNotification');
+                if (!notification) {
+                    notification = document.createElement('div');
+                    notification.id = 'customNotification';
+                    notification.className = 'custom-notification';
+                    document.body.appendChild(notification);
+                }
+
+                // Clear previous content
+                notification.innerHTML = '';
+                
+                const messageSpan = document.createElement('span');
+                messageSpan.textContent = message;
+                notification.appendChild(messageSpan);
+                
+                if (isAlarm) {
+                    const stopButton = document.createElement('button');
+                    stopButton.className = 'alarm-stop-button';
+                    stopButton.textContent = T('alarm.stopAlarm');
+                    stopButton.onclick = stopAlarm; 
+                    notification.appendChild(stopButton);
+                }
+
+                notification.style.display = 'flex';
+                setTimeout(() => {
+                    notification.style.opacity = '1';
+                    notification.style.top = '30px';
+                }, 10);
+
+                if (!isAlarm) {
+                    setTimeout(() => {
+                        hideNotification();
+                    }, 3500);
+                }
+            }
+            
+            function hideNotification() {
+                let notification = document.getElementById('customNotification');
+                if (notification) {
+                     notification.style.opacity = '0';
+                    notification.style.top = '20px';
+                    setTimeout(() => {
+                        notification.style.display = 'none';
+                    }, 300);
+                }
+            }
+
+            // --- Alarm Functions ---
+            function renderAlarms() {
+                elements.alarmList.innerHTML = '';
+                alarms.forEach((alarm, index) => {
+                    const li = document.createElement('li');
+                    li.dataset.index = index;
+                    li.innerHTML = `
+                        <span>${alarm.time} (${alarm.duration}s)</span>
+                        <button class="remove-alarm-btn" title="${T('alarm.remove')}">&times;</button>
+                    `;
+                    elements.alarmList.appendChild(li);
+                    li.querySelector('.remove-alarm-btn').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        removeAlarm(index);
+                    });
+                });
+            }
+            function saveAlarms() { localStorage.setItem(ALARMS_STORAGE_KEY, JSON.stringify(alarms)); }
+            function loadAlarms() {
+                const storedAlarms = JSON.parse(localStorage.getItem(ALARMS_STORAGE_KEY));
+                if (storedAlarms) { alarms = storedAlarms; renderAlarms(); }
+            }
+            function setAlarm() {
+                const timeValue = elements.alarmTimeInput.value;
+                const durationValue = parseInt(elements.alarmDuration.value) || 5;
+                if (!timeValue) return;
+
+                // Add seconds if they are missing
+                const timeParts = timeValue.split(':');
+                const finalTime = timeParts.length === 2 ? `${timeValue}:00` : timeValue;
+
+                if (alarms.some(a => a.time === finalTime)) return;
+                
+                alarms.push({ time: finalTime, duration: durationValue });
+                alarms.sort((a, b) => a.time.localeCompare(b.time));
+                saveAlarms();
+                renderAlarms();
+                elements.alarmTimeInput.value = '';
+            }
+            function removeAlarm(index) { alarms.splice(index, 1); saveAlarms(); renderAlarms(); }
+            
+            function stopAlarm() {
+                if (!isAlarmRinging) return;
+                alarmSound.triggerRelease();
+                clearTimeout(activeAlarmTimeout);
+                activeAlarmTimeout = null;
+                isAlarmRinging = false;
+                hideNotification();
+            }
+
+            function checkAlarms() {
+                if(isAlarmRinging) return;
+
+                const now = new Date();
+                const currentTime = now.getHours().toString().padStart(2, '0') + ':' + 
+                                  now.getMinutes().toString().padStart(2, '0') + ':' + 
+                                  now.getSeconds().toString().padStart(2, '0');
+
+                const triggeredAlarmIndex = alarms.findIndex(alarm => alarm.time === currentTime);
+                
+                if (triggeredAlarmIndex > -1) {
+                    const triggeredAlarm = alarms[triggeredAlarmIndex];
+                    isAlarmRinging = true;
+
+                    alarmSound.triggerAttack("C5");
+                    
+                    showNotification(`${T('alarm.alarmTriggered')} ${triggeredAlarm.time}`, true);
+
+                    activeAlarmTimeout = setTimeout(stopAlarm, triggeredAlarm.duration * 1000);
+                    
+                    alarms.splice(triggeredAlarmIndex, 1);
+                    saveAlarms();
+                    renderAlarms();
+                }
+            }
+
+            function initializeAlarms() {
+                loadAlarms();
+                if (!alarmCheckInterval) { alarmCheckInterval = setInterval(checkAlarms, 1000); }
+            }
+
             // --- Stopwatch Functions ---
             function formatStopwatchTime(ms) { const d = new Date(ms); return `${d.getUTCMinutes().toString().padStart(2, '0')}:${d.getUTCSeconds().toString().padStart(2, '0')}.${d.getUTCMilliseconds().toString().padStart(3, '0')}`; }
             function updateStopwatchDisplay() { stopwatchElapsedTime = Date.now() - stopwatchStartTime; elements.stopwatchDisplay.textContent = formatStopwatchTime(stopwatchElapsedTime); }
@@ -598,12 +885,16 @@
                 li.innerHTML = `<span class="lap-number">${T('stopwatch.lapTitle')} ${laps.length}</span> <span class="lap-time">${formatStopwatchTime(currentLapDuration)}</span>`;
                 elements.lapsList.prepend(li);
             }
-            function openAppPanel(panel) {
+            async function openAppPanel(panel) {
+                if (Tone.context.state !== 'running') {
+                   await Tone.start();
+                }
                 panel.style.display = 'block'; panel.style.top = '50%'; panel.style.left = '50%';
                 panel.style.transform = 'translate(-50%, -50%)';
                 if (panel.id === 'stopwatchPanel') resetStopwatch();
                 if (panel.id === 'timerPanel') resetTimer();
                 if (panel.id === 'worldClockPanel') initializeWorldClock();
+                if (panel.id === 'alarmPanel') renderAlarms();
             }
 
             // --- Timer Functions ---
@@ -636,7 +927,7 @@
                         timerInterval = setInterval(updateTimerDisplay, 1000);
                         elements.timerStartPauseButtonText.textContent = T('timer.pause');
                         elements.timerStartPauseButton.classList.add('paused');
-                        elements.timerInputs.style.display = 'none';
+                        elements.timerInputs.style.display = 'flex';
                         elements.timerDisplay.style.display = 'block';
                     }
                 }
@@ -647,7 +938,10 @@
                 elements.timerStartPauseButtonText.textContent = T('timer.start');
                 elements.timerStartPauseButton.classList.remove('paused');
                 elements.timerInputs.style.display = 'flex';
-                elements.timerDisplay.style.display = 'none';
+                elements.timerDisplay.style.display = 'block'; // Keep display as flex
+                elements.timerHours.value = '0';
+                elements.timerMinutes.value = '1';
+                elements.timerSeconds.value = '0';
             }
 
             // --- World Clock Functions ---
@@ -708,9 +1002,7 @@
                 saveWorldClocks();
                 renderWorldClocks();
             }
-            function saveWorldClocks() {
-                localStorage.setItem(WORLD_CLOCK_CITIES_KEY, JSON.stringify(worldClockTimezones));
-            }
+            function saveWorldClocks() { localStorage.setItem(WORLD_CLOCK_CITIES_KEY, JSON.stringify(worldClockTimezones)); }
 
             // --- General UI Functions ---
             function applyNightModeStyles(isNight) {
@@ -769,24 +1061,24 @@
                 }
             }
             function getCurrentSettingsObject() {
-                return { backgroundColor: elements.backgroundColor.value, satFontColor: elements.satFontColor.value, datumFontColor: elements.datumFontColor.value, fontSelect: elements.fontSelect.value, satFontSize: elements.satFontSize.value, datumFontSize: elements.datumFontSize.value, brightness: elements.brightness.value, contrast: elements.contrast.value, timeFormat: elements.timeFormatSelect.value, dateFormat: elements.dateFormatSelect.value, showSeconds: elements.showSecondsCheckbox.checked, showDate: elements.showDateCheckbox.checked, language: elements.languageSelect.value, isNightModeActive: isNightModeActive, isAutoSizeActive: elements.autoSizeCheckbox.checked };
+                return { backgroundColor: elements.backgroundColor.value, satFontColor: elements.satFontColor.value, datumFontColor: elements.datumFontColor.value, fontSelect: elements.fontSelect.value, satFontSize: elements.satFontSize.value, datumFontSize: elements.datumFontSize.value, brightness: elements.brightness.value, contrast: elements.contrast.value, dateFormat: elements.dateFormatSelect.value, showSeconds: elements.showSecondsCheckbox.checked, showDate: elements.showDateCheckbox.checked, language: elements.languageSelect.value, isNightModeActive: isNightModeActive, isAutoSizeActive: elements.autoSizeCheckbox.checked };
             }
             function applySettingsFromObject(settingsObj) {
                 Object.keys(settingsObj).forEach(key => {
                     const el = elements[key];
-                    if (el) {
+                    if (el && key !== 'timeFormat') { // Avoid the old timeFormat key
                          if (el.type === 'checkbox') el.checked = settingsObj[key]; else el.value = settingsObj[key];
                     }
                 });
                 isNightModeActive = settingsObj.isNightModeActive;
-                currentTranslations = translations[settingsObj.language] || translations.en;
                 elements.nightModeIcon.classList.toggle('fa-sun', isNightModeActive);
                 elements.nightModeIcon.classList.toggle('fa-moon', !isNightModeActive);
+                updateLanguageUI();
                 applyAndSaveAll(false);
             }
             function saveCurrentSettings() { localStorage.setItem(CURRENT_SETTINGS_KEY, JSON.stringify(getCurrentSettingsObject())); }
             function loadSettings() {
-                const defaultSettings = { backgroundColor: "#ffffff", satFontColor: "#000000", datumFontColor: "#000000", fontSelect: "Arial, sans-serif", satFontSize: DEFAULT_MANUAL_SAT_VH.toString(), datumFontSize: DEFAULT_MANUAL_DATUM_VH.toString(), brightness: "1", contrast: "1", timeFormat: "24", dateFormat: "dd.mm.yyyy.", showSeconds: true, showDate: true, language: "en", isNightModeActive: false, isAutoSizeActive: true };
+                const defaultSettings = { backgroundColor: "#ffffff", satFontColor: "#000000", datumFontColor: "#000000", fontSelect: "Arial, sans-serif", satFontSize: DEFAULT_MANUAL_SAT_VH.toString(), datumFontSize: DEFAULT_MANUAL_DATUM_VH.toString(), brightness: "1", contrast: "1", dateFormat: "dd.mm.yyyy.", showSeconds: true, showDate: true, language: "en", isNightModeActive: false, isAutoSizeActive: true };
                 const storedSettings = JSON.parse(localStorage.getItem(CURRENT_SETTINGS_KEY)) || {};
                 applySettingsFromObject({ ...defaultSettings, ...storedSettings });
                 populateProfileDropdown();
@@ -795,15 +1087,11 @@
                 currentTranslations = translations[elements.languageSelect.value] || translations.en;
                 document.documentElement.lang = elements.languageSelect.value;
                 
-                // Set page title based on the current language
-                const titleKey = 'title'; // You might need a specific title key in your translation files
-                const defaultTitle = "Digital Clock with Date";
-                const titleMap = { hr: "Digitalni Sat s Datumom", de: "Digitaluhr mit Datum", it: "Orologio Digitale con Data", es: "Reloj Digital con Fecha", en: defaultTitle };
-                document.title = T(titleKey) || titleMap[elements.languageSelect.value] || defaultTitle;
+                const titleMap = { hr: "Digitalni Sat s Datumom", de: "Digitaluhr mit Datum", it: "Orologio Digitale con Data", es: "Reloj Digital con Fecha", en: "Digital Clock with Date" };
+                document.title = titleMap[elements.languageSelect.value] || titleMap.en;
                 
-                // Update all UI text elements
                 elements.settingsTitle.textContent = T('settings');
-                ['language', 'brightness', 'contrast', 'timeFormat', 'showSeconds', 'showDate', 'font', 'dateFormat', 'satSize', 'datumSize', 'satColor', 'datumColor', 'bgColor'].forEach(key => {
+                ['language', 'brightness', 'contrast', 'showSeconds', 'showDate', 'font', 'dateFormat', 'satSize', 'datumSize', 'satColor', 'datumColor', 'bgColor'].forEach(key => {
                     const el = document.getElementById(key + 'LabelSpan');
                     if(el) el.textContent = T(key);
                 });
@@ -817,7 +1105,15 @@
                 elements.loadProfileButtonText.textContent = T('loadProfile');
                 elements.deleteProfileButtonText.textContent = T('deleteProfile');
                 
-                // App titles and buttons
+                elements.alarmButton.title = T('alarm.title');
+                elements.alarmTitle.textContent = T('alarm.title');
+                elements.setAlarmButton.textContent = T('alarm.set');
+                elements.setAlarmLabel.textContent = T('alarm.setAlarmLabel');
+                elements.alarmTimeLabel.textContent = T('alarm.timeLabel');
+                elements.alarmDurationLabel.textContent = T('alarm.alarmDuration');
+                elements.activeAlarmsLabel.textContent = T('alarm.activeAlarmsLabel');
+                elements.alarmList.dataset.emptyText = T('alarm.noAlarms');
+
                 elements.stopwatchButton.title = T('stopwatch.title');
                 elements.stopwatchTitle.textContent = T('stopwatch.title');
                 elements.stopwatchStartPauseButtonText.textContent = isStopwatchRunning ? T('stopwatch.pause') : T('stopwatch.start');
@@ -826,6 +1122,9 @@
                 
                 elements.timerButton.title = T('timer.title');
                 elements.timerTitle.textContent = T('timer.title');
+                elements.timerHoursLabel.textContent = T('timer.hours');
+                elements.timerMinutesLabel.textContent = T('timer.minutes');
+                elements.timerSecondsLabel.textContent = T('timer.seconds');
                 elements.timerStartPauseButtonText.textContent = isTimerRunning ? T('timer.pause') : T('timer.start');
                 elements.timerResetButtonText.textContent = T('timer.reset');
 
@@ -834,9 +1133,6 @@
                 elements.addCityInput.placeholder = T('worldClock.placeholder');
                 elements.addCityButton.textContent = T('worldClock.add');
 
-                // Update dropdown options
-                elements.timeFormatSelect.options[0].textContent = T('time24');
-                elements.timeFormatSelect.options[1].textContent = T('time12');
                 const tDateFormats = T('dateFormats');
                 Array.from(elements.dateFormatSelect.options).forEach(opt => opt.textContent = tDateFormats[opt.value] || opt.value);
                 if(elements.profileSelect.options[0]?.disabled) elements.profileSelect.options[0].textContent = T('noProfiles');
@@ -844,19 +1140,14 @@
                 elements.nightModeToggle.title = T(isNightModeActive ? 'toggleDayMode' : 'toggleNightMode');
                 elements.fullscreenButton.title = T(document.fullscreenElement ? 'exitFullscreen' : 'enterFullscreen');
                 updateTime(); updateDate();
+                renderAlarms(); // Re-render alarm list for correct remove button title
             }
             function updateTime() {
                 const now = new Date();
-                let h = now.getHours();
+                const h = now.getHours().toString().padStart(2, '0');
                 const m = now.getMinutes().toString().padStart(2, '0');
                 const s = now.getSeconds().toString().padStart(2, '0');
-                if (elements.timeFormatSelect.value === '12') {
-                    const ampm = h >= 12 ? ' PM' : ' AM';
-                    h = h % 12 || 12;
-                    elements.sat.textContent = `${h}:${m}${elements.showSecondsCheckbox.checked ? `:${s}` : ''}${ampm}`;
-                } else {
-                    elements.sat.textContent = `${h.toString().padStart(2, '0')}:${m}${elements.showSecondsCheckbox.checked ? `:${s}` : ''}`;
-                }
+                elements.sat.textContent = `${h}:${m}${elements.showSecondsCheckbox.checked ? `:${s}` : ''}`;
             }
             function updateDate() {
                 if (!elements.showDateCheckbox.checked) { elements.datum.style.display = 'none'; return; }
@@ -930,7 +1221,7 @@
                 document.addEventListener('keydown', (e) => {
                     if (e.key === 'Escape') {
                         if (document.fullscreenElement) document.exitFullscreen();
-                        [elements.stopwatchPanel, elements.timerPanel, elements.worldClockPanel, elements.settingsPanel].forEach(p => p.style.display = 'none');
+                        [elements.alarmPanel, elements.stopwatchPanel, elements.timerPanel, elements.worldClockPanel, elements.settingsPanel].forEach(p => p.style.display = 'none');
                         elements.infoSidePanel.classList.remove('info-panel-visible');
                     }
                 });
@@ -971,15 +1262,18 @@
                 });
                 
                 // App Panels
+                elements.alarmButton.addEventListener('click', () => openAppPanel(elements.alarmPanel));
                 elements.stopwatchButton.addEventListener('click', () => openAppPanel(elements.stopwatchPanel));
                 elements.timerButton.addEventListener('click', () => openAppPanel(elements.timerPanel));
                 elements.worldClockButton.addEventListener('click', () => openAppPanel(elements.worldClockPanel));
 
+                elements.alarmCloseButton.addEventListener('click', () => elements.alarmPanel.style.display = 'none');
                 elements.stopwatchCloseButton.addEventListener('click', () => elements.stopwatchPanel.style.display = 'none');
                 elements.timerCloseButton.addEventListener('click', () => elements.timerPanel.style.display = 'none');
                 elements.worldClockCloseButton.addEventListener('click', () => elements.worldClockPanel.style.display = 'none');
                 
                 // App-specific listeners
+                elements.setAlarmButton.addEventListener('click', setAlarm);
                 elements.stopwatchStartPauseButton.addEventListener('click', toggleStopwatch);
                 elements.stopwatchResetButton.addEventListener('click', resetStopwatch);
                 elements.stopwatchLapButton.addEventListener('click', recordLap);
@@ -993,9 +1287,11 @@
                 populateLanguageOptions();
                 loadSettings();
                 setupListeners();
+                makeDraggable(elements.alarmPanel, elements.alarmHeader);
                 makeDraggable(elements.stopwatchPanel, elements.stopwatchHeader);
                 makeDraggable(elements.timerPanel, elements.timerHeader);
                 makeDraggable(elements.worldClockPanel, elements.worldClockHeader);
+                initializeAlarms();
                 setInterval(updateTime, 1000);
             }
             function populateLanguageOptions() {
@@ -1012,7 +1308,3 @@
     </script>
 </body>
 </html>
-
-
-
-    
