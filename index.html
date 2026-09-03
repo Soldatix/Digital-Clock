@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Mobile layout update v2: separated toolbar icons and compact Timer -->
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-V7PMS51Z75"></script>
     <script>
@@ -208,8 +209,14 @@
             .settings-panel { width: calc(100% - 40px); right: 20px; left: 20px; top: 70px; }
             .fullscreen-toggle { top: 15px; left: 15px; }
             #infoSidePanel { width: 300px; }
-            #timerDisplay { font-size: 25vw; }
-            .timer-inputs { flex-direction: column; gap: 15px; }
+            #timerContainer .app-header { margin-bottom: 5px; }
+            #timerContainer h2 { font-size: 2rem; margin: 0.5rem 0; }
+            #timerDisplay { font-size: clamp(2.75rem, 14vw, 5.5rem); line-height: 1.1; margin: 10px 0 20px; max-width: 100%; }
+            .timer-inputs { flex-direction: row; justify-content: center; gap: 8px; width: 100%; margin-bottom: 20px; }
+            .timer-inputs label { flex: 0 1 92px; min-width: 0; gap: 6px; font-size: 0.9rem; }
+            .timer-inputs input { box-sizing: border-box; width: 100%; max-width: 92px; padding: 6px 4px; font-size: 1.8rem; }
+            .timer-controls { display: flex; justify-content: center; gap: 10px; }
+            #timerContainer .app-controls button { box-sizing: border-box; min-width: 110px; padding: 12px 24px; font-size: 1rem; }
             #stopwatchDisplay { font-size: 15vw; }
         }
         @media (max-width: 480px) {
