@@ -1,10 +1,16 @@
 from pathlib import Path
-import re
 
 p = Path('index.html')
 s = p.read_text(encoding='utf-8')
 
-css_pattern = re.compile(r"        #infoSidePanel \\{.*?        #infoSidePanelContent a:hover \\{ text-decoration: underline; \\}", re.S)
+css_start = '        #infoSidePanel {'
+css_end = '        #infoSidePanelContent a:hover { text-decoration: underline; }'
+start = s.find(css_start)
+end = s.find(css_end, start)
+if start < 0 or end < 0:
+    raise SystemExit('Original Info CSS block not found')
+end += len(css_end)
+
 css_new = '''        #infoSidePanel {
             position: fixed; top: 50%; left: 50%; right: auto;
             width: min(860px, calc(100vw - 28px)); height: min(86vh, 820px);
@@ -49,11 +55,16 @@ css_new = '''        #infoSidePanel {
             #infoSidePanelContent .dc-payment-grid { grid-template-columns: 1fr; }
             #infoSidePanelContent .info-title { font-size: 1.3rem; }
         }'''
-s, n = css_pattern.subn(css_new, s, count=1)
-if n != 1:
-    raise SystemExit(f'Info CSS block not found exactly once: {n}')
+s = s[:start] + css_new + s[end:]
 
-fn_pattern = re.compile(r"            function populateInfoPanel\\(\\) \\{.*?                elements\\.infoSidePanelContent\\.innerHTML = contentHTML;\\n            \\}", re.S)
+fn_start = '            function populateInfoPanel() {'
+fn_end = '                elements.infoSidePanelContent.innerHTML = contentHTML;\n            }'
+start = s.find(fn_start)
+end = s.find(fn_end, start)
+if start < 0 or end < 0:
+    raise SystemExit('populateInfoPanel function not found')
+end += len(fn_end)
+
 fn_new = '''            function populateInfoPanel() {
                 const tInfo = T('info');
                 const lang = elements.languageSelect?.value || 'en';
@@ -92,9 +103,7 @@ fn_new = '''            function populateInfoPanel() {
                     <div class="dc-crypto"><h5>${ui.crypto}</h5><div class="dc-wallet-list">${cryptoRows}</div></div>`;
                 elements.infoSidePanelContent.innerHTML = contentHTML;
             }'''
-s, n = fn_pattern.subn(fn_new, s, count=1)
-if n != 1:
-    raise SystemExit(f'populateInfoPanel block not found exactly once: {n}')
+s = s[:start] + fn_new + s[end:]
 
 if 'apps-games-info-standard.js' in s:
     raise SystemExit('Shared Info script is still present; aborting')
