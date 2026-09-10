@@ -87,7 +87,7 @@
         #infoSidePanelContent .dc-crypto { padding: 16px; background: #071126; border: 1px solid rgba(91,128,230,.25); border-radius: 16px; }
         #infoSidePanelContent .dc-crypto h5 { margin: 0 0 12px; color: #54e8ff; font-size: 1rem; }
         #infoSidePanelContent .dc-wallet-list { display: grid; gap: 8px; }
-        #infoSidePanelContent .dc-wallet-row { display: grid; grid-template-columns: 52px minmax(0,1fr); gap: 9px; align-items: start; padding: 9px 10px; border-radius: 11px; background: rgba(255,255,255,.035); }
+        #infoSidePanelContent .dc-wallet-row { display: grid; grid-template-columns: 74px minmax(0,1fr) auto; gap: 9px; align-items: start; padding: 9px 10px; border-radius: 11px; background: rgba(255,255,255,.035); }
         #infoSidePanelContent .dc-wallet-row strong { margin: 0; color: #54e8ff; }
         #infoSidePanelContent .dc-wallet-row code { display: block; margin: 0; padding: 0; background: transparent; color: #b9c8ee; font-size: .76rem; word-break: break-all; }
         @media (max-width: 650px) {
@@ -214,3 +214,24 @@
             .world-clock-controls { flex-direction: column; width: 80%; }
             #worldClockCitySelect, #addWorldClockCity { width: 100%; }
         }
+#infoSidePanelContent .dc-copy-wallet {
+    align-self: center;
+    min-width: 74px;
+    min-height: 36px;
+    padding: 7px 10px;
+    border: 1px solid rgba(84,232,255,.35);
+    border-radius: 9px;
+    background: #132344;
+    color: #eef4ff;
+    font: inherit;
+    font-size: .75rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+#infoSidePanelContent .dc-copy-wallet:hover {
+    background: #1a315b;
+}
+#infoSidePanelContent .dc-copy-wallet.copied {
+    background: #167a5b;
+    border-color: #43d9a3;
+}

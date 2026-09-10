@@ -110,9 +110,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     es: { paypalDesc: 'Paga de forma segura con PayPal u otros métodos disponibles mediante PayPal Checkout.', stripeDesc: 'Paga de forma segura con tarjeta o con los métodos disponibles mediante Stripe Checkout.', cards: 'Tarjeta de débito / crédito', wallets: 'Carteras digitales', paypalBtn: 'Donar con PayPal ↗', stripeBtn: 'Donar con Stripe ↗', note: 'Los métodos de pago disponibles pueden variar según el país, el dispositivo y el proveedor de pago.', crypto: 'Cartera de criptomonedas' }
                 };
                 const ui = uiMap[lang] || uiMap.en;
+                const copyMap = {
+                    en: { copy: 'Copy', copied: 'Copied!' },
+                    hr: { copy: 'Kopiraj', copied: 'Kopirano!' },
+                    de: { copy: 'Kopieren', copied: 'Kopiert!' },
+                    it: { copy: 'Copia', copied: 'Copiato!' },
+                    es: { copy: 'Copiar', copied: '¡Copiado!' }
+                };
+                const copyUi = copyMap[lang] || copyMap.en;
                 const cryptoRows = Object.entries(CRYPTO_ADDRESSES).map(([key, value]) => {
                     const label = tInfo[key.toLowerCase()] || key;
-                    return `<div class="dc-wallet-row"><strong>${label}</strong><code>${value}</code></div>`;
+                    return `<div class="dc-wallet-row"><strong>${label}</strong><code>${value}</code><button type="button" class="dc-copy-wallet" data-address="${value}" title="${copyUi.copy}">${copyUi.copy}</button></div>`;
                 }).join('');
 
                 const contentHTML = `
@@ -136,6 +144,22 @@ document.addEventListener('DOMContentLoaded', function() {
                     <p class="dc-payment-note">${ui.note}</p>
                     <div class="dc-crypto"><h5>${ui.crypto}</h5><div class="dc-wallet-list">${cryptoRows}</div></div>`;
                 elements.infoSidePanelContent.innerHTML = contentHTML;
+                elements.infoSidePanelContent.querySelectorAll('.dc-copy-wallet').forEach(button => {
+                    button.addEventListener('click', async () => {
+                        const originalText = button.textContent;
+                        try {
+                            await navigator.clipboard.writeText(button.dataset.address);
+                            button.textContent = copyUi.copied;
+                            button.classList.add('copied');
+                            setTimeout(() => {
+                                button.textContent = originalText;
+                                button.classList.remove('copied');
+                            }, 1500);
+                        } catch {
+                            button.textContent = originalText;
+                        }
+                    });
+                });
             }
             
             function showInfoPanel() { populateInfoPanel(); elements.infoSidePanel.classList.add('info-panel-visible'); }
