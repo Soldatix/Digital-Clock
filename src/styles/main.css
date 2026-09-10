@@ -194,7 +194,12 @@
             .settings-panel { width: calc(100% - 40px); right: 20px; left: 20px; top: 70px; }
             .fullscreen-toggle { top: 15px; left: 15px; }
             #infoSidePanel { width: 300px; }
-            #timerContainer .app-header { margin-bottom: 5px; }
+#timerContainer .app-header { margin-bottom: 5px; }
+            #timerContainer #closeTimerButton {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+            }
             #timerContainer h2 { font-size: 2rem; margin: 0.5rem 0; }
             #timerDisplay { font-size: clamp(2.75rem, 14vw, 5.5rem); line-height: 1.1; margin: 10px 0 20px; max-width: 100%; }
             .timer-inputs { flex-direction: row; justify-content: center; gap: 8px; width: 100%; margin-bottom: 20px; }
@@ -328,6 +333,7 @@
     .settings-panel {
         top: 145px;
         max-height: calc(100vh - 165px);
+        box-sizing: border-box;
     }
 }
 
