@@ -4,6 +4,7 @@ import { TIME_ZONES } from './data/timezones.js';
 import { APP_INFO, APP_VERSION } from './data/app-info.js';
 import { readStorage, writeStorage } from './js/storage.js';
 import { setupEscapeHandling } from './js/accessibility.js';
+import { downloadBackup, readBackupFile, BACKUP_TEXT } from './js/backup.js';
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js').catch(error => {
@@ -60,6 +61,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 alarmRingingTitle: document.getElementById('alarmRingingTitle')
             };
 
+            const backupElements = {
+                title: document.getElementById('backupHeaderLabel'),
+                exportButton: document.getElementById('exportBackupButton'),
+                exportText: document.getElementById('exportBackupButtonText'),
+                importButton: document.getElementById('importBackupButton'),
+                importText: document.getElementById('importBackupButtonText'),
+                fileInput: document.getElementById('backupImportInput')
+            };
+
+            function getBackupText() {
+                const language = elements.languageSelect?.value || 'en';
+                return BACKUP_TEXT[language] || BACKUP_TEXT.en;
+            }
+
+            function updateBackupUI() {
+                const text = getBackupText();
+                backupElements.title.lastChild.textContent = ` ${text.title}`;
+                backupElements.exportText.textContent = text.export;
+                backupElements.importText.textContent = text.import;
+                backupElements.fileInput.setAttribute('aria-label', text.selectFile);
+            }
             let isNightModeActive = false, currentTranslations = {};
             let timerInterval = null, timerSecondsRemaining = 0, initialTimerSeconds = 0, isTimerRunning = false;
             let audioContext = null;
@@ -284,6 +306,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 elements.stopAlarmButton.textContent = T('alarm.stop');
 
 
+                updateBackupUI();
                 updateNightModeIcon(); updateFullscreenIcon(); updateTime(); updateDate(true);
             }
 
@@ -638,6 +661,53 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (confirm(T('deleteProfileConfirm') + profileName + "'?")) { saveProfiles(getProfiles().filter(p => p.name !== profileName)); populateProfileDropdown(); alert(T('profileDeleted') + profileName + T('profileDeleted2')); }
             });
 
+            backupElements.exportButton.addEventListener('click', () => {
+                downloadBackup({
+                    settings: getCurrentSettingsObject(),
+                    profiles: getProfiles(),
+                    cities: getSavedCities(),
+                    alarms
+                });
+            });
+
+            backupElements.importButton.addEventListener('click', () => {
+                backupElements.fileInput.click();
+            });
+
+            backupElements.fileInput.addEventListener('change', async () => {
+                const file = backupElements.fileInput.files?.[0];
+                if (!file) return;
+
+                try {
+                    const importedData = await readBackupFile(file);
+                    const text = getBackupText();
+
+                    if (!window.confirm(text.importConfirm)) return;
+
+                    const saved = [
+                        writeStorage(CURRENT_SETTINGS_KEY, importedData.settings),
+                        writeStorage(PROFILES_STORAGE_KEY, importedData.profiles),
+                        writeStorage(WORLD_CLOCK_KEY, importedData.cities),
+                        writeStorage(ALARM_KEY, importedData.alarms)
+                    ];
+
+                    if (saved.includes(false)) {
+                        throw new Error('Could not save imported backup.');
+                    }
+
+                    loadAlarms();
+                    loadSettings();
+                    renderAlarms();
+                    renderWorldClocks();
+
+                    window.alert(getBackupText().importSuccess);
+                } catch (error) {
+                    console.warn('Backup import failed.', error);
+                    window.alert(getBackupText().importError);
+                } finally {
+                    backupElements.fileInput.value = '';
+                }
+            });
             // App Event Listeners
             elements.timerAppButton.addEventListener('click', openTimer);
             elements.closeTimerButton.addEventListener('click', closeTimer);
