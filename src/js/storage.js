@@ -36,18 +36,25 @@ export function writeStorageAtomically(entries) {
     } catch (error) {
         console.warn('Could not complete atomic localStorage update.', error);
 
-        for (const [key, previousValue] of previousValues) {
+        // Remove imported values first to free space for the original data.
+        for (const [key] of previousValues) {
             try {
-                if (previousValue === null) {
-                    localStorage.removeItem(key);
-                } else {
-                    localStorage.setItem(key, previousValue);
-                }
+                localStorage.removeItem(key);
+            } catch (removeError) {
+                console.warn(`Could not remove imported localStorage key "${key}".`, removeError);
+            }
+        }
+
+        // Restore the complete state that existed before the import.
+        for (const [key, previousValue] of previousValues) {
+            if (previousValue === null) continue;
+
+            try {
+                localStorage.setItem(key, previousValue);
             } catch (rollbackError) {
                 console.warn(`Could not restore localStorage key "${key}".`, rollbackError);
             }
         }
-
         return false;
     }
 }
