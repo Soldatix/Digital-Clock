@@ -1,6 +1,6 @@
 {
   "name": "digital-clock",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "[![Digital Clock Social Preview](./Digital%20Clock%20Social.png)](https://soldatix.github.io/Digital-Clock/)",
   "main": "index.js",
   "scripts": {

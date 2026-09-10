@@ -235,3 +235,77 @@
     background: #167a5b;
     border-color: #43d9a3;
 }
+#infoSidePanelContent .dc-app-overview {
+    margin-bottom: 18px;
+    padding: 18px;
+    background: #0b1430;
+    border: 1px solid rgba(91,128,230,.25);
+    border-radius: 16px;
+}
+#infoSidePanelContent .dc-app-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: flex-start;
+}
+#infoSidePanelContent .dc-app-brand {
+    display: block;
+    margin-bottom: 5px;
+    color: #54e8ff;
+    font-size: .78rem;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+#infoSidePanelContent .dc-app-heading h5 {
+    margin: 0;
+    color: #f4f7ff;
+    font-size: 1.2rem;
+}
+#infoSidePanelContent .dc-version {
+    flex: 0 0 auto;
+    padding: 6px 9px;
+    border: 1px solid rgba(84,232,255,.28);
+    border-radius: 999px;
+    color: #c7d2ee;
+    font-size: .75rem;
+    font-weight: 700;
+}
+#infoSidePanelContent .dc-features-title {
+    display: block;
+    margin-top: 14px;
+    color: #eef4ff;
+}
+#infoSidePanelContent .dc-app-overview ul {
+    margin: 8px 0 14px;
+    padding-left: 20px;
+    color: #c7d2ee;
+    line-height: 1.55;
+}
+#infoSidePanelContent .dc-info-meta {
+    display: grid;
+    gap: 8px;
+    margin: 14px 0;
+    color: #aebddd;
+    font-size: .84rem;
+}
+#infoSidePanelContent .dc-portal-link {
+    display: inline-flex;
+    min-height: 42px;
+    align-items: center;
+    padding: 8px 13px;
+    border-radius: 11px;
+    background: #132344;
+    border: 1px solid rgba(84,232,255,.3);
+    color: #54e8ff;
+    font-weight: 800;
+    text-decoration: none;
+}
+#infoSidePanelContent .dc-portal-link:hover {
+    background: #1a315b;
+}
+@media (max-width: 520px) {
+    #infoSidePanelContent .dc-app-heading {
+        flex-direction: column;
+    }
+}

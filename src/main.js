@@ -1,6 +1,7 @@
 import { translations } from './data/translations.js';
 import { PAYPAL_LINK, STRIPE_LINK, CRYPTO_ADDRESSES } from './data/donations.js';
 import { TIME_ZONES } from './data/timezones.js';
+import { APP_INFO, APP_VERSION } from './data/app-info.js';
 import { readStorage, writeStorage } from './js/storage.js';
 import { setupEscapeHandling } from './js/accessibility.js';
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
@@ -112,6 +113,7 @@ document.addEventListener('DOMContentLoaded', function() {
             function populateInfoPanel() {
                 const tInfo = T('info');
                 const lang = elements.languageSelect?.value || 'en';
+                const appInfo = APP_INFO[lang] || APP_INFO.en;
                 const uiMap = {
                     en: { paypalDesc: 'Pay securely with PayPal or other payment options offered by PayPal Checkout.', stripeDesc: 'Pay securely by card or with payment methods available through Stripe Checkout.', cards: 'Debit / Credit Card', wallets: 'Digital wallets', paypalBtn: 'Donate with PayPal ↗', stripeBtn: 'Donate with Stripe ↗', note: 'Available payment methods can vary by country, device and payment provider.', crypto: 'Crypto Wallet' },
                     hr: { paypalDesc: 'Platite sigurno putem PayPala ili drugim načinima plaćanja koje nudi PayPal Checkout.', stripeDesc: 'Platite sigurno karticom ili načinima plaćanja dostupnima putem Stripe Checkouta.', cards: 'Debitna / kreditna kartica', wallets: 'Digitalni novčanici', paypalBtn: 'Doniraj putem PayPala ↗', stripeBtn: 'Doniraj putem Stripea ↗', note: 'Dostupni načini plaćanja mogu se razlikovati ovisno o državi, uređaju i pružatelju plaćanja.', crypto: 'Kripto novčanik' },
@@ -135,6 +137,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 const contentHTML = `
                     <h4 class="info-title">${tInfo.title}</h4>
+                    <section class="dc-app-overview">
+                        <div class="dc-app-heading">
+                            <div>
+                                <span class="dc-app-brand">Apps & Games</span>
+                                <h5>${appInfo.name}</h5>
+                            </div>
+                            <span class="dc-version">${appInfo.versionLabel} ${APP_VERSION}</span>
+                        </div>
+                        <p>${appInfo.description}</p>
+                        <strong class="dc-features-title">${appInfo.featuresTitle}</strong>
+                        <ul>${appInfo.features.map(feature => `<li>${feature}</li>`).join('')}</ul>
+                        <div class="dc-info-meta">
+                            <span>${appInfo.freeLabel}</span>
+                            <span>${appInfo.privacy}</span>
+                        </div>
+                        <a class="dc-portal-link" href="https://appsandgames.org/" target="_blank" rel="noopener noreferrer">${appInfo.portalLabel} ↗</a>
+                    </section>
                     <div class="info-charity"><p>${tInfo.line1}</p><p>${tInfo.line2} ${tInfo.line3}</p></div>
                     <strong class="donation-header">${tInfo.donationHeader}</strong>
                     <div class="dc-payment-grid">
