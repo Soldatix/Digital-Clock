@@ -213,8 +213,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
             
-            function showInfoPanel() { populateInfoPanel(); elements.infoSidePanel.classList.add('info-panel-visible'); }
-            function hideInfoPanel() { elements.infoSidePanel.classList.remove('info-panel-visible'); }
+            function showInfoPanel() {
+                populateInfoPanel();
+                elements.infoSidePanel.inert = false;
+                elements.infoSidePanel.setAttribute('aria-hidden', 'false');
+                elements.infoSidePanel.classList.add('info-panel-visible');
+                elements.infoSidePanelCloseButton.focus();
+            }
+
+            function hideInfoPanel() {
+                elements.infoSidePanel.classList.remove('info-panel-visible');
+                elements.infoSidePanel.inert = true;
+                elements.infoSidePanel.setAttribute('aria-hidden', 'true');
+                elements.infoButton.focus();
+            }
             function toggleInfoPanel() { if (elements.infoSidePanel.classList.contains('info-panel-visible')) { hideInfoPanel(); } else { showInfoPanel(); } }
             
             function getProfiles() { return readStorage(PROFILES_STORAGE_KEY, []); }

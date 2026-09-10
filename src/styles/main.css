@@ -371,3 +371,12 @@
     white-space: nowrap !important;
     border: 0 !important;
 }
+/* Visible keyboard focus */
+.icon-button:focus-visible,
+.fullscreen-toggle:focus-visible,
+.close-app-btn:focus-visible,
+#infoSidePanelCloseButton:focus-visible {
+    outline: 3px solid #007bff;
+    outline-offset: 3px;
+    box-shadow: 0 0 0 5px rgba(0, 123, 255, 0.2);
+}
