@@ -384,7 +384,19 @@ document.addEventListener('DOMContentLoaded', function() {
             function closeTimer() { elements.timerContainer.style.display = 'none'; elements.clockContainer.style.display = 'flex'; clearInterval(timerInterval); isTimerRunning = false; }
 
             // Stopwatch Logic
-            function formatStopwatchTime(ms) { const date = new Date(ms); const minutes = date.getUTCMinutes().toString().padStart(2, '0'); const seconds = date.getUTCSeconds().toString().padStart(2, '0'); const milliseconds = Math.floor(date.getUTCMilliseconds() / 10).toString().padStart(2, '0'); return `${minutes}:${seconds}.${milliseconds}`; }
+            function formatStopwatchTime(ms) {
+                const totalCentiseconds = Math.floor(ms / 10);
+                const centiseconds = (totalCentiseconds % 100).toString().padStart(2, '0');
+                const totalSeconds = Math.floor(totalCentiseconds / 100);
+                const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+                const totalMinutes = Math.floor(totalSeconds / 60);
+                const minutes = (totalMinutes % 60).toString().padStart(2, '0');
+                const hours = Math.floor(totalMinutes / 60);
+
+                return hours > 0
+                    ? `${hours.toString().padStart(2, '0')}:${minutes}:${seconds}.${centiseconds}`
+                    : `${minutes}:${seconds}.${centiseconds}`;
+            }
             function stopwatchLoop(timestamp) { if (!isStopwatchRunning) return; stopwatchElapsedTime = timestamp - stopwatchStartTime; elements.stopwatchDisplay.textContent = formatStopwatchTime(stopwatchElapsedTime); stopwatchInterval = requestAnimationFrame(stopwatchLoop); }
             function startPauseStopwatch() {
                 if (isStopwatchRunning) { isStopwatchRunning = false; cancelAnimationFrame(stopwatchInterval); stopwatchElapsedTime = performance.now() - stopwatchStartTime; elements.stopwatchStartLabel.textContent = T('stopwatch.resume'); elements.startPauseStopwatch.classList.remove('running'); } 
@@ -393,7 +405,11 @@ document.addEventListener('DOMContentLoaded', function() {
             function resetStopwatch() { cancelAnimationFrame(stopwatchInterval); isStopwatchRunning = false; stopwatchElapsedTime = 0; lapTimes = []; elements.stopwatchDisplay.textContent = formatStopwatchTime(0); elements.lapsList.innerHTML = ''; elements.stopwatchStartLabel.textContent = T('stopwatch.start'); elements.startPauseStopwatch.classList.remove('running'); }
             function recordLap() { if (!isStopwatchRunning) return; const lapTime = formatStopwatchTime(stopwatchElapsedTime); lapTimes.push(lapTime); const li = document.createElement('li'); li.innerHTML = `<span class="lap-number">${T('stopwatch.lap')} ${lapTimes.length}</span><span>${lapTime}</span>`; elements.lapsList.prepend(li); }
             function openStopwatch() { elements.stopwatchContainer.style.display = 'flex'; elements.clockContainer.style.display = 'none'; elements.timerContainer.style.display = 'none'; elements.worldClockContainer.style.display = 'none'; elements.alarmContainer.style.display = 'none'; }
-            function closeStopwatch() { elements.stopwatchContainer.style.display = 'none'; elements.clockContainer.style.display = 'flex'; cancelAnimationFrame(stopwatchInterval); }
+function closeStopwatch() {
+                if (isStopwatchRunning) startPauseStopwatch();
+                elements.stopwatchContainer.style.display = 'none';
+                elements.clockContainer.style.display = 'flex';
+            }
 
             // World Clock Logic
             function getSavedCities() { return readStorage(WORLD_CLOCK_KEY, ['America/New_York', 'Europe/London', 'Asia/Tokyo', 'Australia/Sydney', 'Europe/Moscow', 'Europe/Zagreb']); }
