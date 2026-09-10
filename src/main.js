@@ -1,6 +1,7 @@
 import { translations } from './data/translations.js';
 import { PAYPAL_LINK, STRIPE_LINK, CRYPTO_ADDRESSES } from './data/donations.js';
 import { TIME_ZONES } from './data/timezones.js';
+import { readStorage, writeStorage } from './js/storage.js';
 
 document.addEventListener('DOMContentLoaded', function() {
             const elements = {
@@ -167,8 +168,8 @@ document.addEventListener('DOMContentLoaded', function() {
             function hideInfoPanel() { elements.infoSidePanel.classList.remove('info-panel-visible'); }
             function toggleInfoPanel() { if (elements.infoSidePanel.classList.contains('info-panel-visible')) { hideInfoPanel(); } else { showInfoPanel(); } }
             
-            function getProfiles() { const p = localStorage.getItem(PROFILES_STORAGE_KEY); return p ? JSON.parse(p) : []; }
-            function saveProfiles(profiles) { localStorage.setItem(PROFILES_STORAGE_KEY, JSON.stringify(profiles)); }
+            function getProfiles() { return readStorage(PROFILES_STORAGE_KEY, []); }
+            function saveProfiles(profiles) { writeStorage(PROFILES_STORAGE_KEY, profiles); }
 
             function populateProfileDropdown() {
                 const profiles = getProfiles(); elements.profileSelect.innerHTML = '';
@@ -198,9 +199,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateNightModeIcon();
             }
             
-            function saveCurrentSettings() { localStorage.setItem(CURRENT_SETTINGS_KEY, JSON.stringify(getCurrentSettingsObject())); }
+            function saveCurrentSettings() { writeStorage(CURRENT_SETTINGS_KEY, getCurrentSettingsObject()); }
 
-            function loadSettings() { const stored = JSON.parse(localStorage.getItem(CURRENT_SETTINGS_KEY)) || {}; applySettingsFromObject({ ...defaultSettings, ...stored }); populateProfileDropdown(); }
+            function loadSettings() { const stored = readStorage(CURRENT_SETTINGS_KEY, {}); applySettingsFromObject({ ...defaultSettings, ...stored }); populateProfileDropdown(); }
 
             function updateLanguageUI() {
                 const textMap = {
@@ -344,8 +345,8 @@ document.addEventListener('DOMContentLoaded', function() {
             function closeStopwatch() { elements.stopwatchContainer.style.display = 'none'; elements.clockContainer.style.display = 'flex'; cancelAnimationFrame(stopwatchInterval); }
 
             // World Clock Logic
-            function getSavedCities() { return JSON.parse(localStorage.getItem(WORLD_CLOCK_KEY)) || ['America/New_York', 'Europe/London', 'Asia/Tokyo', 'Australia/Sydney', 'Europe/Moscow', 'Europe/Zagreb']; }
-            function saveCities(cities) { localStorage.setItem(WORLD_CLOCK_KEY, JSON.stringify(cities)); }
+            function getSavedCities() { return readStorage(WORLD_CLOCK_KEY, ['America/New_York', 'Europe/London', 'Asia/Tokyo', 'Australia/Sydney', 'Europe/Moscow', 'Europe/Zagreb']); }
+            function saveCities(cities) { writeStorage(WORLD_CLOCK_KEY, cities); }
             
             function renderWorldClocks() {
                 const cities = getSavedCities();
@@ -431,8 +432,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             // Alarm Logic
-            function loadAlarms() { alarms = JSON.parse(localStorage.getItem(ALARM_KEY)) || []; }
-            function saveAlarms() { localStorage.setItem(ALARM_KEY, JSON.stringify(alarms)); }
+            function loadAlarms() { alarms = readStorage(ALARM_KEY, []); }
+            function saveAlarms() { writeStorage(ALARM_KEY, alarms); }
             
             function renderAlarms() {
                 elements.alarmsList.innerHTML = '';
