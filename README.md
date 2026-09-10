@@ -1,81 +1,92 @@
 # Multifunctional Digital Clock
 
-[![Digital Clock Social Preview](./Digital%20Clock%20Social.png)](https://soldatix.github.io/Digital-Clock/)
+A free, customizable browser clock with alarms, stopwatch, countdown timer, world time zones, saved profiles, offline support and a multilingual interface.
 
-A versatile and highly customizable digital clock web application. This project is a single-page application built with vanilla JavaScript, HTML, and CSS, offering a suite of time-related tools in one place.
+## Live application
 
-**[>> View Live Demo <<](https://soldatix.github.io/Digital-Clock/)**
+[Open Digital Clock](https://digitalclock.appsandgames.org/)
 
----
+## Main features
 
-## Features
+- Digital clock with optional seconds
+- Current date with multiple date formats
+- 12-hour and 24-hour time formats
+- Automatic or manual font sizing
+- Custom clock, date and background colors
+- Brightness and contrast controls
+- Day and night modes
+- Fullscreen mode
+- Saved appearance profiles
+- Multiple alarms
+- Countdown timer
+- Stopwatch with lap recording
+- World clock with saved cities
+- Validated JSON backup export and import
+- Installable Progressive Web App
+- Offline support after the first successful load
 
-This application is more than just a clock. It's a complete time management tool with the following features:
+## Languages
 
-- **🕰️ Digital Clock:** Displays the current time and date with options for 12-hour/24-hour formats, seconds display, and various date formats.
-- **⚙️ Extensive Customization:**
-    - **Themes:** Light and Dark (Night) modes.
-    - **Colors:** Fully customizable colors for the clock text, date text, and background.
-    - **Fonts:** A wide selection of fonts to personalize the look.
-    - **Sizing:** Automatic font sizing to fit your screen or manual control over font size.
-    - **Display:** Adjust brightness and contrast.
-- **💾 Settings Profiles:** Save your favorite customization settings into profiles and load them anytime.
-- **🌐 Multi-Language Support:** The interface is available in multiple languages.
-- **📱 Responsive Design:** Works on desktop and mobile devices.
-- **↔️ Fullscreen Mode:** Immerse yourself with a fullscreen view of the clock.
+- English
+- Hrvatski
+- Deutsch
+- Italiano
+- Español
 
-### Built-in Apps
+English is used by default when no language preference has been saved.
 
-Access a suite of powerful apps from the main screen:
+## Privacy
 
-- **⏰ Alarm:** Set multiple alarms with a distinct ringing sound.
-- **⏱️ Stopwatch:** A precision stopwatch with lap recording functionality.
-- **⏳ Timer:** A countdown timer that alerts you when the time is up.
-- **🌍 World Clock:** Track the time in multiple cities across different time zones.
+Digital Clock does not require an account. Settings, profiles, alarms and selected world clock cities are stored locally in the browser.
 
----
+Backup files are created only when the user selects Export Backup. Imported JSON backup files are validated before stored data is replaced.
 
-## How to Use
+## Technology
 
-Simply open the [live demo link](https://soldatix.github.io/Digital-Clock/) in your browser.
+- Vite
+- Vanilla JavaScript
+- JavaScript ES Modules
+- HTML5
+- CSS
+- Web App Manifest
+- Service Worker
+- Local Storage
 
-- The main screen shows the digital clock.
-- Use the icons at the top of the screen to access the **Alarm**, **World Clock**, **Stopwatch**, and **Timer** apps.
-- The icons on the top right allow you to access **Settings**, toggle **Night Mode**, and view **Information/Donations**.
-- The icon on the top left toggles **Fullscreen Mode**.
+## Local development
 
-All your settings, created alarms, and selected world clocks are automatically saved in your browser's local storage.
+Requirements: Node.js 20.19 or newer and npm.
 
----
+- Install dependencies: `npm install`
+- Start development: `npm run dev`
+- Create production build: `npm run build`
+- Preview production build: `npm run preview`
 
-## Supported Languages
+The production output is generated in the `dist` directory.
 
-- 🇭🇷 Hrvatski (Croatian)
-- 🇬🇧 English
-- 🇩🇪 Deutsch (German)
-- 🇮🇹 Italiano (Italian)
-- 🇪🇸 Español (Spanish)
+## Project structure
 
-You can change the language from the settings panel.
+- `index.html` — application document and metadata
+- `src/main.js` — main application coordinator
+- `src/data/` — translations and static application data
+- `src/js/` — storage, backup and accessibility modules
+- `src/styles/` — application styles
+- `public/` — PWA and production static files
 
----
+## Deployment
 
-## Donations
+The production site is built from GitHub and deployed through Cloudflare.
 
-The application is free to use, but donations are welcome.
+- Build command: `npm install && npm run build`
+- Output directory: `dist`
 
-A part of the received donations will be forwarded to various charitable organizations, and the largest part will be donated to institutions caring for children without adequate parental care.
+## Support
 
-You can make donations to:
-- **PayPal:** [https://www.paypal.com/ncp/payment/RU2CWCNVQ7XD6](https://www.paypal.com/ncp/payment/RU2CWCNVQ7XD6)
-- **Stripe (Card Payment):** [https://buy.stripe.com/7sYeVd7Blfe89cm0k02kw00](https://buy.stripe.com/7sYeVd7Blfe89cm0k02kw00)
+Digital Clock remains free to use. Optional support methods are available from the Information / Donations panel inside the application.
 
-### Crypto Wallet
-- **BTC:** `bc1qwlrxrh64peukga0fp59m9yg7gpf0yj8q7fxnsc`
-- **ETH:** `0xA99A52085c6725854daa46bb302041569c8bA4E3`
-- **XRP:** `rP43SsrkhPkxTsFohMAm32sAQg7vqwmDpr`
-- **SOL:** `8xkdVTEaDGuWu4aE3HpEx8r9Aux98JZbdsMiDQvJWBWR`
-- **DOGE:** `DGAT32ku8WmFaTDxCgVuRuVpUFmfdmD5Jb`
-- **XML/XLM:** `GCYH4OD4I2GNRKFFOYROE3N3S2HCT5RXIML3TZV5DP3TLTLXPXQXIJZ3`
-- **LTC:** `LWtaFniqdYpv2xJtqo9WqDwCsQ2cW6PYWi`
-- **RVN:** `RAtXzKZyB3awfq2u2cK8YppC9kJamU5tPQ`
+## Publisher
+
+[Apps & Games](https://appsandgames.org/)
+
+## Version
+
+2.0.0

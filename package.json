@@ -4,7 +4,6 @@
   "description": "[![Digital Clock Social Preview](./Digital%20Clock%20Social.png)](https://soldatix.github.io/Digital-Clock/)",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"
@@ -23,5 +22,8 @@
   "homepage": "https://github.com/Soldatix/Digital-Clock#readme",
   "devDependencies": {
     "vite": "^8.3.0"
+  },
+  "engines": {
+    "node": ">=20.19.0"
   }
 }
