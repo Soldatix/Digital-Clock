@@ -2,7 +2,7 @@ import { translations } from './data/translations.js';
 import { PAYPAL_LINK, STRIPE_LINK, CRYPTO_ADDRESSES } from './data/donations.js';
 import { TIME_ZONES } from './data/timezones.js';
 import { APP_INFO, APP_VERSION } from './data/app-info.js';
-import { readStorage, writeStorage } from './js/storage.js';
+import { readStorage, writeStorage, writeStorageAtomically } from './js/storage.js';
 import { setupEscapeHandling } from './js/accessibility.js';
 import { downloadBackup, readBackupFile, BACKUP_TEXT } from './js/backup.js';
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
@@ -697,14 +697,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     if (!window.confirm(text.importConfirm)) return;
 
-                    const saved = [
-                        writeStorage(CURRENT_SETTINGS_KEY, importedData.settings),
-                        writeStorage(PROFILES_STORAGE_KEY, importedData.profiles),
-                        writeStorage(WORLD_CLOCK_KEY, importedData.cities),
-                        writeStorage(ALARM_KEY, importedData.alarms)
-                    ];
+                    const saved = writeStorageAtomically([
+                        [CURRENT_SETTINGS_KEY, importedData.settings],
+                        [PROFILES_STORAGE_KEY, importedData.profiles],
+                        [WORLD_CLOCK_KEY, importedData.cities],
+                        [ALARM_KEY, importedData.alarms]
+                    ]);
 
-                    if (saved.includes(false)) {
+                    if (!saved) {
                         throw new Error('Could not save imported backup.');
                     }
 

@@ -7,38 +7,147 @@ function isObject(value) {
     return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
-function isValidProfile(profile) {
-    return isObject(profile)
-        && typeof profile.name === 'string'
-        && profile.name.trim().length > 0
-        && profile.name.length <= 100
-        && isObject(profile.settings);
+const ALLOWED_LANGUAGES = new Set(['en', 'hr', 'de', 'it', 'es']);
+const ALLOWED_FONTS = new Set([
+    'Arial, sans-serif',
+    "'Orbitron', sans-serif",
+    "'Roboto Mono', monospace",
+    "'Digital Numbers', sans-serif",
+    'Times New Roman, serif',
+    'Courier New, monospace',
+    'Verdana, sans-serif',
+    "'Segment7Standard', monospace",
+    'monospace'
+]);
+const ALLOWED_TIME_FORMATS = new Set(['12', '24']);
+const ALLOWED_DATE_FORMATS = new Set([
+    'dd.mm.yyyy.',
+    'mm.dd.yyyy.',
+    'dd.mmm.yyyy.',
+    'ddd dd.mm.yyyy.',
+    'day dd.mm.yyyy.'
+]);
+const COLOR_PATTERN = /^#[0-9a-fA-F]{6}$/;
+
+function requireString(value, allowedValues, fieldName) {
+    if (typeof value !== 'string' || !allowedValues.has(value)) {
+        throw new Error(`Invalid setting: ${fieldName}.`);
+    }
+    return value;
 }
 
-function isValidAlarm(alarm) {
-    return isObject(alarm)
-        && (typeof alarm.id === 'number' || typeof alarm.id === 'string')
-        && typeof alarm.time === 'string'
-        && /^([01]\d|2[0-3]):[0-5]\d$/.test(alarm.time)
-        && typeof alarm.isActive === 'boolean';
+function requireRangeString(value, minimum, maximum, fieldName) {
+    if (typeof value !== 'string' || value.trim() === '') {
+        throw new Error(`Invalid setting: ${fieldName}.`);
+    }
+
+    const number = Number(value);
+    if (!Number.isFinite(number) || number < minimum || number > maximum) {
+        throw new Error(`Invalid setting: ${fieldName}.`);
+    }
+
+    return value;
+}
+
+function requireBoolean(value, fieldName) {
+    if (typeof value !== 'boolean') {
+        throw new Error(`Invalid setting: ${fieldName}.`);
+    }
+    return value;
+}
+
+function normalizeSettings(settings) {
+    if (!isObject(settings)) throw new Error('Invalid settings.');
+
+    if (typeof settings.backgroundColor !== 'string' || !COLOR_PATTERN.test(settings.backgroundColor)
+        || typeof settings.satFontColor !== 'string' || !COLOR_PATTERN.test(settings.satFontColor)
+        || typeof settings.datumFontColor !== 'string' || !COLOR_PATTERN.test(settings.datumFontColor)) {
+        throw new Error('Invalid color settings.');
+    }
+
+    return {
+        backgroundColor: settings.backgroundColor,
+        satFontColor: settings.satFontColor,
+        datumFontColor: settings.datumFontColor,
+        fontSelect: requireString(settings.fontSelect, ALLOWED_FONTS, 'fontSelect'),
+        satFontSize: requireRangeString(settings.satFontSize, 5, 40, 'satFontSize'),
+        datumFontSize: requireRangeString(settings.datumFontSize, 3, 25, 'datumFontSize'),
+        brightness: requireRangeString(settings.brightness, 0, 1, 'brightness'),
+        contrast: requireRangeString(settings.contrast, 0, 1, 'contrast'),
+        timeFormat: requireString(settings.timeFormat, ALLOWED_TIME_FORMATS, 'timeFormat'),
+        dateFormat: requireString(settings.dateFormat, ALLOWED_DATE_FORMATS, 'dateFormat'),
+        showSeconds: requireBoolean(settings.showSeconds, 'showSeconds'),
+        showDate: requireBoolean(settings.showDate, 'showDate'),
+        language: requireString(settings.language, ALLOWED_LANGUAGES, 'language'),
+        isNightModeActive: requireBoolean(settings.isNightModeActive, 'isNightModeActive'),
+        isAutoSizeActive: requireBoolean(settings.isAutoSizeActive, 'isAutoSizeActive')
+    };
+}
+
+function normalizeProfile(profile) {
+    if (!isObject(profile)
+        || typeof profile.name !== 'string'
+        || profile.name.trim().length === 0
+        || profile.name.length > 100) {
+        throw new Error('Invalid profile.');
+    }
+
+    return {
+        name: profile.name.trim(),
+        settings: normalizeSettings(profile.settings)
+    };
+}
+
+function normalizeAlarm(alarm) {
+    const validId = (typeof alarm?.id === 'number' && Number.isFinite(alarm.id))
+        || (typeof alarm?.id === 'string' && alarm.id.length > 0 && alarm.id.length <= 100);
+
+    if (!isObject(alarm)
+        || !validId
+        || typeof alarm.time !== 'string'
+        || !/^([01]\d|2[0-3]):[0-5]\d$/.test(alarm.time)
+        || typeof alarm.isActive !== 'boolean') {
+        throw new Error('Invalid alarm.');
+    }
+
+    return {
+        id: alarm.id,
+        time: alarm.time,
+        isActive: alarm.isActive,
+        isRinging: false
+    };
 }
 
 function validateData(data) {
     if (!isObject(data)) throw new Error('Invalid backup data.');
-    if (!isObject(data.settings)) throw new Error('Invalid settings.');
-    if (!Array.isArray(data.profiles) || !data.profiles.every(isValidProfile)) {
+    if (!Array.isArray(data.profiles) || data.profiles.length > 100) {
         throw new Error('Invalid profiles.');
     }
-    if (!Array.isArray(data.cities) || data.cities.length > TIME_ZONES.length || !data.cities.every(city => TIME_ZONES.includes(city))) {
+    if (!Array.isArray(data.cities)
+        || data.cities.length > TIME_ZONES.length
+        || !data.cities.every(city => TIME_ZONES.includes(city))
+        || new Set(data.cities).size !== data.cities.length) {
         throw new Error('Invalid world clock cities.');
     }
-    if (!Array.isArray(data.alarms) || !data.alarms.every(isValidAlarm)) {
+    if (!Array.isArray(data.alarms) || data.alarms.length > 100) {
         throw new Error('Invalid alarms.');
     }
 
-    return data;
-}
+    const profiles = data.profiles.map(normalizeProfile);
+    const alarms = data.alarms.map(normalizeAlarm);
 
+    if (new Set(profiles.map(profile => profile.name)).size !== profiles.length
+        || new Set(alarms.map(alarm => String(alarm.id))).size !== alarms.length) {
+        throw new Error('Duplicate profile or alarm identifiers.');
+    }
+
+    return {
+        settings: normalizeSettings(data.settings),
+        profiles,
+        cities: [...data.cities],
+        alarms
+    };
+}
 export function downloadBackup(data) {
     const payload = {
         app: BACKUP_APP_ID,
