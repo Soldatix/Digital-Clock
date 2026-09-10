@@ -1,4 +1,5 @@
 import { translations } from './data/translations.js';
+import { PAYPAL_LINK, STRIPE_LINK, CRYPTO_ADDRESSES } from './data/donations.js';
 
 document.addEventListener('DOMContentLoaded', function() {
             const elements = {
@@ -59,9 +60,6 @@ document.addEventListener('DOMContentLoaded', function() {
             let currentAlarmSound = { oscillator: null, timeoutId: null };
 
             const AUTO_SIZE_SAT_VW = 18, AUTO_SIZE_DATUM_VW = 8, DEFAULT_MANUAL_SAT_EM = 20, DEFAULT_MANUAL_DATUM_EM = 10;
-            const PAYPAL_LINK = "https://www.paypal.com/ncp/payment/RU2CWCNVQ7XD6";
-            const STRIPE_LINK = "https://buy.stripe.com/7sYeVd7Blfe89cm0k02kw00"; // Novi link
-            const CRYPTO_ADDRESSES = { BTC: "bc1qwlrxrh64peukga0fp59m9yg7gpf0yj8q7fxnsc", ETH: "0xA99A52085c6725854daa46bb302041569c8bA4E3", XRP: "rP43SsrkhPkxTsFohMAm32sAQg7vqwmDpr", SOL: "8xkdVTEaDGuWu4aE3HpEx8r9Aux98JZbdsMiDQvJWBWR", DOGE: "DGAT32ku8WmFaTDxCgVuRuVpUFmfdmD5Jb", XML: "GCYH4OD4I2GNRKFFOYROE3N3S2HCT5RXIML3TZV5DP3TLTLXPXQXIJZ3", LTC: "LWtaFniqdYpv2xJtqo9WqDwCsQ2cW6PYWi", RVN: "RAtXzKZyB3awfq2u2cK8YppC9kJamU5tPQ" };
             const CURRENT_SETTINGS_KEY = 'clockCurrentSettings', PROFILES_STORAGE_KEY = 'clockAppProfiles';
 
             const defaultSettings = { backgroundColor: "#ffffff", satFontColor: "#000000", datumFontColor: "#000000", fontSelect: "Arial, sans-serif", satFontSize: DEFAULT_MANUAL_SAT_EM.toString(), datumFontSize: DEFAULT_MANUAL_DATUM_EM.toString(), brightness: "1", contrast: "1", timeFormat: "24", dateFormat: "dd.mm.yyyy.", showSeconds: true, showDate: true, language: "en", isNightModeActive: false, isAutoSizeActive: true };
