@@ -309,3 +309,48 @@
         flex-direction: column;
     }
 }
+/* Final mobile layout corrections */
+@media (max-width: 768px) {
+    #infoSidePanel {
+        left: 50%;
+        right: auto;
+        width: calc(100vw - 18px);
+        max-width: none;
+        height: calc(100vh - 18px);
+        transform: translate(-50%, -46%) scale(.98);
+    }
+
+    #infoSidePanel.info-panel-visible {
+        right: auto;
+        transform: translate(-50%, -50%) scale(1);
+    }
+
+    .settings-panel {
+        top: 145px;
+        max-height: calc(100vh - 165px);
+    }
+}
+
+@media (max-width: 480px) {
+    .stopwatch-controls {
+        width: 100%;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .stopwatch-controls button {
+        padding: 12px 16px;
+        font-size: 1rem;
+    }
+
+    #infoSidePanelContent .dc-wallet-row {
+        grid-template-columns: 58px minmax(0, 1fr) auto;
+        gap: 7px;
+    }
+
+    #infoSidePanelContent .dc-copy-wallet {
+        min-width: 64px;
+        padding: 6px 8px;
+    }
+}
