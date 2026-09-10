@@ -2,6 +2,13 @@ import { translations } from './data/translations.js';
 import { PAYPAL_LINK, STRIPE_LINK, CRYPTO_ADDRESSES } from './data/donations.js';
 import { TIME_ZONES } from './data/timezones.js';
 import { readStorage, writeStorage } from './js/storage.js';
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(error => {
+            console.warn('Service worker registration failed.', error);
+        });
+    });
+}
 
 document.addEventListener('DOMContentLoaded', function() {
             const elements = {
