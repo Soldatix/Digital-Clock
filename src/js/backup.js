@@ -1,3 +1,5 @@
+import { TIME_ZONES } from '../data/timezones.js';
+
 const BACKUP_APP_ID = 'digital-clock';
 const BACKUP_FORMAT_VERSION = 1;
 
@@ -27,7 +29,7 @@ function validateData(data) {
     if (!Array.isArray(data.profiles) || !data.profiles.every(isValidProfile)) {
         throw new Error('Invalid profiles.');
     }
-    if (!Array.isArray(data.cities) || !data.cities.every(city => typeof city === 'string' && city.length <= 100)) {
+    if (!Array.isArray(data.cities) || data.cities.length > TIME_ZONES.length || !data.cities.every(city => TIME_ZONES.includes(city))) {
         throw new Error('Invalid world clock cities.');
     }
     if (!Array.isArray(data.alarms) || !data.alarms.every(isValidAlarm)) {

@@ -409,14 +409,27 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     const cityName = timeZone.split('/').pop().replace(/_/g, ' ');
                     
-                    card.innerHTML = `
-                        <button class="remove-city-btn" title="Remove">&times;</button>
-                        <div class="world-clock-city">${cityName}</div>
-                        <div class="world-clock-time">--:--:--</div>
-                        <div class="world-clock-date">----------</div>
-                    `;
+                    const removeButton = document.createElement('button');
+                    removeButton.className = 'remove-city-btn';
+                    removeButton.type = 'button';
+                    removeButton.title = 'Remove';
+                    removeButton.textContent = '×';
+
+                    const cityElement = document.createElement('div');
+                    cityElement.className = 'world-clock-city';
+                    cityElement.textContent = cityName;
+
+                    const timeElement = document.createElement('div');
+                    timeElement.className = 'world-clock-time';
+                    timeElement.textContent = '--:--:--';
+
+                    const dateElement = document.createElement('div');
+                    dateElement.className = 'world-clock-date';
+                    dateElement.textContent = '----------';
+
+                    card.append(removeButton, cityElement, timeElement, dateElement);
                     elements.worldClocksGrid.appendChild(card);
-                    card.querySelector('.remove-city-btn').addEventListener('click', () => removeWorldClockCity(timeZone));
+                    removeButton.addEventListener('click', () => removeWorldClockCity(timeZone));
                 });
                 updateWorldClocks();
             }
