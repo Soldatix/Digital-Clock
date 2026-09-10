@@ -1,4 +1,5 @@
 import { translations } from './data/translations.js';
+import { ACCESSIBILITY_TEXT, formatAccessibilityText } from './data/accessibility-text.js';
 import { PAYPAL_LINK, STRIPE_LINK, CRYPTO_ADDRESSES } from './data/donations.js';
 import { TIME_ZONES } from './data/timezones.js';
 import { APP_INFO, APP_VERSION } from './data/app-info.js';
@@ -75,6 +76,76 @@ document.addEventListener('DOMContentLoaded', function() {
                 return BACKUP_TEXT[language] || BACKUP_TEXT.en;
             }
 
+            function getAccessibilityText() {
+                const language = elements.languageSelect?.value || 'en';
+                return ACCESSIBILITY_TEXT[language] || ACCESSIBILITY_TEXT.en;
+            }
+
+            function setAccessibleName(element, text) {
+                element.title = text;
+                element.setAttribute('aria-label', text);
+            }
+
+            function updateAccessibilityLabels() {
+                const text = getAccessibilityText();
+
+                setAccessibleName(elements.infoButton, text.info);
+                setAccessibleName(elements.infoSidePanelCloseButton, text.closeInfo);
+                setAccessibleName(elements.settingsMenu, T('settings'));
+                setAccessibleName(elements.timerAppButton, T('timer.title'));
+                setAccessibleName(elements.stopwatchAppButton, T('stopwatch.title'));
+                setAccessibleName(elements.worldClockAppButton, T('worldClock.title'));
+                setAccessibleName(elements.alarmAppButton, T('alarm.title'));
+                setAccessibleName(elements.closeTimerButton, T('timer.close'));
+                setAccessibleName(elements.closeStopwatchButton, T('stopwatch.close'));
+                setAccessibleName(elements.closeWorldClockButton, T('worldClock.close'));
+                setAccessibleName(elements.closeAlarmButton, T('alarm.close'));
+
+                elements.worldClockCitySelect.setAttribute('aria-label', text.selectCity);
+                elements.alarmHourSelect.setAttribute('aria-label', text.alarmHour);
+                elements.alarmMinuteSelect.setAttribute('aria-label', text.alarmMinute);
+
+                setAccessibleName(
+                    elements.nightModeToggle,
+                    isNightModeActive ? T('toggleDayMode') : T('toggleNightMode')
+                );
+                setAccessibleName(
+                    elements.fullscreenButton,
+                    document.fullscreenElement ? T('exitFullscreen') : T('enterFullscreen')
+                );
+            }
+            function updateDynamicAccessibilityLabels() {
+                const text = getAccessibilityText();
+
+                elements.worldClocksGrid.querySelectorAll('.world-clock-card').forEach(card => {
+                    const cityName = card.querySelector('.world-clock-city')?.textContent;
+                    const removeButton = card.querySelector('.remove-city-btn');
+
+                    if (cityName && removeButton) {
+                        setAccessibleName(
+                            removeButton,
+                            formatAccessibilityText(text.removeCity, cityName)
+                        );
+                    }
+                });
+
+                elements.alarmsList.querySelectorAll('.alarm-item').forEach(alarmItem => {
+                    const time = alarmItem.querySelector('.alarm-item-time')?.textContent;
+                    const toggleButton = alarmItem.querySelector('.toggle-alarm');
+                    const deleteButton = alarmItem.querySelector('.delete-alarm-btn');
+
+                    if (time && toggleButton && deleteButton) {
+                        setAccessibleName(
+                            toggleButton,
+                            formatAccessibilityText(text.enableAlarm, time)
+                        );
+                        setAccessibleName(
+                            deleteButton,
+                            formatAccessibilityText(text.deleteAlarm, time)
+                        );
+                    }
+                });
+            }
             function updateBackupUI() {
                 const text = getBackupText();
                 backupElements.title.lastChild.textContent = ` ${text.title}`;
@@ -268,7 +339,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const textMap = {
                     settingsTitle: 'settings', languageLabelSpan: 'language', brightnessLabelSpan: 'brightness', contrastLabelSpan: 'contrast', timeFormatLabelSpan: 'timeFormat', showSecondsLabelSpan: 'showSeconds',
                     showDateLabelSpan: 'showDate', fontLabelSpan: 'font', dateFormatLabelSpan: 'dateFormat', satFontSizeLabelSpan: 'satSize', datumFontSizeLabelSpan: 'datumSize', satFontColorLabelSpan: 'satColor',
-                    datumColorLabelSpan: 'datumColor', backgroundColorLabelSpan: 'bgColor', resetButtonText: 'reset', autoSizeLabelSpan: 'autoSize', profilesHeaderLabel: 'profileHeader', profileNameLabel: 'profileName',
+                    datumFontColorLabelSpan: 'datumColor', backgroundColorLabelSpan: 'bgColor', resetButtonText: 'reset', autoSizeLabelSpan: 'autoSize', profilesHeaderLabel: 'profileHeader', profileNameLabel: 'profileName',
                     saveProfileButtonText: 'saveProfile', profileSelectLabel: 'manageProfiles', loadProfileButtonText: 'loadProfile', deleteProfileButtonText: 'deleteProfile'
                 };
                 for (const [elKey, transKey] of Object.entries(textMap)) { if (elements[elKey]) elements[elKey].textContent = T(transKey); }
@@ -318,6 +389,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 elements.stopAlarmButton.textContent = T('alarm.stop');
 
 
+                updateAccessibilityLabels();
+                updateDynamicAccessibilityLabels();
                 updateBackupUI();
                 updateNightModeIcon(); updateFullscreenIcon(); updateTime(); updateDate(true);
             }
@@ -440,7 +513,11 @@ function closeStopwatch() {
                     const removeButton = document.createElement('button');
                     removeButton.className = 'remove-city-btn';
                     removeButton.type = 'button';
-                    removeButton.title = 'Remove';
+                    const removeCityLabel = formatAccessibilityText(
+                        getAccessibilityText().removeCity,
+                        cityName
+                    );
+                    setAccessibleName(removeButton, removeCityLabel);
                     removeButton.textContent = '×';
 
                     const cityElement = document.createElement('div');
@@ -543,6 +620,19 @@ function closeStopwatch() {
                             <button class="delete-alarm-btn"><i class="fas fa-trash-alt"></i></button>
                         </div>
                     `;
+                    const toggleButton = alarmItem.querySelector('.toggle-alarm');
+                    const deleteButton = alarmItem.querySelector('.delete-alarm-btn');
+                    const accessibilityText = getAccessibilityText();
+
+                    setAccessibleName(
+                        toggleButton,
+                        formatAccessibilityText(accessibilityText.enableAlarm, alarm.time)
+                    );
+                    setAccessibleName(
+                        deleteButton,
+                        formatAccessibilityText(accessibilityText.deleteAlarm, alarm.time)
+                    );
+
                     elements.alarmsList.appendChild(alarmItem);
                 });
             }
