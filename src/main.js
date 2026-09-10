@@ -445,14 +445,32 @@ document.addEventListener('DOMContentLoaded', function() {
             // Timer Logic
             function formatTimerTime(totalSeconds) { const h = Math.floor(totalSeconds / 3600).toString().padStart(2, '0'); const m = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0'); const s = (totalSeconds % 60).toString().padStart(2, '0'); return `${h}:${m}:${s}`; }
             function updateTimerDisplay() { elements.timerDisplay.textContent = formatTimerTime(timerSecondsRemaining); }
+            function readTimerValue(input, maximum) {
+                if (input.value.trim() === '') {
+                    input.value = '0';
+                    return 0;
+                }
+
+                const value = Number(input.value);
+
+                if (!Number.isInteger(value) || value < 0 || value > maximum) {
+                    input.focus();
+                    input.reportValidity();
+                    return null;
+                }
+
+                return value;
+            }
             function startPauseTimer() {
                 if (!audioContext) { try { audioContext = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) { console.error("Could not create audio context"); } }
                 if (isTimerRunning) { clearInterval(timerInterval); isTimerRunning = false; elements.timerStartLabel.textContent = T('timer.resume'); elements.startPauseTimer.classList.remove('running'); } 
                 else {
                     if (timerSecondsRemaining <= 0 || timerSecondsRemaining === initialTimerSeconds) {
-                         const h = parseInt(elements.timerHours.value) || 0; 
-                         const m = parseInt(elements.timerMinutes.value) || 0; 
-                         const s = parseInt(elements.timerSeconds.value) || 0; 
+                         const h = readTimerValue(elements.timerHours, 99);
+                         const m = readTimerValue(elements.timerMinutes, 59);
+                         const s = readTimerValue(elements.timerSeconds, 59);
+
+                         if (h === null || m === null || s === null) return; 
                          initialTimerSeconds = (h * 3600) + (m * 60) + s; 
                          timerSecondsRemaining = initialTimerSeconds; 
                     }
@@ -460,11 +478,39 @@ document.addEventListener('DOMContentLoaded', function() {
                     isTimerRunning = true; elements.timerStartLabel.textContent = T('timer.pause'); elements.startPauseTimer.classList.add('running'); [elements.timerHours, elements.timerMinutes, elements.timerSeconds].forEach(inp => inp.disabled = true);
                     timerInterval = setInterval(() => {
                         timerSecondsRemaining--; updateTimerDisplay();
-                        if (timerSecondsRemaining <= 0) { clearInterval(timerInterval); isTimerRunning = false; playSound(880, 0.5); resetTimer(); }
+                        if (timerSecondsRemaining <= 0) {
+                            clearInterval(timerInterval);
+                            timerInterval = null;
+                            isTimerRunning = false;
+                            timerSecondsRemaining = 0;
+                            updateTimerDisplay();
+                            elements.timerStartLabel.textContent = T('timer.start');
+                            elements.startPauseTimer.classList.remove('running');
+                            [elements.timerHours, elements.timerMinutes, elements.timerSeconds]
+                                .forEach(input => input.disabled = false);
+                            playSound(880, 0.5);
+                        }
                     }, 1000);
                 }
             }
-            function resetTimer() { clearInterval(timerInterval); isTimerRunning = false; timerSecondsRemaining = initialTimerSeconds; updateTimerDisplay(); elements.timerStartLabel.textContent = T('timer.start'); elements.startPauseTimer.classList.remove('running'); [elements.timerHours, elements.timerMinutes, elements.timerSeconds].forEach(inp => inp.disabled = false); }
+            function resetTimer() {
+                clearInterval(timerInterval);
+                timerInterval = null;
+                isTimerRunning = false;
+                initialTimerSeconds = 0;
+                timerSecondsRemaining = 0;
+
+                elements.timerHours.value = '0';
+                elements.timerMinutes.value = '0';
+                elements.timerSeconds.value = '0';
+
+                updateTimerDisplay();
+                elements.timerStartLabel.textContent = T('timer.start');
+                elements.startPauseTimer.classList.remove('running');
+
+                [elements.timerHours, elements.timerMinutes, elements.timerSeconds]
+                    .forEach(input => input.disabled = false);
+            }
             function openTimer() { elements.timerContainer.style.display = 'flex'; elements.clockContainer.style.display = 'none'; elements.stopwatchContainer.style.display = 'none'; elements.worldClockContainer.style.display = 'none'; elements.alarmContainer.style.display = 'none'; }
             function closeTimer() { elements.timerContainer.style.display = 'none'; elements.clockContainer.style.display = 'flex'; clearInterval(timerInterval); isTimerRunning = false; }
 
