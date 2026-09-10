@@ -1,3 +1,16 @@
+import '@fortawesome/fontawesome-free/css/fontawesome.min.css';
+import '@fortawesome/fontawesome-free/css/solid.min.css';
+import '@fortawesome/fontawesome-free/css/regular.min.css';
+import '@fontsource/orbitron/latin-400.css';
+import '@fontsource/orbitron/latin-500.css';
+import '@fontsource/orbitron/latin-600.css';
+import '@fontsource/orbitron/latin-700.css';
+import '@fontsource/roboto-mono/latin-300.css';
+import '@fontsource/roboto-mono/latin-ext-300.css';
+import '@fontsource/roboto-mono/latin-400.css';
+import '@fontsource/roboto-mono/latin-ext-400.css';
+import '@fontsource/roboto-mono/latin-500.css';
+import '@fontsource/roboto-mono/latin-ext-500.css';
 import { translations } from './data/translations.js';
 import { ACCESSIBILITY_TEXT, formatAccessibilityText } from './data/accessibility-text.js';
 import { PAYPAL_LINK, STRIPE_LINK, CRYPTO_ADDRESSES } from './data/donations.js';

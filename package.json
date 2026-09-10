@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node scripts/generate-service-worker.mjs",
     "preview": "vite preview"
   },
   "repository": {
@@ -25,5 +25,10 @@
   },
   "engines": {
     "node": ">=20.19.0"
+  },
+  "dependencies": {
+    "@fontsource/orbitron": "^5.3.0",
+    "@fontsource/roboto-mono": "^5.3.0",
+    "@fortawesome/fontawesome-free": "^7.3.1"
   }
 }
