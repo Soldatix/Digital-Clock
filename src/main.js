@@ -245,6 +245,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 for (const option of elements.dateFormatSelect.options) option.textContent = tDateFormats[option.value] || option.value;
                 if (elements.profileSelect.options.length > 0 && elements.profileSelect.options[0].disabled) elements.profileSelect.options[0].textContent = T('noProfiles');
 
+                document.documentElement.lang = elements.languageSelect.value;
                 document.title = T('title');
                 elements.metaDescription.setAttribute('content', T('description'));
                 elements.metaKeywords.setAttribute('content', T('keywords'));
