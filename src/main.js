@@ -1,5 +1,6 @@
 import { translations } from './data/translations.js';
 import { PAYPAL_LINK, STRIPE_LINK, CRYPTO_ADDRESSES } from './data/donations.js';
+import { TIME_ZONES } from './data/timezones.js';
 
 document.addEventListener('DOMContentLoaded', function() {
             const elements = {
@@ -404,9 +405,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             function populateTimeZoneSelect() {
-                const timeZones = ["America/New_York","America/Los_Angeles","Europe/London","Europe/Paris","Europe/Moscow","Europe/Zagreb","Asia/Tokyo","Asia/Dubai","Asia/Kolkata","Australia/Sydney","Pacific/Auckland","Africa/Cairo"];
                 elements.worldClockCitySelect.innerHTML = '';
-                timeZones.forEach(tz => {
+                TIME_ZONES.forEach(tz => {
                     const option = document.createElement('option');
                     option.value = tz;
                     option.textContent = tz.replace(/_/g, ' ');
