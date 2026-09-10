@@ -2,6 +2,7 @@ import { translations } from './data/translations.js';
 import { PAYPAL_LINK, STRIPE_LINK, CRYPTO_ADDRESSES } from './data/donations.js';
 import { TIME_ZONES } from './data/timezones.js';
 import { readStorage, writeStorage } from './js/storage.js';
+import { setupEscapeHandling } from './js/accessibility.js';
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js').catch(error => {
@@ -639,6 +640,19 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
 
+            setupEscapeHandling({
+                infoPanel: elements.infoSidePanel,
+                settingsPanel: elements.settingsPanel,
+                infoButton: elements.infoButton,
+                settingsButton: elements.settingsMenu,
+                closeInfo: hideInfoPanel,
+                views: [
+                    { panel: elements.timerContainer, close: closeTimer, trigger: elements.timerAppButton },
+                    { panel: elements.stopwatchContainer, close: closeStopwatch, trigger: elements.stopwatchAppButton },
+                    { panel: elements.worldClockContainer, close: closeWorldClock, trigger: elements.worldClockAppButton },
+                    { panel: elements.alarmContainer, close: closeAlarm, trigger: elements.alarmAppButton }
+                ]
+            });
             // --- Initialization ---
             function init() {
                 function populateLanguageOptions() { const langSelect = elements.languageSelect; const current = langSelect.value || 'en'; langSelect.innerHTML = ''; Object.entries(translations.en.languageNames).forEach(([code, name]) => { const opt = document.createElement('option'); opt.value = code; opt.textContent = name; langSelect.appendChild(opt); }); langSelect.value = current; }
