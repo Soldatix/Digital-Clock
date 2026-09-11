@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 profileSelect: document.getElementById('profileSelect'), profileSelectLabel: document.getElementById('profileSelectLabel'), loadProfileButton: document.getElementById('loadProfileButton'),
                 loadProfileButtonText: document.getElementById('loadProfileButtonText'), deleteProfileButton: document.getElementById('deleteProfileButton'), deleteProfileButtonText: document.getElementById('deleteProfileButtonText'),
                 fullscreenButton: document.querySelector('.fullscreen-toggle'), fullscreenIcon: document.getElementById('fullscreenIcon'),
+                installAppButton: document.getElementById('installAppButton'), screenSaverButton: document.getElementById('screenSaverButton'),
                 metaDescription: document.querySelector('meta[name="description"]'), metaKeywords: document.querySelector('meta[name="keywords"]'),
                 
                 // Timer elements
@@ -109,6 +110,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 setAccessibleName(elements.stopwatchAppButton, T('stopwatch.title'));
                 setAccessibleName(elements.worldClockAppButton, T('worldClock.title'));
                 setAccessibleName(elements.alarmAppButton, T('alarm.title'));
+                setAccessibleName(elements.installAppButton, text.install);
+                setAccessibleName(elements.screenSaverButton, screenSaverActive ? text.exitScreenSaver : text.screenSaver);
                 setAccessibleName(elements.closeTimerButton, T('timer.close'));
                 setAccessibleName(elements.closeStopwatchButton, T('stopwatch.close'));
                 setAccessibleName(elements.closeWorldClockButton, T('worldClock.close'));
@@ -440,6 +443,69 @@ document.addEventListener('DOMContentLoaded', function() {
             function updateFullscreenIcon() {
                 if (document.fullscreenElement) { elements.fullscreenIcon.classList.replace('fa-expand', 'fa-compress'); elements.fullscreenButton.title = T('exitFullscreen'); }
                 else { elements.fullscreenIcon.classList.replace('fa-compress', 'fa-expand'); elements.fullscreenButton.title = T('enterFullscreen'); }
+            }
+
+            let deferredInstallPrompt = null;
+            let screenSaverActive = false;
+            let screenSaverRequestedFullscreen = false;
+
+            window.addEventListener('beforeinstallprompt', event => {
+                event.preventDefault();
+                deferredInstallPrompt = event;
+                elements.installAppButton.hidden = false;
+            });
+
+            window.addEventListener('appinstalled', () => {
+                deferredInstallPrompt = null;
+                elements.installAppButton.hidden = true;
+            });
+
+            async function installApplication() {
+                if (!deferredInstallPrompt) return;
+
+                deferredInstallPrompt.prompt();
+                await deferredInstallPrompt.userChoice;
+                deferredInstallPrompt = null;
+                elements.installAppButton.hidden = true;
+            }
+
+            async function startScreenSaver() {
+                if (screenSaverActive) return;
+
+                screenSaverActive = true;
+                screenSaverRequestedFullscreen = !document.fullscreenElement;
+                document.body.classList.add('screen-saver-active');
+                elements.screenSaverButton.setAttribute('aria-pressed', 'true');
+                setAccessibleName(elements.screenSaverButton, getAccessibilityText().exitScreenSaver);
+
+                if (screenSaverRequestedFullscreen) {
+                    try {
+                        await document.documentElement.requestFullscreen();
+                    } catch (error) {
+                        screenSaverRequestedFullscreen = false;
+                        console.warn('Screen saver fullscreen request failed.', error);
+                    }
+                }
+            }
+
+            async function exitScreenSaver() {
+                if (!screenSaverActive) return;
+
+                screenSaverActive = false;
+                document.body.classList.remove('screen-saver-active');
+                elements.screenSaverButton.setAttribute('aria-pressed', 'false');
+                setAccessibleName(elements.screenSaverButton, getAccessibilityText().screenSaver);
+
+                if (screenSaverRequestedFullscreen && document.fullscreenElement && document.exitFullscreen) {
+                    try {
+                        await document.exitFullscreen();
+                    } catch (error) {
+                        console.warn('Could not exit screen saver fullscreen mode.', error);
+                    }
+                }
+
+                screenSaverRequestedFullscreen = false;
+                elements.screenSaverButton.focus();
             }
 
             // --- App Logic ---
@@ -835,6 +901,17 @@ function closeStopwatch() {
             elements.infoSidePanelCloseButton.addEventListener('click', hideInfoPanel);
             elements.resetButton.addEventListener('click', resetSettings);
             elements.fullscreenButton.addEventListener('click', () => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(err => console.warn(`FS error: ${err.message}`)); else if (document.exitFullscreen) document.exitFullscreen(); });
+            elements.installAppButton.addEventListener('click', installApplication);
+            elements.screenSaverButton.addEventListener('click', startScreenSaver);
+            document.addEventListener('pointerdown', () => {
+                if (screenSaverActive) exitScreenSaver();
+            });
+            document.addEventListener('keydown', event => {
+                if (!screenSaverActive) return;
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                exitScreenSaver();
+            });
             document.addEventListener('fullscreenchange', updateFullscreenIcon);
             elements.saveProfileButton.addEventListener('click', () => {
                 const profileName = elements.profileNameInput.value.trim(); if (!profileName) { alert(T('enterProfileName')); return; }
