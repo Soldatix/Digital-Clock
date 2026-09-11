@@ -17,6 +17,33 @@
         }
         .icon-button:hover { background-color: var(--button-hover-bg); }
         .top-center-container { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1001; display: flex; gap: 10px; }
+        [hidden] { display: none !important; }
+
+        body.screen-saver-active {
+            cursor: none;
+        }
+        body.screen-saver-active .fullscreen-toggle,
+        body.screen-saver-active .icon-button-container,
+        body.screen-saver-active .top-center-container,
+        body.screen-saver-active .settings-panel,
+        body.screen-saver-active .app-container,
+        body.screen-saver-active #infoSidePanel {
+            display: none !important;
+        }
+        body.screen-saver-active .clock-container {
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            display: flex !important;
+            animation: screen-saver-drift 80s ease-in-out infinite alternate;
+        }
+        @keyframes screen-saver-drift {
+            0% { transform: translate(-4vw, -4vh); }
+            25% { transform: translate(4vw, -3vh); }
+            50% { transform: translate(3vw, 4vh); }
+            75% { transform: translate(-3vw, 3vh); }
+            100% { transform: translate(-4vw, -4vh); }
+        }
         .settings-panel {
             position: absolute; top: 70px; right: 20px; background-color: #ffffff; color: #333333; padding: 20px; border-radius: 10px; display: none; z-index: 1000;
             max-height: calc(100vh - 90px); overflow-y: auto; width: 320px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); border: 1px solid #ddd;
