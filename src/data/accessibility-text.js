@@ -7,7 +7,10 @@ export const ACCESSIBILITY_TEXT = {
         alarmMinute: 'Select alarm minute',
         enableAlarm: 'Enable alarm {time}',
         deleteAlarm: 'Delete alarm {time}',
-        removeCity: 'Remove {city}'
+        removeCity: 'Remove {city}',
+        install: 'Install application',
+        screenSaver: 'Start screen saver',
+        exitScreenSaver: 'Exit screen saver'
     },
     hr: {
         info: 'Informacije i donacije',
@@ -17,7 +20,10 @@ export const ACCESSIBILITY_TEXT = {
         alarmMinute: 'Odaberite minute alarma',
         enableAlarm: 'Uključi alarm {time}',
         deleteAlarm: 'Obriši alarm {time}',
-        removeCity: 'Ukloni grad {city}'
+        removeCity: 'Ukloni grad {city}',
+        install: 'Instaliraj aplikaciju',
+        screenSaver: 'Pokreni čuvar zaslona',
+        exitScreenSaver: 'Izađi iz čuvara zaslona'
     },
     de: {
         info: 'Informationen und Spenden',
@@ -27,7 +33,10 @@ export const ACCESSIBILITY_TEXT = {
         alarmMinute: 'Alarmminute auswählen',
         enableAlarm: 'Alarm {time} aktivieren',
         deleteAlarm: 'Alarm {time} löschen',
-        removeCity: 'Stadt {city} entfernen'
+        removeCity: 'Stadt {city} entfernen',
+        install: 'App installieren',
+        screenSaver: 'Bildschirmschoner starten',
+        exitScreenSaver: 'Bildschirmschoner beenden'
     },
     it: {
         info: 'Informazioni e donazioni',
@@ -37,7 +46,10 @@ export const ACCESSIBILITY_TEXT = {
         alarmMinute: 'Seleziona i minuti della sveglia',
         enableAlarm: 'Attiva la sveglia {time}',
         deleteAlarm: 'Elimina la sveglia {time}',
-        removeCity: 'Rimuovi la città {city}'
+        removeCity: 'Rimuovi la città {city}',
+        install: 'Installa applicazione',
+        screenSaver: 'Avvia salvaschermo',
+        exitScreenSaver: 'Esci dal salvaschermo'
     },
     es: {
         info: 'Información y donaciones',
@@ -47,7 +59,10 @@ export const ACCESSIBILITY_TEXT = {
         alarmMinute: 'Seleccionar los minutos de la alarma',
         enableAlarm: 'Activar alarma {time}',
         deleteAlarm: 'Eliminar alarma {time}',
-        removeCity: 'Eliminar ciudad {city}'
+        removeCity: 'Eliminar ciudad {city}',
+        install: 'Instalar aplicación',
+        screenSaver: 'Iniciar protector de pantalla',
+        exitScreenSaver: 'Salir del protector de pantalla'
     }
 };
 
