@@ -157,6 +157,20 @@
             <button id="startPauseTimer"><span id="timerStartLabel">Start</span></button>
             <button id="resetTimer"><span id="timerResetLabel">Reset</span></button>
         </div>
+        <div id="timerSoundSettings" class="windows-host-only sound-settings" aria-label="Timer sound">
+            <label for="timerSoundSelect"><span class="sound-label">Sound</span></label>
+            <select id="timerSoundSelect">
+                <option value="chime">Chime</option>
+                <option value="bell">Bell</option>
+                <option value="pulse">Pulse</option>
+                <option value="custom">Custom file…</option>
+            </select>
+            <div class="sound-actions">
+                <button id="chooseTimerSoundButton" type="button">Choose file</button>
+                <button id="previewTimerSoundButton" type="button">Test sound</button>
+            </div>
+            <p id="timerCustomSoundName" class="custom-sound-name" hidden></p>
+        </div>
     </div>
 
     <div id="timerCompleteModal">
@@ -213,6 +227,20 @@
                 <select id="alarmMinuteSelect"></select>
             </label>
             <button id="setAlarmButton"><span id="alarmSetBtn">Set Alarm</span></button>
+        </div>
+        <div id="alarmSoundSettings" class="windows-host-only sound-settings" aria-label="Alarm sound">
+            <label for="alarmSoundSelect"><span class="sound-label">Sound</span></label>
+            <select id="alarmSoundSelect">
+                <option value="chime">Chime</option>
+                <option value="bell">Bell</option>
+                <option value="pulse">Pulse</option>
+                <option value="custom">Custom file…</option>
+            </select>
+            <div class="sound-actions">
+                <button id="chooseAlarmSoundButton" type="button">Choose file</button>
+                <button id="previewAlarmSoundButton" type="button">Test sound</button>
+            </div>
+            <p id="alarmCustomSoundName" class="custom-sound-name" hidden></p>
         </div>
         <div id="alarmsListContainer">
             <h3 id="alarmsListTitle">Active Alarms</h3>
