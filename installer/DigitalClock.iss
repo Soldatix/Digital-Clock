@@ -87,6 +87,8 @@ const
   ScreenSaverRegistryKey = 'Control Panel\Desktop';
   ScreenSaverValueName = 'SCRNSAVE.EXE';
   PreviousScreenSaverFileName = 'previous-screensaver-path.txt';
+  PreviousScreenSaverActiveFileName = 'previous-screensaver-active.txt';
+  MissingRegistryValueMarker = '<missing>';
 
 function InstalledScreenSaverPath(): String;
 begin
@@ -96,6 +98,50 @@ end;
 function PreviousScreenSaverPathFile(): String;
 begin
   Result := ExpandConstant('{app}\' + PreviousScreenSaverFileName);
+end;
+
+function PreviousScreenSaverActiveFile(): String;
+begin
+  Result := ExpandConstant('{app}\' + PreviousScreenSaverActiveFileName);
+end;
+
+function LoadSavedPreviousScreenSaverPath(): String;
+var
+  SavedAnsi: AnsiString;
+begin
+  Result := '';
+  SavedAnsi := '';
+  if LoadStringFromFile(PreviousScreenSaverPathFile(), SavedAnsi) then
+    Result := String(SavedAnsi);
+end;
+
+procedure SavePreviousScreenSaverActiveState();
+var
+  CurrentPath: String;
+  CurrentActive: String;
+  SavedPreviousPath: String;
+begin
+  if FileExists(PreviousScreenSaverActiveFile()) then
+    exit;
+
+  CurrentPath := '';
+  RegQueryStringValue(HKCU, ScreenSaverRegistryKey, ScreenSaverValueName, CurrentPath);
+
+  if CompareText(CurrentPath, InstalledScreenSaverPath()) = 0 then
+  begin
+    { Migration from an older installer that did not save ScreenSaveActive.
+      If there was no previous saver path, restore the disabled state on uninstall.
+      If there was a previous saver, the safest legacy fallback is active. }
+    SavedPreviousPath := LoadSavedPreviousScreenSaverPath();
+    if SavedPreviousPath = '' then
+      SaveStringToFile(PreviousScreenSaverActiveFile(), '0', False)
+    else
+      SaveStringToFile(PreviousScreenSaverActiveFile(), '1', False);
+  end
+  else if RegQueryStringValue(HKCU, ScreenSaverRegistryKey, 'ScreenSaveActive', CurrentActive) then
+    SaveStringToFile(PreviousScreenSaverActiveFile(), CurrentActive, False)
+  else
+    SaveStringToFile(PreviousScreenSaverActiveFile(), MissingRegistryValueMarker, False);
 end;
 
 procedure ActivateScreenSaver();
@@ -130,6 +176,8 @@ begin
       SaveStringToFile(PreviousScreenSaverPathFile(), '', False);
   end;
 
+  SavePreviousScreenSaverActiveState();
+
   RegWriteStringValue(HKCU, ScreenSaverRegistryKey, ScreenSaverValueName, InstalledScreenSaverPath());
   RegWriteStringValue(HKCU, ScreenSaverRegistryKey, 'ScreenSaveActive', '1');
 end;
@@ -145,6 +193,8 @@ var
   CurrentPath: String;
   PreviousPath: String;
   PreviousPathAnsi: AnsiString;
+  PreviousActive: String;
+  PreviousActiveAnsi: AnsiString;
 begin
   if CurUninstallStep <> usUninstall then
     exit;
@@ -164,4 +214,16 @@ begin
     RegWriteStringValue(HKCU, ScreenSaverRegistryKey, ScreenSaverValueName, PreviousPath)
   else
     RegDeleteValue(HKCU, ScreenSaverRegistryKey, ScreenSaverValueName);
+
+  PreviousActive := '';
+  PreviousActiveAnsi := '';
+  if LoadStringFromFile(PreviousScreenSaverActiveFile(), PreviousActiveAnsi) then
+    PreviousActive := String(PreviousActiveAnsi);
+
+  if PreviousActive = MissingRegistryValueMarker then
+    RegDeleteValue(HKCU, ScreenSaverRegistryKey, 'ScreenSaveActive')
+  else if PreviousActive <> '' then
+    RegWriteStringValue(HKCU, ScreenSaverRegistryKey, 'ScreenSaveActive', PreviousActive)
+  else if PreviousPath = '' then
+    RegWriteStringValue(HKCU, ScreenSaverRegistryKey, 'ScreenSaveActive', '0');
 end;
