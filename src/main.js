@@ -598,6 +598,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentTimerSound.timeoutId = setTimeout(() => {
                     stopOscillators(currentTimerSound);
                     currentTimerSound.timeoutId = null;
+                    elements.timerCompleteModal.style.display = 'none';
                 }, 8200);
             }
 
