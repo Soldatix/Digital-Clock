@@ -33,6 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 settingsMenu: document.querySelector('.settings-menu'), settingsPanel: document.querySelector('.settings-panel'),
                 brightness: document.getElementById('brightness'), contrast: document.getElementById('contrast'), showSecondsCheckbox: document.getElementById('showSecondsCheckbox'), showDateCheckbox: document.getElementById('showDateCheckbox'),
                 timeFormatSelect: document.getElementById('timeFormat'), dateFormatSelect: document.getElementById('dateFormat'), languageSelect: document.getElementById('languageSelect'), fontSelect: document.getElementById('fontSelect'),
+                windowsHostSettings: document.getElementById('windowsHostSettings'), windowsSettingsTitle: document.getElementById('windowsSettingsTitle'), startWithWindowsCheckbox: document.getElementById('startWithWindowsCheckbox'), startWithWindowsLabel: document.getElementById('startWithWindowsLabel'), keepDisplayAwakeCheckbox: document.getElementById('keepDisplayAwakeCheckbox'), keepDisplayAwakeLabel: document.getElementById('keepDisplayAwakeLabel'),
                 satFontSize: document.getElementById('satFontSize'), datumFontSize: document.getElementById('datumFontSize'), satFontColor: document.getElementById('satFontColor'), datumFontColor: document.getElementById('datumFontColor'),
                 backgroundColor: document.getElementById('backgroundColor'), resetButton: document.getElementById('resetButton'), nightModeToggle: document.getElementById('nightModeToggle'), nightModeIcon: document.getElementById('nightModeIcon'),
                 autoSizeCheckbox: document.getElementById('autoSizeCheckbox'), autoSizeLabel: document.getElementById('autoSizeLabel'), autoSizeLabelSpan: document.getElementById('autoSizeLabelSpan'), satFontSizeLabel: document.getElementById('satFontSizeLabel'),
@@ -248,6 +249,36 @@ document.addEventListener('DOMContentLoaded', function() {
                 windowsHostReady = true;
                 document.querySelectorAll('.windows-host-only').forEach(element => element.classList.add('windows-feature-enabled'));
                 return response.payload || null;
+            }
+
+            function updateWindowsHostText() {
+                const text = {
+                    hr: { title: 'Windows', start: 'Pokreni sa sustavom Windows', awake: 'Drži zaslon uključenim' },
+                    en: { title: 'Windows', start: 'Start with Windows', awake: 'Keep display awake' },
+                    de: { title: 'Windows', start: 'Mit Windows starten', awake: 'Bildschirm eingeschaltet lassen' },
+                    it: { title: 'Windows', start: 'Avvia con Windows', awake: 'Mantieni lo schermo acceso' },
+                    es: { title: 'Windows', start: 'Iniciar con Windows', awake: 'Mantener la pantalla activa' }
+                }[elements.languageSelect.value] || { title: 'Windows', start: 'Start with Windows', awake: 'Keep display awake' };
+
+                elements.windowsSettingsTitle.textContent = text.title;
+                elements.startWithWindowsLabel.textContent = text.start;
+                elements.keepDisplayAwakeLabel.textContent = text.awake;
+            }
+
+            function applyWindowsHostPreferences(preferences) {
+                if (!preferences) return;
+                elements.startWithWindowsCheckbox.checked = preferences.startWithWindows === true;
+                elements.keepDisplayAwakeCheckbox.checked = preferences.keepDisplayAwake === true;
+            }
+
+            async function updateWindowsHostPreference(action, checkbox) {
+                const previousValue = !checkbox.checked;
+                const response = await postWindowsMessage(action, { enabled: checkbox.checked });
+                if (!response?.ok || typeof response.payload?.enabled !== 'boolean') {
+                    checkbox.checked = previousValue;
+                    return;
+                }
+                checkbox.checked = response.payload.enabled;
             }
 
             function updateWindowsSoundText() {
@@ -575,6 +606,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateAccessibilityLabels();
                 updateDynamicAccessibilityLabels();
                 updateBackupUI();
+                updateWindowsHostText();
                 updateWindowsSoundText();
                 updateNightModeIcon(); updateFullscreenIcon(); updateTime(); updateDate(true);
             }
@@ -1242,6 +1274,8 @@ function closeStopwatch() {
             elements.chooseAlarmSoundButton.addEventListener('click', () => chooseCustomSound('alarm'));
             elements.previewTimerSoundButton.addEventListener('click', () => previewSelectedSound('timer'));
             elements.previewAlarmSoundButton.addEventListener('click', () => previewSelectedSound('alarm'));
+            elements.startWithWindowsCheckbox.addEventListener('change', () => updateWindowsHostPreference('setStartWithWindows', elements.startWithWindowsCheckbox));
+            elements.keepDisplayAwakeCheckbox.addEventListener('change', () => updateWindowsHostPreference('setKeepDisplayAwake', elements.keepDisplayAwakeCheckbox));
             elements.stopwatchAppButton.addEventListener('click', openStopwatch);
             elements.closeStopwatchButton.addEventListener('click', closeStopwatch);
             elements.startPauseStopwatch.addEventListener('click', startPauseStopwatch);
@@ -1280,6 +1314,7 @@ function closeStopwatch() {
                 populateAlarmSelectors();
                 loadAlarms();
                 const hostInfo = await initialiseWindowsBridge();
+                applyWindowsHostPreferences(hostInfo?.hostPreferences);
                 loadSettings(hostInfo?.language || null);
                 setInterval(() => { updateTime(); updateDate(); checkAlarms(); }, 1000);
                 updateTimerDisplay();
