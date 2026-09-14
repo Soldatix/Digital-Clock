@@ -7,6 +7,7 @@ namespace DigitalClock.Windows;
 
 public partial class ScreenSaverSettingsWindow : Window
 {
+    private readonly ClockAppearanceStore _appearanceStore = new();
     public ScreenSaverSettingsWindow()
     {
         InitializeComponent();
@@ -20,6 +21,10 @@ public partial class ScreenSaverSettingsWindow : Window
             Path.Combine(AppContext.BaseDirectory, "DigitalClock.Windows.exe.WebView2")
         );
         await SettingsWebView.EnsureCoreWebView2Async(webViewEnvironment);
+        string appearanceJson = _appearanceStore.Read() ?? "null";
+        await SettingsWebView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(
+            $"window.__digitalClockScreenSaverSeed = {appearanceJson};"
+        );
 
         string webFolder = Path.Combine(AppContext.BaseDirectory, "Web");
         SettingsWebView.CoreWebView2.SetVirtualHostNameToFolderMapping(
