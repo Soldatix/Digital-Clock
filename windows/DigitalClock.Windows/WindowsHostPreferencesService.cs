@@ -6,6 +6,8 @@ using Microsoft.Win32;
 
 namespace DigitalClock.Windows;
 
+internal sealed record WindowsHostState(bool StartWithWindows, bool KeepDisplayAwake);
+
 internal sealed class WindowsHostPreferencesService : IDisposable
 {
     private const string RunKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
@@ -31,11 +33,10 @@ internal sealed class WindowsHostPreferencesService : IDisposable
         ApplyDisplayAwakeState(IsDisplayAwakeRequested());
     }
 
-    public object GetState() => new
-    {
-        startWithWindows = IsStartWithWindowsEnabled(),
-        keepDisplayAwake = _preferences.KeepDisplayAwake
-    };
+    public WindowsHostState GetState() => new(
+        IsStartWithWindowsEnabled(),
+        _preferences.KeepDisplayAwake
+    );
 
     public bool SetStartWithWindows(bool enabled)
     {
