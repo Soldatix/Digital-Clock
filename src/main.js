@@ -19,6 +19,12 @@ import { APP_INFO, APP_VERSION } from './data/app-info.js';
 import { readStorage, writeStorage, writeStorageAtomically } from './js/storage.js';
 import { setupEscapeHandling } from './js/accessibility.js';
 import { downloadBackup, readBackupFile, BACKUP_TEXT } from './js/backup.js';
+
+const digitalClockQuery = new URLSearchParams(window.location.search);
+const isScreenSaverWindow = digitalClockQuery.has('screenSaver');
+const isScreenSaverConfig = digitalClockQuery.has('screenSaverConfig');
+const isScreenSaverContext = isScreenSaverWindow || isScreenSaverConfig;
+
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js').catch(error => {
@@ -187,7 +193,10 @@ document.addEventListener('DOMContentLoaded', function() {
             let currentTimerSound = { timeoutId: null, oscillators: [] };
 
             const AUTO_SIZE_SAT_VW = 18, AUTO_SIZE_DATUM_VW = 8, DEFAULT_MANUAL_SAT_EM = 20, DEFAULT_MANUAL_DATUM_EM = 10;
-            const CURRENT_SETTINGS_KEY = 'clockCurrentSettings', PROFILES_STORAGE_KEY = 'clockAppProfiles';
+            const NORMAL_SETTINGS_KEY = 'clockCurrentSettings';
+            const SCREEN_SAVER_SETTINGS_KEY = 'clockScreenSaverSettings';
+            const CURRENT_SETTINGS_KEY = isScreenSaverContext ? SCREEN_SAVER_SETTINGS_KEY : NORMAL_SETTINGS_KEY;
+            const PROFILES_STORAGE_KEY = isScreenSaverContext ? 'clockScreenSaverProfiles' : 'clockAppProfiles';
 
             const defaultSettings = { backgroundColor: "#ffffff", satFontColor: "#000000", datumFontColor: "#000000", fontSelect: "Arial, sans-serif", satFontSize: DEFAULT_MANUAL_SAT_EM.toString(), datumFontSize: DEFAULT_MANUAL_DATUM_EM.toString(), brightness: "1", contrast: "1", timeFormat: "24", dateFormat: "dd.mm.yyyy.", showSeconds: true, showDate: true, language: "en", isNightModeActive: false, isAutoSizeActive: true, bedsideBrightness: "35", alarmSound: { kind: "builtin", value: "chime", name: "" }, timerSound: { kind: "builtin", value: "chime", name: "" } };
 
@@ -588,10 +597,36 @@ document.addEventListener('DOMContentLoaded', function() {
 
             function loadSettings(preferredLanguage = null) {
                 const stored = readStorage(CURRENT_SETTINGS_KEY, null);
-                const shouldUseHostLanguage = !stored?.languageWasSelectedByUser && ['hr', 'en', 'de', 'it', 'es'].includes(preferredLanguage);
+                const inheritedSettings = isScreenSaverContext && !stored ? readStorage(NORMAL_SETTINGS_KEY, null) : stored;
+                const shouldUseHostLanguage = !inheritedSettings?.languageWasSelectedByUser && ['hr', 'en', 'de', 'it', 'es'].includes(preferredLanguage);
                 const initialLanguage = shouldUseHostLanguage ? preferredLanguage : defaultSettings.language;
-                applySettingsFromObject({ ...defaultSettings, ...(stored || {}), language: shouldUseHostLanguage ? initialLanguage : (stored?.language || initialLanguage) });
+                applySettingsFromObject({ ...defaultSettings, ...(inheritedSettings || {}), language: shouldUseHostLanguage ? initialLanguage : (inheritedSettings?.language || initialLanguage) });
+                if (isScreenSaverContext && !stored) saveCurrentSettings();
                 populateProfileDropdown();
+            }
+
+            function configureScreenSaverContext() {
+                if (isScreenSaverWindow) {
+                    document.body.classList.add('screen-saver-active', 'screen-saver-window');
+                    let isArmed = false;
+                    window.setTimeout(() => { isArmed = true; }, 900);
+                    const exitScreenSaverWindow = () => {
+                        if (!isArmed) return;
+                        if (window.chrome?.webview) {
+                            window.chrome.webview.postMessage({ action: 'exitScreenSaver' });
+                        } else {
+                            window.close();
+                        }
+                    };
+                    document.addEventListener('pointermove', exitScreenSaverWindow);
+                    document.addEventListener('pointerdown', exitScreenSaverWindow);
+                    document.addEventListener('keydown', exitScreenSaverWindow);
+                }
+
+                if (isScreenSaverConfig) {
+                    document.body.classList.add('screen-saver-config');
+                    elements.settingsPanel.style.display = 'block';
+                }
             }
 
             function updateLanguageUI() {
@@ -1371,9 +1406,10 @@ function closeStopwatch() {
                 populateTimeZoneSelect();
                 populateAlarmSelectors();
                 loadAlarms();
-                const hostInfo = await initialiseWindowsBridge();
+                const hostInfo = isScreenSaverContext ? null : await initialiseWindowsBridge();
                 applyWindowsHostPreferences(hostInfo?.hostPreferences);
                 loadSettings(hostInfo?.language || null);
+                configureScreenSaverContext();
                 setInterval(() => { updateTime(); updateDate(); checkAlarms(); }, 1000);
                 updateTimerDisplay();
                 elements.stopwatchDisplay.textContent = formatStopwatchTime(0);
