@@ -13,6 +13,7 @@ public partial class MainWindow : Window
 {
     private readonly WindowsSoundService _soundService = new();
     private readonly WindowsHostPreferencesService _hostPreferences = new();
+    private readonly ClockAppearanceStore _appearanceStore = new();
     private Forms.NotifyIcon? _trayIcon;
     private bool _exitRequested;
     private bool _bedsideMode;
@@ -199,6 +200,7 @@ public partial class MainWindow : Window
                 "setStartWithWindows" => SetStartWithWindows(ReadBoolean(root, "enabled")),
                 "setKeepDisplayAwake" => SetKeepDisplayAwake(ReadBoolean(root, "enabled")),
                 "setBedsideMode" => SetBedsideModeFromBridge(ReadBoolean(root, "enabled")),
+                "saveClockAppearance" => SaveClockAppearance(root),
                 _ => throw new InvalidOperationException("Unsupported Windows bridge action.")
             };
 
@@ -208,6 +210,17 @@ public partial class MainWindow : Window
         {
             SendBridgeResponse(requestId, false, new { error = exception.Message });
         }
+    }
+
+    private object SaveClockAppearance(JsonElement root)
+    {
+        if (!root.TryGetProperty("settings", out JsonElement settings) || settings.ValueKind != JsonValueKind.Object)
+        {
+            throw new InvalidOperationException("Clock appearance settings are missing.");
+        }
+
+        _appearanceStore.Save(settings);
+        return new { saved = true };
     }
 
     private object GetHostInfo()
