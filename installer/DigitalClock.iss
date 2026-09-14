@@ -101,11 +101,34 @@ end;
 procedure ActivateScreenSaver();
 var
   PreviousPath: String;
+  SavedPreviousPath: String;
+  SavedPreviousPathAnsi: AnsiString;
 begin
-  if RegQueryStringValue(HKCU, ScreenSaverRegistryKey, ScreenSaverValueName, PreviousPath) then
-    SaveStringToFile(PreviousScreenSaverPathFile(), PreviousPath, False)
+  { Preserve the original Screen Saver across reinstall/upgrade. }
+  if FileExists(PreviousScreenSaverPathFile()) then
+  begin
+    SavedPreviousPath := '';
+    SavedPreviousPathAnsi := '';
+    if LoadStringFromFile(PreviousScreenSaverPathFile(), SavedPreviousPathAnsi) then
+      SavedPreviousPath := String(SavedPreviousPathAnsi);
+
+    { A previous buggy reinstall may have saved our own .scr as the previous saver.
+      Treat that as no previous saver so uninstall never restores a dead path. }
+    if CompareText(SavedPreviousPath, InstalledScreenSaverPath()) = 0 then
+      SaveStringToFile(PreviousScreenSaverPathFile(), '', False);
+  end
   else
-    SaveStringToFile(PreviousScreenSaverPathFile(), '', False);
+  begin
+    if RegQueryStringValue(HKCU, ScreenSaverRegistryKey, ScreenSaverValueName, PreviousPath) then
+    begin
+      if CompareText(PreviousPath, InstalledScreenSaverPath()) <> 0 then
+        SaveStringToFile(PreviousScreenSaverPathFile(), PreviousPath, False)
+      else
+        SaveStringToFile(PreviousScreenSaverPathFile(), '', False);
+    end
+    else
+      SaveStringToFile(PreviousScreenSaverPathFile(), '', False);
+  end;
 
   RegWriteStringValue(HKCU, ScreenSaverRegistryKey, ScreenSaverValueName, InstalledScreenSaverPath());
   RegWriteStringValue(HKCU, ScreenSaverRegistryKey, 'ScreenSaveActive', '1');
