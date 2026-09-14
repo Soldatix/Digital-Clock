@@ -1,9 +1,13 @@
-﻿node_modules/
+node_modules/
 dist/
 .vite/
 *.log
 .DS_Store
 Thumbs.db
+publish/
+
+# Installer downloads and generated packages
+installer/prerequisites/
 
 # .NET build output
 windows/**/bin/
