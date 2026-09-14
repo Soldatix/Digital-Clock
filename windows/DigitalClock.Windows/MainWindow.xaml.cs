@@ -38,7 +38,11 @@ public partial class MainWindow : Window
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
         CreateTrayIcon();
-        await ClockWebView.EnsureCoreWebView2Async();
+        var webViewEnvironment = await CoreWebView2Environment.CreateAsync(
+            null,
+            Path.Combine(AppContext.BaseDirectory, "DigitalClock.Windows.exe.WebView2")
+        );
+        await ClockWebView.EnsureCoreWebView2Async(webViewEnvironment);
 
         ClockWebView.CoreWebView2.WebMessageReceived += ClockWebView_WebMessageReceived;
 
