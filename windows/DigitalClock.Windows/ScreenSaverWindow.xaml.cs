@@ -39,7 +39,11 @@ public partial class ScreenSaverWindow : Window
 
     private async void ScreenSaverWindow_Loaded(object sender, RoutedEventArgs e)
     {
-        await ScreenSaverWebView.EnsureCoreWebView2Async();
+        var webViewEnvironment = await CoreWebView2Environment.CreateAsync(
+            null,
+            Path.Combine(AppContext.BaseDirectory, "DigitalClock.Windows.exe.WebView2")
+        );
+        await ScreenSaverWebView.EnsureCoreWebView2Async(webViewEnvironment);
         ScreenSaverWebView.CoreWebView2.WebMessageReceived += ScreenSaverWebView_WebMessageReceived;
 
         string webFolder = Path.Combine(AppContext.BaseDirectory, "Web");
@@ -52,7 +56,7 @@ public partial class ScreenSaverWindow : Window
         ScreenSaverWebView.Source = new Uri("https://digitalclock.local/index.html?screenSaver=1");
     }
 
-    private void ScreenSaverWindow_PreviewKeyDown(object sender, KeyEventArgs e)
+    private void ScreenSaverWindow_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
     {
         if (!_isPreview)
         {
@@ -60,7 +64,7 @@ public partial class ScreenSaverWindow : Window
         }
     }
 
-    private void ScreenSaverWindow_MouseMove(object sender, MouseEventArgs e)
+    private void ScreenSaverWindow_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
     {
         if (!_isPreview && _startupStopwatch.ElapsedMilliseconds > 900)
         {
