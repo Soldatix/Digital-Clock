@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 settingsMenu: document.querySelector('.settings-menu'), settingsPanel: document.querySelector('.settings-panel'),
                 brightness: document.getElementById('brightness'), contrast: document.getElementById('contrast'), showSecondsCheckbox: document.getElementById('showSecondsCheckbox'), showDateCheckbox: document.getElementById('showDateCheckbox'),
                 timeFormatSelect: document.getElementById('timeFormat'), dateFormatSelect: document.getElementById('dateFormat'), languageSelect: document.getElementById('languageSelect'), fontSelect: document.getElementById('fontSelect'),
-                windowsHostSettings: document.getElementById('windowsHostSettings'), windowsSettingsTitle: document.getElementById('windowsSettingsTitle'), startWithWindowsCheckbox: document.getElementById('startWithWindowsCheckbox'), startWithWindowsLabel: document.getElementById('startWithWindowsLabel'), keepDisplayAwakeCheckbox: document.getElementById('keepDisplayAwakeCheckbox'), keepDisplayAwakeLabel: document.getElementById('keepDisplayAwakeLabel'), bedsideModeCheckbox: document.getElementById('bedsideModeCheckbox'), bedsideModeLabel: document.getElementById('bedsideModeLabel'),
+                windowsHostSettings: document.getElementById('windowsHostSettings'), windowsSettingsTitle: document.getElementById('windowsSettingsTitle'), startWithWindowsCheckbox: document.getElementById('startWithWindowsCheckbox'), startWithWindowsLabel: document.getElementById('startWithWindowsLabel'), keepDisplayAwakeCheckbox: document.getElementById('keepDisplayAwakeCheckbox'), keepDisplayAwakeLabel: document.getElementById('keepDisplayAwakeLabel'), bedsideModeButton: document.getElementById('bedsideModeButton'),
                 satFontSize: document.getElementById('satFontSize'), datumFontSize: document.getElementById('datumFontSize'), satFontColor: document.getElementById('satFontColor'), datumFontColor: document.getElementById('datumFontColor'),
                 backgroundColor: document.getElementById('backgroundColor'), resetButton: document.getElementById('resetButton'), nightModeToggle: document.getElementById('nightModeToggle'), nightModeIcon: document.getElementById('nightModeIcon'),
                 autoSizeCheckbox: document.getElementById('autoSizeCheckbox'), autoSizeLabel: document.getElementById('autoSizeLabel'), autoSizeLabelSpan: document.getElementById('autoSizeLabelSpan'), satFontSizeLabel: document.getElementById('satFontSizeLabel'),
@@ -257,22 +257,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
             function updateWindowsHostText() {
                 const text = {
-                    hr: { title: 'Windows', start: 'Pokreni sa sustavom Windows', awake: 'Drži zaslon uključenim', bedside: 'Noćni način uz krevet' },
-                    en: { title: 'Windows', start: 'Start with Windows', awake: 'Keep display awake', bedside: 'Bedside mode' },
-                    de: { title: 'Windows', start: 'Mit Windows starten', awake: 'Bildschirm eingeschaltet lassen', bedside: 'Nachttischmodus' },
-                    it: { title: 'Windows', start: 'Avvia con Windows', awake: 'Mantieni lo schermo acceso', bedside: 'Modalità comodino' },
-                    es: { title: 'Windows', start: 'Iniciar con Windows', awake: 'Mantener la pantalla activa', bedside: 'Modo de mesita de noche' }
-                }[elements.languageSelect.value] || { title: 'Windows', start: 'Start with Windows', awake: 'Keep display awake', bedside: 'Bedside mode' };
+                    hr: { title: 'Windows', start: 'Pokreni sa sustavom Windows', awake: 'Drži zaslon uključenim', bedside: 'Noćni način uz krevet', exitBedside: 'Izađi iz noćnog načina' },
+                    en: { title: 'Windows', start: 'Start with Windows', awake: 'Keep display awake', bedside: 'Bedside mode', exitBedside: 'Exit bedside mode' },
+                    de: { title: 'Windows', start: 'Mit Windows starten', awake: 'Bildschirm eingeschaltet lassen', bedside: 'Nachttischmodus', exitBedside: 'Nachttischmodus beenden' },
+                    it: { title: 'Windows', start: 'Avvia con Windows', awake: 'Mantieni lo schermo acceso', bedside: 'Modalità comodino', exitBedside: 'Esci dalla modalità comodino' },
+                    es: { title: 'Windows', start: 'Iniciar con Windows', awake: 'Mantener la pantalla activa', bedside: 'Modo de mesita de noche', exitBedside: 'Salir del modo de mesita' }
+                }[elements.languageSelect.value] || { title: 'Windows', start: 'Start with Windows', awake: 'Keep display awake', bedside: 'Bedside mode', exitBedside: 'Exit bedside mode' };
 
                 elements.windowsSettingsTitle.textContent = text.title;
                 elements.startWithWindowsLabel.textContent = text.start;
                 elements.keepDisplayAwakeLabel.textContent = text.awake;
-                elements.bedsideModeLabel.textContent = text.bedside;
+                setAccessibleName(elements.bedsideModeButton, document.body.classList.contains('bedside-mode') ? text.exitBedside : text.bedside);
             }
 
             function applyBedsideMode(enabled) {
-                elements.bedsideModeCheckbox.checked = enabled;
                 document.body.classList.toggle('bedside-mode', enabled);
+                elements.bedsideModeButton.classList.toggle('active', enabled);
+                elements.bedsideModeButton.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+                updateWindowsHostText();
             }
 
             function applyWindowsHostPreferences(preferences) {
@@ -293,11 +295,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             async function updateBedsideMode() {
-                const checkbox = elements.bedsideModeCheckbox;
-                const previousValue = !checkbox.checked;
-                const response = await postWindowsMessage('setBedsideMode', { enabled: checkbox.checked });
+                const wasEnabled = document.body.classList.contains('bedside-mode');
+                const response = await postWindowsMessage('setBedsideMode', { enabled: !wasEnabled });
                 if (!response?.ok || typeof response.payload?.enabled !== 'boolean') {
-                    applyBedsideMode(previousValue);
+                    applyBedsideMode(wasEnabled);
                     return;
                 }
                 applyBedsideMode(response.payload.enabled);
@@ -1298,7 +1299,7 @@ function closeStopwatch() {
             elements.previewAlarmSoundButton.addEventListener('click', () => previewSelectedSound('alarm'));
             elements.startWithWindowsCheckbox.addEventListener('change', () => updateWindowsHostPreference('setStartWithWindows', elements.startWithWindowsCheckbox));
             elements.keepDisplayAwakeCheckbox.addEventListener('change', () => updateWindowsHostPreference('setKeepDisplayAwake', elements.keepDisplayAwakeCheckbox));
-            elements.bedsideModeCheckbox.addEventListener('change', updateBedsideMode);
+            elements.bedsideModeButton.addEventListener('click', updateBedsideMode);
             elements.stopwatchAppButton.addEventListener('click', openStopwatch);
             elements.closeStopwatchButton.addEventListener('click', closeStopwatch);
             elements.startPauseStopwatch.addEventListener('click', startPauseStopwatch);
