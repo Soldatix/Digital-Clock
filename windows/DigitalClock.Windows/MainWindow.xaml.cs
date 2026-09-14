@@ -90,7 +90,7 @@ public partial class MainWindow : Window
         _trayIcon?.ShowBalloonTip(2000, "Digital Clock", "The clock is still running in the system tray.", Forms.ToolTipIcon.Info);
     }
 
-    private void MainWindow_PreviewKeyDown(object sender, KeyEventArgs e)
+    private void MainWindow_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
     {
         if (_bedsideMode && e.Key == Key.Escape)
         {
