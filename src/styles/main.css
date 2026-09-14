@@ -464,3 +464,33 @@ body.bedside-mode #sat,
 body.bedside-mode #datum { color: #c8c8c8 !important; }
 
 #bedsideModeButton.active { background-color: #48515a; color: #e7e7e7; }
+
+
+/* Bedside brightness: shown briefly when entering the mode or moving the mouse. */
+#bedsideBrightnessControl {
+    display: none;
+    position: fixed;
+    left: 50%;
+    bottom: 28px;
+    z-index: 3200;
+    width: min(360px, calc(100vw - 36px));
+    transform: translate(-50%, 14px);
+    opacity: 0;
+    pointer-events: none;
+    gap: 9px;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    padding: 10px 14px;
+    border: 1px solid rgba(220, 220, 220, .22);
+    border-radius: 14px;
+    background: rgba(15, 15, 15, .74);
+    color: #a8a8a8;
+    transition: opacity .25s ease, transform .25s ease;
+}
+#bedsideBrightnessControl label { white-space: nowrap; font-size: .86rem; }
+#bedsideBrightnessControl input { width: 100%; accent-color: #a9a9a9; }
+#bedsideBrightnessValue { min-width: 34px; color: #bdbdbd; font-size: .82rem; }
+body.bedside-mode #bedsideBrightnessControl { display: grid; }
+body.bedside-mode #bedsideBrightnessControl.bedside-controls-visible { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+body.bedside-mode #sat,
+body.bedside-mode #datum { opacity: var(--bedside-brightness, .35); }
