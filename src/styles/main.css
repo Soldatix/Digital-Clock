@@ -234,8 +234,8 @@
 #timerContainer .app-header { margin-bottom: 5px; }
             #timerContainer #closeTimerButton {
                 position: fixed;
-                top: 20px;
-                right: 20px;
+                top: 12px;
+                right: 12px;
             }
             #timerContainer h2 { font-size: 2rem; margin: 0.5rem 0; }
             #timerDisplay { font-size: clamp(2.75rem, 14vw, 5.5rem); line-height: 1.1; margin: 10px 0 20px; max-width: 100%; }
