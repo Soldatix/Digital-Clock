@@ -258,16 +258,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
             function updateWindowsHostText() {
                 const text = {
-                    hr: { title: 'Windows', start: 'Pokreni sa sustavom Windows', awake: 'Drži zaslon uključenim', bedside: 'Noćni način uz krevet', exitBedside: 'Izađi iz noćnog načina' },
-                    en: { title: 'Windows', start: 'Start with Windows', awake: 'Keep display awake', bedside: 'Bedside mode', exitBedside: 'Exit bedside mode' },
-                    de: { title: 'Windows', start: 'Mit Windows starten', awake: 'Bildschirm eingeschaltet lassen', bedside: 'Nachttischmodus', exitBedside: 'Nachttischmodus beenden' },
-                    it: { title: 'Windows', start: 'Avvia con Windows', awake: 'Mantieni lo schermo acceso', bedside: 'Modalità comodino', exitBedside: 'Esci dalla modalità comodino' },
-                    es: { title: 'Windows', start: 'Iniciar con Windows', awake: 'Mantener la pantalla activa', bedside: 'Modo de mesita de noche', exitBedside: 'Salir del modo de mesita' }
-                }[elements.languageSelect.value] || { title: 'Windows', start: 'Start with Windows', awake: 'Keep display awake', bedside: 'Bedside mode', exitBedside: 'Exit bedside mode' };
+                    hr: { title: 'Windows', start: 'Pokreni sa sustavom Windows', awake: 'Drži zaslon uključenim', bedside: 'Noćni način uz krevet', exitBedside: 'Izađi iz noćnog načina', bedsideBrightness: 'Svjetlina' },
+                    en: { title: 'Windows', start: 'Start with Windows', awake: 'Keep display awake', bedside: 'Bedside mode', exitBedside: 'Exit bedside mode', bedsideBrightness: 'Brightness' },
+                    de: { title: 'Windows', start: 'Mit Windows starten', awake: 'Bildschirm eingeschaltet lassen', bedside: 'Nachttischmodus', exitBedside: 'Nachttischmodus beenden', bedsideBrightness: 'Helligkeit' },
+                    it: { title: 'Windows', start: 'Avvia con Windows', awake: 'Mantieni lo schermo acceso', bedside: 'Modalità comodino', exitBedside: 'Esci dalla modalità comodino', bedsideBrightness: 'Luminosità' },
+                    es: { title: 'Windows', start: 'Iniciar con Windows', awake: 'Mantener la pantalla activa', bedside: 'Modo de mesita de noche', exitBedside: 'Salir del modo de mesita', bedsideBrightness: 'Brillo' }
+                }[elements.languageSelect.value] || { title: 'Windows', start: 'Start with Windows', awake: 'Keep display awake', bedside: 'Bedside mode', exitBedside: 'Exit bedside mode', bedsideBrightness: 'Brightness' };
 
                 elements.windowsSettingsTitle.textContent = text.title;
                 elements.startWithWindowsLabel.textContent = text.start;
                 elements.keepDisplayAwakeLabel.textContent = text.awake;
+                elements.bedsideBrightnessLabel.textContent = text.bedsideBrightness;
                 setAccessibleName(elements.bedsideModeButton, document.body.classList.contains('bedside-mode') ? text.exitBedside : text.bedside);
             }
 
