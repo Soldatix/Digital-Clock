@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 timeFormatSelect: document.getElementById('timeFormat'), dateFormatSelect: document.getElementById('dateFormat'), languageSelect: document.getElementById('languageSelect'), fontSelect: document.getElementById('fontSelect'),
                 windowsHostSettings: document.getElementById('windowsHostSettings'), windowsSettingsTitle: document.getElementById('windowsSettingsTitle'), startWithWindowsCheckbox: document.getElementById('startWithWindowsCheckbox'), startWithWindowsLabel: document.getElementById('startWithWindowsLabel'), keepDisplayAwakeCheckbox: document.getElementById('keepDisplayAwakeCheckbox'), keepDisplayAwakeLabel: document.getElementById('keepDisplayAwakeLabel'), bedsideModeButton: document.getElementById('bedsideModeButton'),
                 satFontSize: document.getElementById('satFontSize'), datumFontSize: document.getElementById('datumFontSize'), satFontColor: document.getElementById('satFontColor'), datumFontColor: document.getElementById('datumFontColor'),
-                backgroundColor: document.getElementById('backgroundColor'), resetButton: document.getElementById('resetButton'), bedsideBrightness: document.getElementById('bedsideBrightness'), bedsideBrightnessLabel: document.getElementById('bedsideBrightnessLabel'), bedsideBrightnessValue: document.getElementById('bedsideBrightnessValue'), bedsideBrightnessControl: document.getElementById('bedsideBrightnessControl'), bedsideExitButton: document.getElementById('bedsideExitButton'), bedsideExitButtonText: document.getElementById('bedsideExitButtonText'), nightModeToggle: document.getElementById('nightModeToggle'), nightModeIcon: document.getElementById('nightModeIcon'),
+                backgroundColor: document.getElementById('backgroundColor'), resetButton: document.getElementById('resetButton'), bedsideBrightness: document.getElementById('bedsideBrightness'), bedsideBrightnessLabel: document.getElementById('bedsideBrightnessLabel'), bedsideBrightnessValue: document.getElementById('bedsideBrightnessValue'), bedsideBrightnessControl: document.getElementById('bedsideBrightnessControl'), bedsideExitButton: document.getElementById('bedsideExitButton'), bedsideExitButtonText: document.getElementById('bedsideExitButtonText'), bedsideModeHint: document.getElementById('bedsideModeHint'), bedsideModeHintText: document.getElementById('bedsideModeHintText'), nightModeToggle: document.getElementById('nightModeToggle'), nightModeIcon: document.getElementById('nightModeIcon'),
                 autoSizeCheckbox: document.getElementById('autoSizeCheckbox'), autoSizeLabel: document.getElementById('autoSizeLabel'), autoSizeLabelSpan: document.getElementById('autoSizeLabelSpan'), satFontSizeLabel: document.getElementById('satFontSizeLabel'),
                 datumFontSizeLabel: document.getElementById('datumFontSizeLabel'), infoButton: document.getElementById('infoButton'), infoSidePanel: document.getElementById('infoSidePanel'), infoSidePanelCloseButton: document.getElementById('infoSidePanelCloseButton'),
                 infoSidePanelContent: document.getElementById('infoSidePanelContent'), settingsTitle: document.getElementById('settingsTitle'), languageLabelSpan: document.querySelector('#languageLabel span'),
@@ -216,6 +216,7 @@ document.addEventListener('DOMContentLoaded', function() {
             let languageWasSelectedByUser = false;
             let bridgeRequestSequence = 0;
             let bedsideControlsTimer = null;
+            let bedsideHintTimer = null;
             const bridgeRequests = new Map();
 
             function isWindowsHost() {
@@ -273,18 +274,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
             function updateWindowsHostText() {
                 const text = {
-                    hr: { title: 'Windows', start: 'Pokreni sa sustavom Windows', awake: 'Drži zaslon uključenim', bedside: 'Noćni način uz krevet', exitBedside: 'Izađi iz noćnog načina', bedsideBrightness: 'Svjetlina' },
-                    en: { title: 'Windows', start: 'Start with Windows', awake: 'Keep display awake', bedside: 'Bedside mode', exitBedside: 'Exit bedside mode', bedsideBrightness: 'Brightness' },
-                    de: { title: 'Windows', start: 'Mit Windows starten', awake: 'Bildschirm eingeschaltet lassen', bedside: 'Nachttischmodus', exitBedside: 'Nachttischmodus beenden', bedsideBrightness: 'Helligkeit' },
-                    it: { title: 'Windows', start: 'Avvia con Windows', awake: 'Mantieni lo schermo acceso', bedside: 'Modalità comodino', exitBedside: 'Esci dalla modalità comodino', bedsideBrightness: 'Luminosità' },
-                    es: { title: 'Windows', start: 'Iniciar con Windows', awake: 'Mantener la pantalla activa', bedside: 'Modo de mesita de noche', exitBedside: 'Salir del modo de mesita', bedsideBrightness: 'Brillo' }
-                }[elements.languageSelect.value] || { title: 'Windows', start: 'Start with Windows', awake: 'Keep display awake', bedside: 'Bedside mode', exitBedside: 'Exit bedside mode', bedsideBrightness: 'Brightness' };
+                    hr: { title: 'Windows', start: 'Pokreni sa sustavom Windows', awake: 'Drži zaslon uključenim', bedside: 'Noćni način uz krevet', exitBedside: 'Izađi iz noćnog načina', bedsideBrightness: 'Svjetlina', bedsideHint: 'Izlaz iz noćnog načina: pritisni Esc ili klikni „Izađi iz noćnog načina”.' },
+                    en: { title: 'Windows', start: 'Start with Windows', awake: 'Keep display awake', bedside: 'Bedside mode', exitBedside: 'Exit bedside mode', bedsideBrightness: 'Brightness', bedsideHint: 'Exit bedside mode: press Esc or click “Exit bedside mode”.' },
+                    de: { title: 'Windows', start: 'Mit Windows starten', awake: 'Bildschirm eingeschaltet lassen', bedside: 'Nachttischmodus', exitBedside: 'Nachttischmodus beenden', bedsideBrightness: 'Helligkeit', bedsideHint: 'Nachttischmodus beenden: Esc drücken oder auf „Nachttischmodus beenden“ klicken.' },
+                    it: { title: 'Windows', start: 'Avvia con Windows', awake: 'Mantieni lo schermo acceso', bedside: 'Modalità comodino', exitBedside: 'Esci dalla modalità comodino', bedsideBrightness: 'Luminosità', bedsideHint: 'Per uscire dalla modalità comodino: premi Esc o fai clic su “Esci dalla modalità comodino”.' },
+                    es: { title: 'Windows', start: 'Iniciar con Windows', awake: 'Mantener la pantalla activa', bedside: 'Modo de mesita de noche', exitBedside: 'Salir del modo de mesita', bedsideBrightness: 'Brillo', bedsideHint: 'Para salir del modo de mesita: pulsa Esc o haz clic en “Salir del modo de mesita”.' }
+                }[elements.languageSelect.value] || { title: 'Windows', start: 'Start with Windows', awake: 'Keep display awake', bedside: 'Bedside mode', exitBedside: 'Exit bedside mode', bedsideBrightness: 'Brightness', bedsideHint: 'Exit bedside mode: press Esc or click “Exit bedside mode”.' };
 
                 elements.windowsSettingsTitle.textContent = text.title;
                 elements.startWithWindowsLabel.textContent = text.start;
                 elements.keepDisplayAwakeLabel.textContent = text.awake;
                 elements.bedsideBrightnessLabel.textContent = text.bedsideBrightness;
                 elements.bedsideExitButtonText.textContent = text.exitBedside;
+                elements.bedsideModeHintText.textContent = text.bedsideHint;
                 setAccessibleName(elements.bedsideExitButton, text.exitBedside);
                 setAccessibleName(elements.bedsideModeButton, document.body.classList.contains('bedside-mode') ? text.exitBedside : text.bedside);
             }
@@ -305,15 +307,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 4500);
             }
 
+            function showBedsideModeHint() {
+                elements.bedsideModeHint.classList.add('bedside-hint-visible');
+                if (bedsideHintTimer) clearTimeout(bedsideHintTimer);
+                bedsideHintTimer = setTimeout(() => {
+                    elements.bedsideModeHint.classList.remove('bedside-hint-visible');
+                    bedsideHintTimer = null;
+                }, 2200);
+            }
+
             function applyBedsideMode(enabled) {
                 document.body.classList.toggle('bedside-mode', enabled);
                 elements.bedsideModeButton.classList.toggle('active', enabled);
                 elements.bedsideModeButton.setAttribute('aria-pressed', enabled ? 'true' : 'false');
-                if (enabled) revealBedsideBrightnessControl();
-                else {
+                if (enabled) {
+                    revealBedsideBrightnessControl();
+                    showBedsideModeHint();
+                } else {
                     elements.bedsideBrightnessControl.classList.remove('bedside-controls-visible');
+                    elements.bedsideModeHint.classList.remove('bedside-hint-visible');
                     if (bedsideControlsTimer) clearTimeout(bedsideControlsTimer);
+                    if (bedsideHintTimer) clearTimeout(bedsideHintTimer);
                     bedsideControlsTimer = null;
+                    bedsideHintTimer = null;
                 }
                 updateBedsideBrightness();
                 updateWindowsHostText();
