@@ -425,3 +425,20 @@
     outline-offset: 3px;
     box-shadow: 0 0 0 5px rgba(0, 123, 255, 0.2);
 }
+
+
+/* Windows desktop sound controls are enabled only by the WebView2 host. */
+.windows-host-only { display: none; }
+.windows-host-only.windows-feature-enabled { display: grid; }
+.sound-settings {
+    width: min(100%, 440px);
+    margin: 22px auto 0;
+    gap: 8px;
+    text-align: left;
+}
+.sound-settings label { font-weight: 700; }
+.sound-settings select { width: 100%; padding: 10px; border-radius: 8px; }
+.sound-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.sound-actions button { padding: 10px 14px; border: 0; border-radius: 8px; cursor: pointer; background: #007bff; color: #fff; font: inherit; }
+.sound-actions button:hover { background: #0056b3; }
+.custom-sound-name { margin: 0; font-size: .9rem; overflow-wrap: anywhere; }
