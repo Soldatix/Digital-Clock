@@ -17,6 +17,11 @@ public partial class MainWindow : Window
     private Forms.NotifyIcon? _trayIcon;
     private bool _exitRequested;
     private bool _bedsideMode;
+    private bool _fullscreenMode;
+    private WindowStyle _fullscreenPreviousWindowStyle;
+    private ResizeMode _fullscreenPreviousResizeMode;
+    private bool _fullscreenPreviousTopmost;
+    private WindowState _fullscreenPreviousWindowState;
     private WindowStyle _previousWindowStyle;
     private ResizeMode _previousResizeMode;
     private bool _previousTopmost;
@@ -101,6 +106,13 @@ public partial class MainWindow : Window
         {
             SetBedsideMode(false);
             e.Handled = true;
+            return;
+        }
+
+        if (_fullscreenMode && e.Key == Key.Escape)
+        {
+            SetFullscreenMode(false);
+            e.Handled = true;
         }
     }
 
@@ -142,6 +154,11 @@ public partial class MainWindow : Window
 
     private void SetBedsideMode(bool enabled)
     {
+        if (enabled && _fullscreenMode)
+        {
+            SetFullscreenMode(false);
+        }
+
         if (_bedsideMode == enabled)
         {
             return;
@@ -177,6 +194,47 @@ public partial class MainWindow : Window
         SendHostEvent("bedsideModeChanged", new { enabled = _bedsideMode });
     }
 
+    private void SetFullscreenMode(bool enabled)
+    {
+        if (enabled && _bedsideMode)
+        {
+            SetBedsideMode(false);
+        }
+
+        if (_fullscreenMode == enabled)
+        {
+            return;
+        }
+
+        _fullscreenMode = enabled;
+
+        if (enabled)
+        {
+            _fullscreenPreviousWindowStyle = WindowStyle;
+            _fullscreenPreviousResizeMode = ResizeMode;
+            _fullscreenPreviousTopmost = Topmost;
+            _fullscreenPreviousWindowState = WindowState;
+
+            WindowState = WindowState.Normal;
+            WindowStyle = WindowStyle.None;
+            ResizeMode = ResizeMode.NoResize;
+            Topmost = true;
+            WindowState = WindowState.Maximized;
+        }
+        else
+        {
+            WindowState = WindowState.Normal;
+            WindowStyle = _fullscreenPreviousWindowStyle;
+            ResizeMode = _fullscreenPreviousResizeMode;
+            Topmost = _fullscreenPreviousTopmost;
+            WindowState = _fullscreenPreviousWindowState == WindowState.Minimized
+                ? WindowState.Normal
+                : _fullscreenPreviousWindowState;
+        }
+
+        SendHostEvent("fullscreenChanged", new { enabled = _fullscreenMode });
+    }
+
     private void ClockWebView_WebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
     {
         string? requestId = null;
@@ -200,6 +258,7 @@ public partial class MainWindow : Window
                 "setStartWithWindows" => SetStartWithWindows(ReadBoolean(root, "enabled")),
                 "setKeepDisplayAwake" => SetKeepDisplayAwake(ReadBoolean(root, "enabled")),
                 "setBedsideMode" => SetBedsideModeFromBridge(ReadBoolean(root, "enabled")),
+                "setFullscreen" => SetFullscreenModeFromBridge(ReadBoolean(root, "enabled")),
                 "saveClockAppearance" => SaveClockAppearance(root),
                 _ => throw new InvalidOperationException("Unsupported Windows bridge action.")
             };
@@ -234,7 +293,8 @@ public partial class MainWindow : Window
             {
                 startWithWindows = preferences.StartWithWindows,
                 keepDisplayAwake = preferences.KeepDisplayAwake,
-                bedsideMode = _bedsideMode
+                bedsideMode = _bedsideMode,
+                fullscreenMode = _fullscreenMode
             }
         };
     }
@@ -273,6 +333,12 @@ public partial class MainWindow : Window
     {
         SetBedsideMode(enabled);
         return new { enabled = _bedsideMode };
+    }
+
+    private object SetFullscreenModeFromBridge(bool enabled)
+    {
+        SetFullscreenMode(enabled);
+        return new { enabled = _fullscreenMode };
     }
 
     private void SendBridgeResponse(string? requestId, bool ok, object? payload)
