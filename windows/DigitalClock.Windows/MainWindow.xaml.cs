@@ -185,17 +185,7 @@ public partial class MainWindow : Window
             string? action = ReadString(root, "action");
             object? payload = action switch
             {
-                "getHostInfo" => new
-                {
-                    language = GetSupportedWindowsLanguage(CultureInfo.CurrentUICulture.Name),
-                    customSounds = _soundService.GetSelectedSoundNames(),
-                    hostPreferences = new
-                    {
-                        startWithWindows = _hostPreferences.GetState().GetType().GetProperty("startWithWindows")?.GetValue(_hostPreferences.GetState()),
-                        keepDisplayAwake = _hostPreferences.GetState().GetType().GetProperty("keepDisplayAwake")?.GetValue(_hostPreferences.GetState()),
-                        bedsideMode = _bedsideMode
-                    }
-                },
+                "getHostInfo" => GetHostInfo(),
                 "pickCustomSound" => PickCustomSound(ReadString(root, "channel")),
                 "playCustomSound" => PlayCustomSound(
                     ReadString(root, "channel"),
@@ -214,6 +204,22 @@ public partial class MainWindow : Window
         {
             SendBridgeResponse(requestId, false, new { error = exception.Message });
         }
+    }
+
+    private object GetHostInfo()
+    {
+        WindowsHostState preferences = _hostPreferences.GetState();
+        return new
+        {
+            language = GetSupportedWindowsLanguage(CultureInfo.CurrentUICulture.Name),
+            customSounds = _soundService.GetSelectedSoundNames(),
+            hostPreferences = new
+            {
+                startWithWindows = preferences.StartWithWindows,
+                keepDisplayAwake = preferences.KeepDisplayAwake,
+                bedsideMode = _bedsideMode
+            }
+        };
     }
 
     private object PickCustomSound(string? channel)
