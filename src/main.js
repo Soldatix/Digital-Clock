@@ -212,6 +212,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 timer: { ...defaultSettings.timerSound }
             };
             let windowsHostReady = false;
+            let windowsFullscreenActive = false;
             let languageWasSelectedByUser = false;
             let bridgeRequestSequence = 0;
             let bedsideControlsTimer = null;
@@ -249,6 +250,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     const message = event.data;
                     if (message?.type === 'windowsHostEvent' && message.eventName === 'bedsideModeChanged') {
                         applyBedsideMode(message.payload?.enabled === true);
+                        return;
+                    }
+                    if (message?.type === 'windowsHostEvent' && message.eventName === 'fullscreenChanged') {
+                        windowsFullscreenActive = message.payload?.enabled === true;
+                        updateFullscreenIcon();
                         return;
                     }
                     if (message?.type !== 'windowsBridgeResponse' || !message.requestId) return;
@@ -737,8 +743,26 @@ document.addEventListener('DOMContentLoaded', function() {
             function resetSettings() { if (confirm(T('resetConfirm'))) { applySettingsFromObject(defaultSettings); saveCurrentSettings(); hideInfoPanel(); } }
             
             function updateFullscreenIcon() {
-                if (document.fullscreenElement) { elements.fullscreenIcon.classList.replace('fa-expand', 'fa-compress'); elements.fullscreenButton.title = T('exitFullscreen'); }
+                const fullscreenActive = isWindowsHost() ? windowsFullscreenActive : Boolean(document.fullscreenElement);
+                if (fullscreenActive) { elements.fullscreenIcon.classList.replace('fa-expand', 'fa-compress'); elements.fullscreenButton.title = T('exitFullscreen'); }
                 else { elements.fullscreenIcon.classList.replace('fa-compress', 'fa-expand'); elements.fullscreenButton.title = T('enterFullscreen'); }
+            }
+
+            async function toggleFullscreen() {
+                if (isWindowsHost()) {
+                    const response = await postWindowsMessage('setFullscreen', { enabled: !windowsFullscreenActive });
+                    if (response?.ok && typeof response.payload?.enabled === 'boolean') {
+                        windowsFullscreenActive = response.payload.enabled;
+                        updateFullscreenIcon();
+                    }
+                    return;
+                }
+
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch(err => console.warn(`FS error: ${err.message}`));
+                } else if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
             }
 
             let deferredInstallPrompt = null;
@@ -1283,7 +1307,7 @@ function closeStopwatch() {
             elements.nightModeToggle.addEventListener('click', toggleNightMode);
             elements.infoSidePanelCloseButton.addEventListener('click', hideInfoPanel);
             elements.resetButton.addEventListener('click', resetSettings);
-            elements.fullscreenButton.addEventListener('click', () => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(err => console.warn(`FS error: ${err.message}`)); else if (document.exitFullscreen) document.exitFullscreen(); });
+            elements.fullscreenButton.addEventListener('click', toggleFullscreen);
             elements.installAppButton.addEventListener('click', installApplication);
             elements.screenSaverButton.addEventListener('click', startScreenSaver);
             document.addEventListener('pointerdown', () => {
@@ -1418,6 +1442,7 @@ function closeStopwatch() {
                 populateAlarmSelectors();
                 loadAlarms();
                 const hostInfo = isScreenSaverContext ? null : await initialiseWindowsBridge();
+                windowsFullscreenActive = hostInfo?.hostPreferences?.fullscreenMode === true;
                 applyWindowsHostPreferences(hostInfo?.hostPreferences);
                 loadSettings(hostInfo?.language || null);
                 if (!isScreenSaverContext) saveCurrentSettings();
