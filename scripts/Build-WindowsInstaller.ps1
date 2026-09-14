@@ -19,9 +19,16 @@ function Find-InnoSetupCompiler {
         return $command.Source
     }
 
-    $knownPath = Join-Path ${env:ProgramFiles(x86)} "Inno Setup 6\ISCC.exe"
-    if (Test-Path $knownPath) {
-        return $knownPath
+    $knownPaths = @(
+        (Join-Path $env:LOCALAPPDATA "Programs\Inno Setup 6\ISCC.exe"),
+        (Join-Path ${env:ProgramFiles(x86)} "Inno Setup 6\ISCC.exe"),
+        (Join-Path $env:ProgramFiles "Inno Setup 6\ISCC.exe")
+    )
+
+    foreach ($knownPath in $knownPaths) {
+        if ($knownPath -and (Test-Path $knownPath)) {
+            return $knownPath
+        }
     }
 
     throw "Inno Setup 6 was not found. Install it once with: winget install JRSoftware.InnoSetup"
