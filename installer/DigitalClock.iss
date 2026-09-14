@@ -42,7 +42,6 @@ RestartApplications=no
 
 [Languages]
 Name: "en"; MessagesFile: "compiler:Default.isl"
-Name: "hr"; MessagesFile: "compiler:Languages\Croatian.isl"
 Name: "de"; MessagesFile: "compiler:Languages\German.isl"
 Name: "it"; MessagesFile: "compiler:Languages\Italian.isl"
 Name: "es"; MessagesFile: "compiler:Languages\Spanish.isl"
