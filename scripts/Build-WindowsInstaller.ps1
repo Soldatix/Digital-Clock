@@ -36,7 +36,7 @@ New-Item -ItemType Directory -Force -Path $prerequisiteFolder, $publishFolder, $
 Push-Location $repoRoot
 try {
     npm run build
-    dotnet publish $project -c Release -r $Runtime --self-contained true --no-restore -o $publishFolder
+    dotnet publish $project -c Release -r $Runtime --self-contained true -o $publishFolder
 
     if (-not (Test-Path $webViewBootstrapper)) {
         Write-Host "Downloading Microsoft Edge WebView2 bootstrapper..."
