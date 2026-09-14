@@ -262,10 +262,17 @@
         </div>
     </div>
 
+    <div id="bedsideModeHint" role="status" aria-live="polite">
+        <i class="fas fa-info-circle"></i>
+        <span id="bedsideModeHintText">Exit bedside mode: press Esc or click “Exit bedside mode”.</span>
+    </div>
+
     <div id="bedsideBrightnessControl" aria-label="Bedside brightness">
-        <label for="bedsideBrightness"><i class="fas fa-sun"></i> <span id="bedsideBrightnessLabel">Bedside brightness</span></label>
-        <input id="bedsideBrightness" type="range" min="10" max="70" step="5" value="35">
-        <output id="bedsideBrightnessValue" for="bedsideBrightness">35%</output>
+        <div class="bedside-brightness-panel">
+            <label for="bedsideBrightness"><i class="fas fa-sun"></i> <span id="bedsideBrightnessLabel">Bedside brightness</span></label>
+            <input id="bedsideBrightness" type="range" min="10" max="70" step="5" value="35">
+            <output id="bedsideBrightnessValue" for="bedsideBrightness">35%</output>
+        </div>
         <button id="bedsideExitButton" type="button"><i class="fas fa-sign-out-alt"></i> <span id="bedsideExitButtonText">Exit bedside mode</span></button>
     </div>
 
