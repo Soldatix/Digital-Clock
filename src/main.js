@@ -793,14 +793,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (screenSaverActive) return;
 
                 screenSaverActive = true;
-                screenSaverRequestedFullscreen = !document.fullscreenElement;
+                screenSaverRequestedFullscreen = isWindowsHost()
+                    ? !windowsFullscreenActive
+                    : !document.fullscreenElement;
                 document.body.classList.add('screen-saver-active');
                 elements.screenSaverButton.setAttribute('aria-pressed', 'true');
                 setAccessibleName(elements.screenSaverButton, getAccessibilityText().exitScreenSaver);
 
                 if (screenSaverRequestedFullscreen) {
                     try {
-                        await document.documentElement.requestFullscreen();
+                        if (isWindowsHost()) {
+                            const response = await postWindowsMessage('setFullscreen', { enabled: true });
+                            if (response?.ok && typeof response.payload?.enabled === 'boolean') {
+                                windowsFullscreenActive = response.payload.enabled;
+                                updateFullscreenIcon();
+                            }
+                        } else {
+                            await document.documentElement.requestFullscreen();
+                        }
                     } catch (error) {
                         screenSaverRequestedFullscreen = false;
                         console.warn('Screen saver fullscreen request failed.', error);
@@ -816,9 +826,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 elements.screenSaverButton.setAttribute('aria-pressed', 'false');
                 setAccessibleName(elements.screenSaverButton, getAccessibilityText().screenSaver);
 
-                if (screenSaverRequestedFullscreen && document.fullscreenElement && document.exitFullscreen) {
+                if (screenSaverRequestedFullscreen) {
                     try {
-                        await document.exitFullscreen();
+                        if (isWindowsHost() && windowsFullscreenActive) {
+                            const response = await postWindowsMessage('setFullscreen', { enabled: false });
+                            if (response?.ok && typeof response.payload?.enabled === 'boolean') {
+                                windowsFullscreenActive = response.payload.enabled;
+                                updateFullscreenIcon();
+                            }
+                        } else if (document.fullscreenElement && document.exitFullscreen) {
+                            await document.exitFullscreen();
+                        }
                     } catch (error) {
                         console.warn('Could not exit screen saver fullscreen mode.', error);
                     }
