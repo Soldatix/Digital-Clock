@@ -21,4 +21,8 @@ The build script:
 
 The installer always copies `AppsAndGames-DigitalClock.scr` beside the application. Its optional checkbox only activates that Screen Saver immediately. If the checkbox is left clear, it can later be activated by right-clicking that `.scr` file and choosing **Install**.
 
+The Croatian installer translation is bundled in `installer\languages\Croatian.isl` so builds do not depend on an optional local Inno Setup language file. The bundled translation comes from the Inno Setup 6.7.1 source tree and retains the original translator attribution.
+
+The default Windows installer version is `2.0.0`. It can still be overridden with the build script's `-Version` parameter when preparing a later release.
+
 Do not commit `publish\` or `installer\prerequisites\`: they contain generated output and Microsoft binaries.
