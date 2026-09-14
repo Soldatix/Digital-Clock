@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "ZMwbU+hFDH0=",
+  "success": true,
+  "projectFilePath": "E:\\GitHub\\Digital-Clock\\windows\\DigitalClock.Windows\\DigitalClock.Windows.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Legio\\.nuget\\packages\\microsoft.web.webview2\\1.0.4191.47\\microsoft.web.webview2.1.0.4191.47.nupkg.sha512"
+  ],
+  "logs": []
+}

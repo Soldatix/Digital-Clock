@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "DigitalClock.Windows/1.0.0": {
+        "runtime": {
+          "DigitalClock.Windows.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "DigitalClock.Windows/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}
