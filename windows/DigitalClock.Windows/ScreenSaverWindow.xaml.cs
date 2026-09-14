@@ -12,6 +12,7 @@ public partial class ScreenSaverWindow : Window
 {
     private readonly Stopwatch _startupStopwatch = Stopwatch.StartNew();
     private readonly bool _isPreview;
+    private readonly ClockAppearanceStore _appearanceStore = new();
     private bool _closeRequested;
 
     public ScreenSaverWindow(bool isPreview = false)
@@ -44,6 +45,10 @@ public partial class ScreenSaverWindow : Window
             Path.Combine(AppContext.BaseDirectory, "DigitalClock.Windows.exe.WebView2")
         );
         await ScreenSaverWebView.EnsureCoreWebView2Async(webViewEnvironment);
+        string appearanceJson = _appearanceStore.Read() ?? "null";
+        await ScreenSaverWebView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(
+            $"window.__digitalClockScreenSaverSeed = {appearanceJson};"
+        );
         ScreenSaverWebView.CoreWebView2.WebMessageReceived += ScreenSaverWebView_WebMessageReceived;
 
         string webFolder = Path.Combine(AppContext.BaseDirectory, "Web");
