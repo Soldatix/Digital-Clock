@@ -10,7 +10,7 @@ $publishFolder = Join-Path $PSScriptRoot "..\publish\DigitalClock-ScreenSaver"
 dotnet publish $project -c Release -r $Runtime --self-contained false -o $publishFolder
 
 $screenSaverExe = Join-Path $publishFolder "DigitalClock.Windows.exe"
-$screenSaverFile = Join-Path $publishFolder "DigitalClock.scr"
+$screenSaverFile = Join-Path $publishFolder "AppsAndGames-DigitalClock.scr"
 
 if (-not (Test-Path $screenSaverExe)) {
     throw "Published executable was not found: $screenSaverExe"
@@ -22,4 +22,4 @@ Write-Host ""
 Write-Host "Screen Saver package created:"
 Write-Host "  $screenSaverFile"
 Write-Host ""
-Write-Host "Right-click DigitalClock.scr and choose Install."
+Write-Host "Right-click AppsAndGames-DigitalClock.scr and choose Install."
