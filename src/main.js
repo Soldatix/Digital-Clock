@@ -593,11 +593,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateSoundControls();
             }
             
-            function saveCurrentSettings() { writeStorage(CURRENT_SETTINGS_KEY, getCurrentSettingsObject()); }
+            function saveCurrentSettings() {
+                const settings = getCurrentSettingsObject();
+                writeStorage(CURRENT_SETTINGS_KEY, settings);
+                if (!isScreenSaverContext && isWindowsHost()) {
+                    postWindowsMessage('saveClockAppearance', { settings });
+                }
+            }
 
             function loadSettings(preferredLanguage = null) {
                 const stored = readStorage(CURRENT_SETTINGS_KEY, null);
-                const inheritedSettings = isScreenSaverContext && !stored ? readStorage(NORMAL_SETTINGS_KEY, null) : stored;
+                const screenSaverSeed = isScreenSaverContext && !stored && window.__digitalClockScreenSaverSeed && typeof window.__digitalClockScreenSaverSeed === 'object'
+                    ? window.__digitalClockScreenSaverSeed
+                    : null;
+                const inheritedSettings = isScreenSaverContext && !stored
+                    ? (screenSaverSeed || readStorage(NORMAL_SETTINGS_KEY, null))
+                    : stored;
                 const shouldUseHostLanguage = !inheritedSettings?.languageWasSelectedByUser && ['hr', 'en', 'de', 'it', 'es'].includes(preferredLanguage);
                 const initialLanguage = shouldUseHostLanguage ? preferredLanguage : defaultSettings.language;
                 applySettingsFromObject({ ...defaultSettings, ...(inheritedSettings || {}), language: shouldUseHostLanguage ? initialLanguage : (inheritedSettings?.language || initialLanguage) });
@@ -1409,6 +1420,7 @@ function closeStopwatch() {
                 const hostInfo = isScreenSaverContext ? null : await initialiseWindowsBridge();
                 applyWindowsHostPreferences(hostInfo?.hostPreferences);
                 loadSettings(hostInfo?.language || null);
+                if (!isScreenSaverContext) saveCurrentSettings();
                 configureScreenSaverContext();
                 setInterval(() => { updateTime(); updateDate(); checkAlarms(); }, 1000);
                 updateTimerDisplay();
