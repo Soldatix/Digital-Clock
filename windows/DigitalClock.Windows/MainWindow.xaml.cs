@@ -1,23 +1,35 @@
-﻿using System.Text;
+﻿using System;
+using System.IO;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using Microsoft.Web.WebView2.Core;
 
 namespace DigitalClock.Windows;
 
-/// <summary>
-/// Interaction logic for MainWindow.xaml
-/// </summary>
 public partial class MainWindow : Window
 {
     public MainWindow()
     {
         InitializeComponent();
+        Loaded += MainWindow_Loaded;
+    }
+
+    private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+    {
+        await ClockWebView.EnsureCoreWebView2Async();
+
+        string webFolder = Path.Combine(
+            AppContext.BaseDirectory,
+            "Web"
+        );
+
+        ClockWebView.CoreWebView2.SetVirtualHostNameToFolderMapping(
+            "digitalclock.local",
+            webFolder,
+            CoreWebView2HostResourceAccessKind.Allow
+        );
+
+        ClockWebView.Source = new Uri(
+            "https://digitalclock.local/index.html"
+        );
     }
 }
