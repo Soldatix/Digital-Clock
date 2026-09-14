@@ -442,3 +442,11 @@
 .sound-actions button { padding: 10px 14px; border: 0; border-radius: 8px; cursor: pointer; background: #007bff; color: #fff; font: inherit; }
 .sound-actions button:hover { background: #0056b3; }
 .custom-sound-name { margin: 0; font-size: .9rem; overflow-wrap: anywhere; }
+
+.windows-host-settings {
+    margin: 0 0 18px;
+    gap: 8px;
+    border-bottom: 1px solid rgba(0, 0, 0, .12);
+    padding-bottom: 14px;
+}
+.windows-host-settings h4 { margin: 0 0 5px; }
