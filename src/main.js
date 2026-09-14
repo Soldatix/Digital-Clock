@@ -56,6 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 timerHoursLabel: document.getElementById('timerHoursLabel'), timerMinutesLabel: document.getElementById('timerMinutesLabel'), timerSecondsLabel: document.getElementById('timerSecondsLabel'),
                 startPauseTimer: document.getElementById('startPauseTimer'), resetTimer: document.getElementById('resetTimer'), timerStartLabel: document.getElementById('timerStartLabel'), timerResetLabel: document.getElementById('timerResetLabel'),
                 timerCompleteModal: document.getElementById('timerCompleteModal'), timerFinishedTitle: document.getElementById('timerFinishedTitle'), stopTimerSoundButton: document.getElementById('stopTimerSoundButton'),
+                timerSoundSettings: document.getElementById('timerSoundSettings'), timerSoundSelect: document.getElementById('timerSoundSelect'), chooseTimerSoundButton: document.getElementById('chooseTimerSoundButton'), previewTimerSoundButton: document.getElementById('previewTimerSoundButton'), timerCustomSoundName: document.getElementById('timerCustomSoundName'),
 
                 // Stopwatch elements
                 stopwatchAppButton: document.getElementById('stopwatchAppButton'), stopwatchContainer: document.getElementById('stopwatchContainer'), closeStopwatchButton: document.getElementById('closeStopwatchButton'),
@@ -75,7 +76,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 setAlarmButton: document.getElementById('setAlarmButton'), alarmsListContainer: document.getElementById('alarmsListContainer'), alarmsListTitle: document.getElementById('alarmsListTitle'),
                 alarmsList: document.getElementById('alarmsList'), alarmSetBtn: document.getElementById('alarmSetBtn'),
                 alarmRingingModal: document.getElementById('alarmRingingModal'), stopAlarmButton: document.getElementById('stopAlarmButton'),
-                alarmRingingTitle: document.getElementById('alarmRingingTitle')
+                alarmRingingTitle: document.getElementById('alarmRingingTitle'),
+                alarmSoundSettings: document.getElementById('alarmSoundSettings'), alarmSoundSelect: document.getElementById('alarmSoundSelect'), chooseAlarmSoundButton: document.getElementById('chooseAlarmSoundButton'), previewAlarmSoundButton: document.getElementById('previewAlarmSoundButton'), alarmCustomSoundName: document.getElementById('alarmCustomSoundName')
             };
 
             const backupElements = {
@@ -186,7 +188,152 @@ document.addEventListener('DOMContentLoaded', function() {
             const AUTO_SIZE_SAT_VW = 18, AUTO_SIZE_DATUM_VW = 8, DEFAULT_MANUAL_SAT_EM = 20, DEFAULT_MANUAL_DATUM_EM = 10;
             const CURRENT_SETTINGS_KEY = 'clockCurrentSettings', PROFILES_STORAGE_KEY = 'clockAppProfiles';
 
-            const defaultSettings = { backgroundColor: "#ffffff", satFontColor: "#000000", datumFontColor: "#000000", fontSelect: "Arial, sans-serif", satFontSize: DEFAULT_MANUAL_SAT_EM.toString(), datumFontSize: DEFAULT_MANUAL_DATUM_EM.toString(), brightness: "1", contrast: "1", timeFormat: "24", dateFormat: "dd.mm.yyyy.", showSeconds: true, showDate: true, language: "en", isNightModeActive: false, isAutoSizeActive: true };
+            const defaultSettings = { backgroundColor: "#ffffff", satFontColor: "#000000", datumFontColor: "#000000", fontSelect: "Arial, sans-serif", satFontSize: DEFAULT_MANUAL_SAT_EM.toString(), datumFontSize: DEFAULT_MANUAL_DATUM_EM.toString(), brightness: "1", contrast: "1", timeFormat: "24", dateFormat: "dd.mm.yyyy.", showSeconds: true, showDate: true, language: "en", isNightModeActive: false, isAutoSizeActive: true, alarmSound: { kind: "builtin", value: "chime", name: "" }, timerSound: { kind: "builtin", value: "chime", name: "" } };
+
+            const WINDOWS_SOUND_TEXT = {
+                hr: { label: "Zvuk", choose: "Odaberi datoteku", preview: "Testiraj zvuk", chime: "Melodija", bell: "Zvono", pulse: "Puls", custom: "Vlastita datoteka…", customPrefix: "Vlastito: " },
+                en: { label: "Sound", choose: "Choose file", preview: "Test sound", chime: "Chime", bell: "Bell", pulse: "Pulse", custom: "Custom file…", customPrefix: "Custom: " },
+                de: { label: "Klang", choose: "Datei auswählen", preview: "Klang testen", chime: "Melodie", bell: "Glocke", pulse: "Signalton", custom: "Eigene Datei…", customPrefix: "Eigene: " },
+                it: { label: "Suono", choose: "Scegli file", preview: "Prova suono", chime: "Melodia", bell: "Campanella", pulse: "Impulso", custom: "File personale…", customPrefix: "Personale: " },
+                es: { label: "Sonido", choose: "Elegir archivo", preview: "Probar sonido", chime: "Melodía", bell: "Campana", pulse: "Pulso", custom: "Archivo propio…", customPrefix: "Propio: " }
+            };
+            let selectedSounds = {
+                alarm: { ...defaultSettings.alarmSound },
+                timer: { ...defaultSettings.timerSound }
+            };
+            let windowsHostReady = false;
+            let bridgeRequestSequence = 0;
+            const bridgeRequests = new Map();
+
+            function isWindowsHost() {
+                return Boolean(window.chrome?.webview);
+            }
+
+            function normaliseSoundSelection(value, fallback) {
+                if (!value || typeof value !== 'object') return { ...fallback };
+                if (value.kind === 'custom' && value.name) return { kind: 'custom', value: 'custom', name: value.name };
+                return { kind: 'builtin', value: ['chime', 'bell', 'pulse'].includes(value.value) ? value.value : fallback.value, name: '' };
+            }
+
+            function postWindowsMessage(action, payload = {}) {
+                if (!isWindowsHost()) return Promise.resolve(null);
+                const requestId = 'dc-' + (++bridgeRequestSequence);
+                return new Promise(resolve => {
+                    const timeout = window.setTimeout(() => {
+                        bridgeRequests.delete(requestId);
+                        resolve(null);
+                    }, 8000);
+                    bridgeRequests.set(requestId, response => {
+                        window.clearTimeout(timeout);
+                        resolve(response);
+                    });
+                    window.chrome.webview.postMessage({ action, requestId, ...payload });
+                });
+            }
+
+            async function initialiseWindowsBridge() {
+                if (!isWindowsHost()) return null;
+                window.chrome.webview.addEventListener('message', event => {
+                    const message = event.data;
+                    if (message?.type !== 'windowsBridgeResponse' || !message.requestId) return;
+                    const complete = bridgeRequests.get(message.requestId);
+                    if (complete) {
+                        bridgeRequests.delete(message.requestId);
+                        complete(message);
+                    }
+                });
+                const response = await postWindowsMessage('getHostInfo');
+                if (!response?.ok) return null;
+                windowsHostReady = true;
+                document.querySelectorAll('.windows-host-only').forEach(element => element.classList.add('windows-feature-enabled'));
+                return response.payload || null;
+            }
+
+            function updateWindowsSoundText() {
+                const text = WINDOWS_SOUND_TEXT[elements.languageSelect.value] || WINDOWS_SOUND_TEXT.en;
+                for (const channel of ['alarm', 'timer']) {
+                    const prefix = channel === 'alarm' ? 'alarm' : 'timer';
+                    const select = elements[prefix + 'SoundSelect'];
+                    if (!select) continue;
+                    const label = elements[prefix + 'SoundSettings']?.querySelector('.sound-label');
+                    if (label) label.textContent = text.label;
+                    select.options[0].textContent = text.chime;
+                    select.options[1].textContent = text.bell;
+                    select.options[2].textContent = text.pulse;
+                    select.options[3].textContent = text.custom;
+                    elements['choose' + (channel === 'alarm' ? 'Alarm' : 'Timer') + 'SoundButton'].textContent = text.choose;
+                    elements['preview' + (channel === 'alarm' ? 'Alarm' : 'Timer') + 'SoundButton'].textContent = text.preview;
+                    const nameElement = elements[prefix + 'CustomSoundName'];
+                    if (nameElement) nameElement.textContent = selectedSounds[channel].kind === 'custom' ? text.customPrefix + selectedSounds[channel].name : '';
+                }
+            }
+
+            function updateSoundControls() {
+                for (const channel of ['alarm', 'timer']) {
+                    const prefix = channel === 'alarm' ? 'alarm' : 'timer';
+                    const select = elements[prefix + 'SoundSelect'];
+                    const nameElement = elements[prefix + 'CustomSoundName'];
+                    if (!select) continue;
+                    const selected = selectedSounds[channel];
+                    select.value = selected.kind === 'custom' ? 'custom' : selected.value;
+                    if (nameElement) nameElement.hidden = selected.kind !== 'custom';
+                }
+                updateWindowsSoundText();
+            }
+
+            async function chooseCustomSound(channel) {
+                const response = await postWindowsMessage('pickCustomSound', { channel });
+                if (!response?.ok || !response.payload?.name) {
+                    updateSoundControls();
+                    return;
+                }
+                selectedSounds[channel] = { kind: 'custom', value: 'custom', name: response.payload.name };
+                updateSoundControls();
+                saveCurrentSettings();
+            }
+
+            async function changeSound(channel) {
+                const select = elements[channel + 'SoundSelect'];
+                if (select.value === 'custom') {
+                    await chooseCustomSound(channel);
+                    return;
+                }
+                selectedSounds[channel] = { kind: 'builtin', value: select.value, name: '' };
+                updateSoundControls();
+                saveCurrentSettings();
+            }
+
+            function getBuiltInPattern(kind, sound) {
+                const patterns = {
+                    chime: kind === 'alarm'
+                        ? [[659.25, 0.00, 0.30], [783.99, 0.36, 0.30], [987.77, 0.72, 0.34], [783.99, 1.12, 0.30], [659.25, 1.48, 0.48]]
+                        : [[523.25, 0.00, 0.34], [659.25, 0.32, 0.34], [783.99, 0.64, 0.38], [1046.50, 1.02, 0.70]],
+                    bell: [[880, 0.00, 0.20], [880, 0.30, 0.20], [1174.66, 0.62, 0.36], [880, 1.08, 0.24]],
+                    pulse: [[440, 0.00, 0.16], [440, 0.32, 0.16], [554.37, 0.64, 0.16], [659.25, 0.96, 0.26]]
+                };
+                return patterns[sound] || patterns.chime;
+            }
+
+            function previewBuiltInSound(channel) {
+                const state = channel === 'alarm' ? currentAlarmSound : currentTimerSound;
+                if (state.intervalId) clearInterval(state.intervalId);
+                if (state.timeoutId) clearTimeout(state.timeoutId);
+                stopOscillators(state);
+                const pattern = getBuiltInPattern(channel, selectedSounds[channel].value);
+                pattern.forEach(([frequency, offset, duration]) => scheduleChimeNote(state, frequency, offset, duration, 0.16, 'triangle'));
+                state.timeoutId = setTimeout(() => {
+                    stopOscillators(state);
+                    state.timeoutId = null;
+                }, 2400);
+            }
+
+            function previewSelectedSound(channel) {
+                if (selectedSounds[channel].kind === 'custom') {
+                    postWindowsMessage('playCustomSound', { channel, preview: true });
+                    return;
+                }
+                previewBuiltInSound(channel);
+            }
 
             function T(key) {
                 const keys = key.split('.'); let result = currentTranslations;
@@ -334,7 +481,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
-            function getCurrentSettingsObject() { return { backgroundColor: elements.backgroundColor.value, satFontColor: elements.satFontColor.value, datumFontColor: elements.datumFontColor.value, fontSelect: elements.fontSelect.value, satFontSize: elements.satFontSize.value, datumFontSize: elements.datumFontSize.value, brightness: elements.brightness.value, contrast: elements.contrast.value, timeFormat: elements.timeFormatSelect.value, dateFormat: elements.dateFormatSelect.value, showSeconds: elements.showSecondsCheckbox.checked, showDate: elements.showDateCheckbox.checked, language: elements.languageSelect.value, isNightModeActive: isNightModeActive, isAutoSizeActive: elements.autoSizeCheckbox.checked }; }
+            function getCurrentSettingsObject() { return { backgroundColor: elements.backgroundColor.value, satFontColor: elements.satFontColor.value, datumFontColor: elements.datumFontColor.value, fontSelect: elements.fontSelect.value, satFontSize: elements.satFontSize.value, datumFontSize: elements.datumFontSize.value, brightness: elements.brightness.value, contrast: elements.contrast.value, timeFormat: elements.timeFormatSelect.value, dateFormat: elements.dateFormatSelect.value, showSeconds: elements.showSecondsCheckbox.checked, showDate: elements.showDateCheckbox.checked, language: elements.languageSelect.value, isNightModeActive: isNightModeActive, isAutoSizeActive: elements.autoSizeCheckbox.checked, alarmSound: { ...selectedSounds.alarm }, timerSound: { ...selectedSounds.timer } }; }
 
             function applySettingsFromObject(settingsObj) {
                 elements.backgroundColor.value = settingsObj.backgroundColor; elements.satFontColor.value = settingsObj.satFontColor; elements.datumFontColor.value = settingsObj.datumFontColor;
@@ -343,17 +490,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 elements.dateFormatSelect.value = settingsObj.dateFormat; elements.showSecondsCheckbox.checked = settingsObj.showSeconds; elements.showDateCheckbox.checked = settingsObj.showDate;
                 elements.languageSelect.value = settingsObj.language; elements.autoSizeCheckbox.checked = settingsObj.isAutoSizeActive;
                 isNightModeActive = settingsObj.isNightModeActive;
+                selectedSounds.alarm = normaliseSoundSelection(settingsObj.alarmSound, defaultSettings.alarmSound);
+                selectedSounds.timer = normaliseSoundSelection(settingsObj.timerSound, defaultSettings.timerSound);
 
                 currentTranslations = translations[settingsObj.language] || translations.en;
                 updateLanguageUI();
                 applyBasicVisualSettings(); updateSizingMode();
                 if (isNightModeActive) applyNightModeStyles(); else applyDayModeStyles();
                 updateNightModeIcon();
+                updateSoundControls();
             }
             
             function saveCurrentSettings() { writeStorage(CURRENT_SETTINGS_KEY, getCurrentSettingsObject()); }
 
-            function loadSettings() { const stored = readStorage(CURRENT_SETTINGS_KEY, {}); applySettingsFromObject({ ...defaultSettings, ...stored }); populateProfileDropdown(); }
+            function loadSettings(preferredLanguage = null) {
+                const stored = readStorage(CURRENT_SETTINGS_KEY, null);
+                const initialLanguage = stored ? defaultSettings.language : (['hr', 'en', 'de', 'it', 'es'].includes(preferredLanguage) ? preferredLanguage : defaultSettings.language);
+                applySettingsFromObject({ ...defaultSettings, language: initialLanguage, ...(stored || {}) });
+                populateProfileDropdown();
+            }
 
             function updateLanguageUI() {
                 const textMap = {
@@ -417,6 +572,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateAccessibilityLabels();
                 updateDynamicAccessibilityLabels();
                 updateBackupUI();
+                updateWindowsSoundText();
                 updateNightModeIcon(); updateFullscreenIcon(); updateTime(); updateDate(true);
             }
 
@@ -569,6 +725,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             function stopTimerCompletionSound(hideModal = true) {
+                if (selectedSounds.timer.kind === 'custom') postWindowsMessage('stopCustomSound', { channel: 'timer' });
                 if (currentTimerSound.timeoutId) {
                     clearTimeout(currentTimerSound.timeoutId);
                     currentTimerSound.timeoutId = null;
@@ -581,12 +738,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 stopTimerCompletionSound(false);
                 elements.timerCompleteModal.style.display = 'flex';
 
-                const pattern = [
-                    [523.25, 0.00, 0.34],
-                    [659.25, 0.32, 0.34],
-                    [783.99, 0.64, 0.38],
-                    [1046.50, 1.02, 0.70]
-                ];
+                if (selectedSounds.timer.kind === 'custom') {
+                    postWindowsMessage('playCustomSound', { channel: 'timer', preview: false });
+                    return;
+                }
+
+                const pattern = getBuiltInPattern('timer', selectedSounds.timer.value);
 
                 for (let cycle = 0; cycle < 3; cycle++) {
                     const offset = cycle * 2.55;
@@ -894,13 +1051,7 @@ function closeStopwatch() {
 
             function playAlarmChimeCycle() {
                 stopOscillators(currentAlarmSound);
-                const pattern = [
-                    [659.25, 0.00, 0.30],
-                    [783.99, 0.36, 0.30],
-                    [987.77, 0.72, 0.34],
-                    [783.99, 1.12, 0.30],
-                    [659.25, 1.48, 0.48]
-                ];
+                const pattern = getBuiltInPattern('alarm', selectedSounds.alarm.value);
 
                 pattern.forEach(([frequency, offset, duration]) => {
                     scheduleChimeNote(currentAlarmSound, frequency, offset, duration, 0.18, 'triangle');
@@ -908,15 +1059,19 @@ function closeStopwatch() {
             }
 
             function triggerAlarm(alarm) {
-                if (!ensureAudioContext()) return;
+                if (selectedSounds.alarm.kind !== 'custom' && !ensureAudioContext()) return;
 
                 alarm.isRinging = true;
                 elements.alarmRingingModal.style.display = 'flex';
 
                 if (currentAlarmSound.intervalId) clearInterval(currentAlarmSound.intervalId);
                 stopOscillators(currentAlarmSound);
-                playAlarmChimeCycle();
-                currentAlarmSound.intervalId = setInterval(playAlarmChimeCycle, 2800);
+                if (selectedSounds.alarm.kind === 'custom') {
+                    postWindowsMessage('playCustomSound', { channel: 'alarm', preview: false });
+                } else {
+                    playAlarmChimeCycle();
+                    currentAlarmSound.intervalId = setInterval(playAlarmChimeCycle, 2800);
+                }
             }
 
             function stopAlarmSound(alarm = null) {
@@ -927,6 +1082,7 @@ function closeStopwatch() {
                     currentAlarmSound.intervalId = null;
                 }
                 stopOscillators(currentAlarmSound);
+                if (selectedSounds.alarm.kind === 'custom') postWindowsMessage('stopCustomSound', { channel: 'alarm' });
 
                 const ringingAlarm = alarm || alarms.find(a => a.isRinging);
                 if (ringingAlarm) {
@@ -1077,6 +1233,12 @@ function closeStopwatch() {
             elements.startPauseTimer.addEventListener('click', startPauseTimer);
             elements.resetTimer.addEventListener('click', resetTimer);
             elements.stopTimerSoundButton.addEventListener('click', stopTimerCompletionSound);
+            elements.timerSoundSelect.addEventListener('change', () => changeSound('timer'));
+            elements.alarmSoundSelect.addEventListener('change', () => changeSound('alarm'));
+            elements.chooseTimerSoundButton.addEventListener('click', () => chooseCustomSound('timer'));
+            elements.chooseAlarmSoundButton.addEventListener('click', () => chooseCustomSound('alarm'));
+            elements.previewTimerSoundButton.addEventListener('click', () => previewSelectedSound('timer'));
+            elements.previewAlarmSoundButton.addEventListener('click', () => previewSelectedSound('alarm'));
             elements.stopwatchAppButton.addEventListener('click', openStopwatch);
             elements.closeStopwatchButton.addEventListener('click', closeStopwatch);
             elements.startPauseStopwatch.addEventListener('click', startPauseStopwatch);
@@ -1108,16 +1270,17 @@ function closeStopwatch() {
                 ]
             });
             // --- Initialization ---
-            function init() {
+            async function init() {
                 function populateLanguageOptions() { const langSelect = elements.languageSelect; const current = langSelect.value || 'en'; langSelect.innerHTML = ''; Object.entries(translations.en.languageNames).forEach(([code, name]) => { const opt = document.createElement('option'); opt.value = code; opt.textContent = name; langSelect.appendChild(opt); }); langSelect.value = current; }
                 populateLanguageOptions();
                 populateTimeZoneSelect();
                 populateAlarmSelectors();
                 loadAlarms();
-                loadSettings();
+                const hostInfo = await initialiseWindowsBridge();
+                loadSettings(hostInfo?.language || null);
                 setInterval(() => { updateTime(); updateDate(); checkAlarms(); }, 1000);
                 updateTimerDisplay();
                 elements.stopwatchDisplay.textContent = formatStopwatchTime(0);
             }
-            init();
+            init().catch(error => console.warn('Digital Clock initialisation failed.', error));
         });
