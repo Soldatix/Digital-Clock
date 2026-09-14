@@ -202,6 +202,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 timer: { ...defaultSettings.timerSound }
             };
             let windowsHostReady = false;
+            let languageWasSelectedByUser = false;
             let bridgeRequestSequence = 0;
             const bridgeRequests = new Map();
 
@@ -481,7 +482,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
-            function getCurrentSettingsObject() { return { backgroundColor: elements.backgroundColor.value, satFontColor: elements.satFontColor.value, datumFontColor: elements.datumFontColor.value, fontSelect: elements.fontSelect.value, satFontSize: elements.satFontSize.value, datumFontSize: elements.datumFontSize.value, brightness: elements.brightness.value, contrast: elements.contrast.value, timeFormat: elements.timeFormatSelect.value, dateFormat: elements.dateFormatSelect.value, showSeconds: elements.showSecondsCheckbox.checked, showDate: elements.showDateCheckbox.checked, language: elements.languageSelect.value, isNightModeActive: isNightModeActive, isAutoSizeActive: elements.autoSizeCheckbox.checked, alarmSound: { ...selectedSounds.alarm }, timerSound: { ...selectedSounds.timer } }; }
+            function getCurrentSettingsObject() { return { backgroundColor: elements.backgroundColor.value, satFontColor: elements.satFontColor.value, datumFontColor: elements.datumFontColor.value, fontSelect: elements.fontSelect.value, satFontSize: elements.satFontSize.value, datumFontSize: elements.datumFontSize.value, brightness: elements.brightness.value, contrast: elements.contrast.value, timeFormat: elements.timeFormatSelect.value, dateFormat: elements.dateFormatSelect.value, showSeconds: elements.showSecondsCheckbox.checked, showDate: elements.showDateCheckbox.checked, language: elements.languageSelect.value, isNightModeActive: isNightModeActive, isAutoSizeActive: elements.autoSizeCheckbox.checked, languageWasSelectedByUser, alarmSound: { ...selectedSounds.alarm }, timerSound: { ...selectedSounds.timer } }; }
 
             function applySettingsFromObject(settingsObj) {
                 elements.backgroundColor.value = settingsObj.backgroundColor; elements.satFontColor.value = settingsObj.satFontColor; elements.datumFontColor.value = settingsObj.datumFontColor;
@@ -490,6 +491,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 elements.dateFormatSelect.value = settingsObj.dateFormat; elements.showSecondsCheckbox.checked = settingsObj.showSeconds; elements.showDateCheckbox.checked = settingsObj.showDate;
                 elements.languageSelect.value = settingsObj.language; elements.autoSizeCheckbox.checked = settingsObj.isAutoSizeActive;
                 isNightModeActive = settingsObj.isNightModeActive;
+                languageWasSelectedByUser = settingsObj.languageWasSelectedByUser === true;
                 selectedSounds.alarm = normaliseSoundSelection(settingsObj.alarmSound, defaultSettings.alarmSound);
                 selectedSounds.timer = normaliseSoundSelection(settingsObj.timerSound, defaultSettings.timerSound);
 
@@ -505,8 +507,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             function loadSettings(preferredLanguage = null) {
                 const stored = readStorage(CURRENT_SETTINGS_KEY, null);
-                const initialLanguage = stored ? defaultSettings.language : (['hr', 'en', 'de', 'it', 'es'].includes(preferredLanguage) ? preferredLanguage : defaultSettings.language);
-                applySettingsFromObject({ ...defaultSettings, language: initialLanguage, ...(stored || {}) });
+                const shouldUseHostLanguage = !stored?.languageWasSelectedByUser && ['hr', 'en', 'de', 'it', 'es'].includes(preferredLanguage);
+                const initialLanguage = shouldUseHostLanguage ? preferredLanguage : defaultSettings.language;
+                applySettingsFromObject({ ...defaultSettings, ...(stored || {}), language: shouldUseHostLanguage ? initialLanguage : (stored?.language || initialLanguage) });
                 populateProfileDropdown();
             }
 
@@ -1136,7 +1139,7 @@ function closeStopwatch() {
             // --- Event Listeners ---
             elements.settingsMenu.addEventListener('click', () => { const isVisible = elements.settingsPanel.style.display === 'block'; elements.settingsPanel.style.display = isVisible ? 'none' : 'block'; if (!isVisible) hideInfoPanel(); });
             elements.infoButton.addEventListener('click', () => { toggleInfoPanel(); if (elements.infoSidePanel.classList.contains('info-panel-visible')) elements.settingsPanel.style.display = 'none'; });
-            elements.languageSelect.addEventListener('change', (e) => { currentTranslations = translations[e.target.value] || translations.en; updateLanguageUI(); if (elements.infoSidePanel.classList.contains('info-panel-visible')) populateInfoPanel(); saveCurrentSettings(); });
+            elements.languageSelect.addEventListener('change', (e) => { languageWasSelectedByUser = true; currentTranslations = translations[e.target.value] || translations.en; updateLanguageUI(); if (elements.infoSidePanel.classList.contains('info-panel-visible')) populateInfoPanel(); saveCurrentSettings(); });
             ['showSecondsCheckbox', 'timeFormatSelect'].forEach(id => elements[id].addEventListener('change', () => { updateTime(); saveCurrentSettings(); }));
             ['showDateCheckbox', 'dateFormatSelect'].forEach(id => elements[id].addEventListener('change', () => { updateDate(true); saveCurrentSettings(); }));
             elements.autoSizeCheckbox.addEventListener('change', () => { updateSizingMode(); saveCurrentSettings(); });
