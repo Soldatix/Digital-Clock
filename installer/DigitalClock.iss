@@ -2,7 +2,7 @@
 ; The resulting public installer is publish/installer/DigitalClock-Setup-x64.exe.
 
 #ifndef MyAppVersion
-  #define MyAppVersion "1.0.0"
+  #define MyAppVersion "2.0.0"
 #endif
 
 #ifndef SourceDir
@@ -19,6 +19,8 @@
 AppId={{36A3C11D-94A0-4E00-9E6F-DAA4C2B65A19}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
+VersionInfoVersion={#MyAppVersion}.0
+VersionInfoProductVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
@@ -41,13 +43,31 @@ CloseApplications=yes
 RestartApplications=no
 
 [Languages]
+Name: "hr"; MessagesFile: "languages\Croatian.isl"
 Name: "en"; MessagesFile: "compiler:Default.isl"
 Name: "de"; MessagesFile: "compiler:Languages\German.isl"
 Name: "it"; MessagesFile: "compiler:Languages\Italian.isl"
 Name: "es"; MessagesFile: "compiler:Languages\Spanish.isl"
 
+[CustomMessages]
+hr.ActivateScreenSaverTask=Aktiviraj Apps & Games Digital Clock čuvar zaslona nakon instalacije
+en.ActivateScreenSaverTask=Activate the Apps & Games Digital Clock Screen Saver after installation
+de.ActivateScreenSaverTask=Apps & Games Digital Clock-Bildschirmschoner nach der Installation aktivieren
+it.ActivateScreenSaverTask=Attiva lo screensaver Apps & Games Digital Clock dopo l'installazione
+es.ActivateScreenSaverTask=Activar el protector de pantalla Apps & Games Digital Clock después de la instalación
+hr.InstallingWebView2=Instaliranje Microsoft Edge WebView2 Runtimea...
+en.InstallingWebView2=Installing Microsoft Edge WebView2 Runtime...
+de.InstallingWebView2=Microsoft Edge WebView2 Runtime wird installiert...
+it.InstallingWebView2=Installazione di Microsoft Edge WebView2 Runtime...
+es.InstallingWebView2=Instalando Microsoft Edge WebView2 Runtime...
+hr.LaunchDigitalClock=Pokreni Digital Clock
+en.LaunchDigitalClock=Launch Digital Clock
+de.LaunchDigitalClock=Digital Clock starten
+it.LaunchDigitalClock=Avvia Digital Clock
+es.LaunchDigitalClock=Iniciar Digital Clock
+
 [Tasks]
-Name: "activateScreensaver"; Description: "Activate the Apps & Games Digital Clock Screen Saver after installation"; Flags: unchecked
+Name: "activateScreensaver"; Description: "{cm:ActivateScreenSaverTask}"; Flags: unchecked
 
 [Files]
 Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
@@ -59,8 +79,8 @@ Name: "{group}\Digital Clock"; Filename: "{app}\{#MyAppExeName}"
 Name: "{group}\Uninstall Digital Clock"; Filename: "{uninstallexe}"
 
 [Run]
-Filename: "{tmp}\MicrosoftEdgeWebView2Setup.exe"; Parameters: "/silent /install"; StatusMsg: "Installing Microsoft Edge WebView2 Runtime..."; Flags: waituntilterminated
-Filename: "{app}\{#MyAppExeName}"; Description: "Launch Digital Clock"; Flags: nowait postinstall skipifsilent
+Filename: "{tmp}\MicrosoftEdgeWebView2Setup.exe"; Parameters: "/silent /install"; StatusMsg: "{cm:InstallingWebView2}"; Flags: waituntilterminated
+Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchDigitalClock}"; Flags: nowait postinstall skipifsilent
 
 [Code]
 const
