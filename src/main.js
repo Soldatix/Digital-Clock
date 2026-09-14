@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 timeFormatSelect: document.getElementById('timeFormat'), dateFormatSelect: document.getElementById('dateFormat'), languageSelect: document.getElementById('languageSelect'), fontSelect: document.getElementById('fontSelect'),
                 windowsHostSettings: document.getElementById('windowsHostSettings'), windowsSettingsTitle: document.getElementById('windowsSettingsTitle'), startWithWindowsCheckbox: document.getElementById('startWithWindowsCheckbox'), startWithWindowsLabel: document.getElementById('startWithWindowsLabel'), keepDisplayAwakeCheckbox: document.getElementById('keepDisplayAwakeCheckbox'), keepDisplayAwakeLabel: document.getElementById('keepDisplayAwakeLabel'), bedsideModeButton: document.getElementById('bedsideModeButton'),
                 satFontSize: document.getElementById('satFontSize'), datumFontSize: document.getElementById('datumFontSize'), satFontColor: document.getElementById('satFontColor'), datumFontColor: document.getElementById('datumFontColor'),
-                backgroundColor: document.getElementById('backgroundColor'), resetButton: document.getElementById('resetButton'), nightModeToggle: document.getElementById('nightModeToggle'), nightModeIcon: document.getElementById('nightModeIcon'),
+                backgroundColor: document.getElementById('backgroundColor'), resetButton: document.getElementById('resetButton'), bedsideBrightness: document.getElementById('bedsideBrightness'), bedsideBrightnessLabel: document.getElementById('bedsideBrightnessLabel'), bedsideBrightnessValue: document.getElementById('bedsideBrightnessValue'), bedsideBrightnessControl: document.getElementById('bedsideBrightnessControl'), nightModeToggle: document.getElementById('nightModeToggle'), nightModeIcon: document.getElementById('nightModeIcon'),
                 autoSizeCheckbox: document.getElementById('autoSizeCheckbox'), autoSizeLabel: document.getElementById('autoSizeLabel'), autoSizeLabelSpan: document.getElementById('autoSizeLabelSpan'), satFontSizeLabel: document.getElementById('satFontSizeLabel'),
                 datumFontSizeLabel: document.getElementById('datumFontSizeLabel'), infoButton: document.getElementById('infoButton'), infoSidePanel: document.getElementById('infoSidePanel'), infoSidePanelCloseButton: document.getElementById('infoSidePanelCloseButton'),
                 infoSidePanelContent: document.getElementById('infoSidePanelContent'), settingsTitle: document.getElementById('settingsTitle'), languageLabelSpan: document.querySelector('#languageLabel span'),
@@ -189,7 +189,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const AUTO_SIZE_SAT_VW = 18, AUTO_SIZE_DATUM_VW = 8, DEFAULT_MANUAL_SAT_EM = 20, DEFAULT_MANUAL_DATUM_EM = 10;
             const CURRENT_SETTINGS_KEY = 'clockCurrentSettings', PROFILES_STORAGE_KEY = 'clockAppProfiles';
 
-            const defaultSettings = { backgroundColor: "#ffffff", satFontColor: "#000000", datumFontColor: "#000000", fontSelect: "Arial, sans-serif", satFontSize: DEFAULT_MANUAL_SAT_EM.toString(), datumFontSize: DEFAULT_MANUAL_DATUM_EM.toString(), brightness: "1", contrast: "1", timeFormat: "24", dateFormat: "dd.mm.yyyy.", showSeconds: true, showDate: true, language: "en", isNightModeActive: false, isAutoSizeActive: true, alarmSound: { kind: "builtin", value: "chime", name: "" }, timerSound: { kind: "builtin", value: "chime", name: "" } };
+            const defaultSettings = { backgroundColor: "#ffffff", satFontColor: "#000000", datumFontColor: "#000000", fontSelect: "Arial, sans-serif", satFontSize: DEFAULT_MANUAL_SAT_EM.toString(), datumFontSize: DEFAULT_MANUAL_DATUM_EM.toString(), brightness: "1", contrast: "1", timeFormat: "24", dateFormat: "dd.mm.yyyy.", showSeconds: true, showDate: true, language: "en", isNightModeActive: false, isAutoSizeActive: true, bedsideBrightness: "35", alarmSound: { kind: "builtin", value: "chime", name: "" }, timerSound: { kind: "builtin", value: "chime", name: "" } };
 
             const WINDOWS_SOUND_TEXT = {
                 hr: { label: "Zvuk", choose: "Odaberi datoteku", preview: "Testiraj zvuk", chime: "Melodija", bell: "Zvono", pulse: "Puls", custom: "Vlastita datoteka…", customPrefix: "Vlastito: " },
@@ -205,6 +205,7 @@ document.addEventListener('DOMContentLoaded', function() {
             let windowsHostReady = false;
             let languageWasSelectedByUser = false;
             let bridgeRequestSequence = 0;
+            let bedsideControlsTimer = null;
             const bridgeRequests = new Map();
 
             function isWindowsHost() {
@@ -270,10 +271,33 @@ document.addEventListener('DOMContentLoaded', function() {
                 setAccessibleName(elements.bedsideModeButton, document.body.classList.contains('bedside-mode') ? text.exitBedside : text.bedside);
             }
 
+            function updateBedsideBrightness() {
+                const value = Number(elements.bedsideBrightness.value);
+                document.documentElement.style.setProperty('--bedside-brightness', (value / 100).toString());
+                elements.bedsideBrightnessValue.textContent = value + '%';
+            }
+
+            function revealBedsideBrightnessControl() {
+                if (!document.body.classList.contains('bedside-mode')) return;
+                elements.bedsideBrightnessControl.classList.add('bedside-controls-visible');
+                if (bedsideControlsTimer) clearTimeout(bedsideControlsTimer);
+                bedsideControlsTimer = setTimeout(() => {
+                    elements.bedsideBrightnessControl.classList.remove('bedside-controls-visible');
+                    bedsideControlsTimer = null;
+                }, 4500);
+            }
+
             function applyBedsideMode(enabled) {
                 document.body.classList.toggle('bedside-mode', enabled);
                 elements.bedsideModeButton.classList.toggle('active', enabled);
                 elements.bedsideModeButton.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+                if (enabled) revealBedsideBrightnessControl();
+                else {
+                    elements.bedsideBrightnessControl.classList.remove('bedside-controls-visible');
+                    if (bedsideControlsTimer) clearTimeout(bedsideControlsTimer);
+                    bedsideControlsTimer = null;
+                }
+                updateBedsideBrightness();
                 updateWindowsHostText();
             }
 
@@ -536,7 +560,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
-            function getCurrentSettingsObject() { return { backgroundColor: elements.backgroundColor.value, satFontColor: elements.satFontColor.value, datumFontColor: elements.datumFontColor.value, fontSelect: elements.fontSelect.value, satFontSize: elements.satFontSize.value, datumFontSize: elements.datumFontSize.value, brightness: elements.brightness.value, contrast: elements.contrast.value, timeFormat: elements.timeFormatSelect.value, dateFormat: elements.dateFormatSelect.value, showSeconds: elements.showSecondsCheckbox.checked, showDate: elements.showDateCheckbox.checked, language: elements.languageSelect.value, isNightModeActive: isNightModeActive, isAutoSizeActive: elements.autoSizeCheckbox.checked, languageWasSelectedByUser, alarmSound: { ...selectedSounds.alarm }, timerSound: { ...selectedSounds.timer } }; }
+            function getCurrentSettingsObject() { return { backgroundColor: elements.backgroundColor.value, satFontColor: elements.satFontColor.value, datumFontColor: elements.datumFontColor.value, fontSelect: elements.fontSelect.value, satFontSize: elements.satFontSize.value, datumFontSize: elements.datumFontSize.value, brightness: elements.brightness.value, contrast: elements.contrast.value, timeFormat: elements.timeFormatSelect.value, dateFormat: elements.dateFormatSelect.value, showSeconds: elements.showSecondsCheckbox.checked, showDate: elements.showDateCheckbox.checked, language: elements.languageSelect.value, isNightModeActive: isNightModeActive, isAutoSizeActive: elements.autoSizeCheckbox.checked, bedsideBrightness: elements.bedsideBrightness.value, languageWasSelectedByUser, alarmSound: { ...selectedSounds.alarm }, timerSound: { ...selectedSounds.timer } }; }
 
             function applySettingsFromObject(settingsObj) {
                 elements.backgroundColor.value = settingsObj.backgroundColor; elements.satFontColor.value = settingsObj.satFontColor; elements.datumFontColor.value = settingsObj.datumFontColor;
@@ -544,6 +568,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 elements.brightness.value = settingsObj.brightness; elements.contrast.value = settingsObj.contrast; elements.timeFormatSelect.value = settingsObj.timeFormat;
                 elements.dateFormatSelect.value = settingsObj.dateFormat; elements.showSecondsCheckbox.checked = settingsObj.showSeconds; elements.showDateCheckbox.checked = settingsObj.showDate;
                 elements.languageSelect.value = settingsObj.language; elements.autoSizeCheckbox.checked = settingsObj.isAutoSizeActive;
+                elements.bedsideBrightness.value = settingsObj.bedsideBrightness || defaultSettings.bedsideBrightness;
                 isNightModeActive = settingsObj.isNightModeActive;
                 languageWasSelectedByUser = settingsObj.languageWasSelectedByUser === true;
                 selectedSounds.alarm = normaliseSoundSelection(settingsObj.alarmSound, defaultSettings.alarmSound);
@@ -554,6 +579,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 applyBasicVisualSettings(); updateSizingMode();
                 if (isNightModeActive) applyNightModeStyles(); else applyDayModeStyles();
                 updateNightModeIcon();
+                updateBedsideBrightness();
                 updateSoundControls();
             }
             
@@ -1300,6 +1326,13 @@ function closeStopwatch() {
             elements.startWithWindowsCheckbox.addEventListener('change', () => updateWindowsHostPreference('setStartWithWindows', elements.startWithWindowsCheckbox));
             elements.keepDisplayAwakeCheckbox.addEventListener('change', () => updateWindowsHostPreference('setKeepDisplayAwake', elements.keepDisplayAwakeCheckbox));
             elements.bedsideModeButton.addEventListener('click', updateBedsideMode);
+            elements.bedsideBrightness.addEventListener('input', updateBedsideBrightness);
+            elements.bedsideBrightness.addEventListener('change', saveCurrentSettings);
+            document.addEventListener('pointermove', revealBedsideBrightnessControl);
+            elements.bedsideBrightnessControl.addEventListener('pointerenter', () => {
+                if (bedsideControlsTimer) clearTimeout(bedsideControlsTimer);
+            });
+            elements.bedsideBrightnessControl.addEventListener('pointerleave', revealBedsideBrightnessControl);
             elements.stopwatchAppButton.addEventListener('click', openStopwatch);
             elements.closeStopwatchButton.addEventListener('click', closeStopwatch);
             elements.startPauseStopwatch.addEventListener('click', startPauseStopwatch);
