@@ -159,6 +159,14 @@
         </div>
     </div>
 
+    <div id="timerCompleteModal">
+        <div class="alarm-modal-content">
+            <div class="timer-modal-icon"><i class="fas fa-hourglass-end"></i></div>
+            <h3 id="timerFinishedTitle">Time's up!</h3>
+            <button id="stopTimerSoundButton" class="app-controls button">Stop sound</button>
+        </div>
+    </div>
+
     <div id="stopwatchContainer" class="app-container">
         <div class="app-header">
             <h2 id="stopwatchTitle">Stopwatch</h2>
@@ -193,10 +201,17 @@
             <h2 id="alarmTitle">Alarm</h2>
             <button id="closeAlarmButton" class="icon-button close-app-btn" title="Close Alarm"><i class="fas fa-times"></i></button>
         </div>
+        <div id="alarmTimeLabel" class="alarm-time-label">Alarm time</div>
         <div class="alarm-controls app-controls">
-            <select id="alarmHourSelect"></select>
-            <span>:</span>
-            <select id="alarmMinuteSelect"></select>
+            <label class="alarm-select-group">
+                <span id="alarmHourLabel" class="alarm-field-label">Hour</span>
+                <select id="alarmHourSelect"></select>
+            </label>
+            <span class="alarm-time-separator">:</span>
+            <label class="alarm-select-group">
+                <span id="alarmMinuteLabel" class="alarm-field-label">Minute</span>
+                <select id="alarmMinuteSelect"></select>
+            </label>
             <button id="setAlarmButton"><span id="alarmSetBtn">Set Alarm</span></button>
         </div>
         <div id="alarmsListContainer">
