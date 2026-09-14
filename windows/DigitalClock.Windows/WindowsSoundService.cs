@@ -47,7 +47,7 @@ internal sealed class WindowsSoundService : IDisposable
     {
         string validatedChannel = ValidateChannel(channel);
 
-        var dialog = new OpenFileDialog
+        var dialog = new Microsoft.Win32.OpenFileDialog
         {
             Title = "Choose Digital Clock sound",
             CheckFileExists = true,
