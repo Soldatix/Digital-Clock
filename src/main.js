@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 timeFormatSelect: document.getElementById('timeFormat'), dateFormatSelect: document.getElementById('dateFormat'), languageSelect: document.getElementById('languageSelect'), fontSelect: document.getElementById('fontSelect'),
                 windowsHostSettings: document.getElementById('windowsHostSettings'), windowsSettingsTitle: document.getElementById('windowsSettingsTitle'), startWithWindowsCheckbox: document.getElementById('startWithWindowsCheckbox'), startWithWindowsLabel: document.getElementById('startWithWindowsLabel'), keepDisplayAwakeCheckbox: document.getElementById('keepDisplayAwakeCheckbox'), keepDisplayAwakeLabel: document.getElementById('keepDisplayAwakeLabel'), bedsideModeButton: document.getElementById('bedsideModeButton'),
                 satFontSize: document.getElementById('satFontSize'), datumFontSize: document.getElementById('datumFontSize'), satFontColor: document.getElementById('satFontColor'), datumFontColor: document.getElementById('datumFontColor'),
-                backgroundColor: document.getElementById('backgroundColor'), resetButton: document.getElementById('resetButton'), bedsideBrightness: document.getElementById('bedsideBrightness'), bedsideBrightnessLabel: document.getElementById('bedsideBrightnessLabel'), bedsideBrightnessValue: document.getElementById('bedsideBrightnessValue'), bedsideBrightnessControl: document.getElementById('bedsideBrightnessControl'), nightModeToggle: document.getElementById('nightModeToggle'), nightModeIcon: document.getElementById('nightModeIcon'),
+                backgroundColor: document.getElementById('backgroundColor'), resetButton: document.getElementById('resetButton'), bedsideBrightness: document.getElementById('bedsideBrightness'), bedsideBrightnessLabel: document.getElementById('bedsideBrightnessLabel'), bedsideBrightnessValue: document.getElementById('bedsideBrightnessValue'), bedsideBrightnessControl: document.getElementById('bedsideBrightnessControl'), bedsideExitButton: document.getElementById('bedsideExitButton'), bedsideExitButtonText: document.getElementById('bedsideExitButtonText'), nightModeToggle: document.getElementById('nightModeToggle'), nightModeIcon: document.getElementById('nightModeIcon'),
                 autoSizeCheckbox: document.getElementById('autoSizeCheckbox'), autoSizeLabel: document.getElementById('autoSizeLabel'), autoSizeLabelSpan: document.getElementById('autoSizeLabelSpan'), satFontSizeLabel: document.getElementById('satFontSizeLabel'),
                 datumFontSizeLabel: document.getElementById('datumFontSizeLabel'), infoButton: document.getElementById('infoButton'), infoSidePanel: document.getElementById('infoSidePanel'), infoSidePanelCloseButton: document.getElementById('infoSidePanelCloseButton'),
                 infoSidePanelContent: document.getElementById('infoSidePanelContent'), settingsTitle: document.getElementById('settingsTitle'), languageLabelSpan: document.querySelector('#languageLabel span'),
@@ -284,6 +284,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 elements.startWithWindowsLabel.textContent = text.start;
                 elements.keepDisplayAwakeLabel.textContent = text.awake;
                 elements.bedsideBrightnessLabel.textContent = text.bedsideBrightness;
+                elements.bedsideExitButtonText.textContent = text.exitBedside;
+                setAccessibleName(elements.bedsideExitButton, text.exitBedside);
                 setAccessibleName(elements.bedsideModeButton, document.body.classList.contains('bedside-mode') ? text.exitBedside : text.bedside);
             }
 
@@ -1415,6 +1417,7 @@ function closeStopwatch() {
             elements.startWithWindowsCheckbox.addEventListener('change', () => updateWindowsHostPreference('setStartWithWindows', elements.startWithWindowsCheckbox));
             elements.keepDisplayAwakeCheckbox.addEventListener('change', () => updateWindowsHostPreference('setKeepDisplayAwake', elements.keepDisplayAwakeCheckbox));
             elements.bedsideModeButton.addEventListener('click', updateBedsideMode);
+            elements.bedsideExitButton.addEventListener('click', updateBedsideMode);
             elements.bedsideBrightness.addEventListener('input', updateBedsideBrightness);
             elements.bedsideBrightness.addEventListener('change', saveCurrentSettings);
             document.addEventListener('pointermove', revealBedsideBrightnessControl);
