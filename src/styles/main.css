@@ -466,36 +466,45 @@ body.bedside-mode #datum { color: #c8c8c8 !important; }
 #bedsideModeButton.active { background-color: #48515a; color: #e7e7e7; }
 
 
-/* Bedside brightness: shown briefly when entering the mode or moving the mouse. */
+/* Bedside controls: separate brightness panel and exit button. */
 #bedsideBrightnessControl {
     display: none;
     position: fixed;
     left: 50%;
     bottom: 28px;
     z-index: 3200;
-    width: min(520px, calc(100vw - 36px));
+    width: min(620px, calc(100vw - 36px));
     transform: translate(-50%, 14px);
     opacity: 0;
     pointer-events: none;
-    gap: 9px;
-    grid-template-columns: auto minmax(0, 1fr) auto auto;
     align-items: center;
-    padding: 10px 14px;
-    border: 1px solid rgba(220, 220, 220, .22);
-    border-radius: 14px;
-    background: rgba(15, 15, 15, .74);
-    color: #a8a8a8;
+    justify-content: center;
+    gap: 10px;
     transition: opacity .25s ease, transform .25s ease;
 }
-#bedsideBrightnessControl label { white-space: nowrap; font-size: .86rem; }
-#bedsideBrightnessControl input { width: 100%; accent-color: #a9a9a9; }
+.bedside-brightness-panel {
+    display: grid;
+    grid-template-columns: auto minmax(120px, 1fr) auto;
+    align-items: center;
+    gap: 9px;
+    min-height: 38px;
+    flex: 1 1 360px;
+    padding: 8px 13px;
+    border: 1px solid rgba(220, 220, 220, .24);
+    border-radius: 12px;
+    background: rgba(15, 15, 15, .74);
+    color: #a8a8a8;
+    box-sizing: border-box;
+}
+.bedside-brightness-panel label { white-space: nowrap; font-size: .86rem; }
+.bedside-brightness-panel input { width: 100%; accent-color: #a9a9a9; }
 #bedsideBrightnessValue { min-width: 34px; color: #bdbdbd; font-size: .82rem; }
 #bedsideExitButton {
-    min-height: 34px;
-    padding: 7px 11px;
+    min-height: 38px;
+    padding: 8px 13px;
     border: 1px solid rgba(220, 220, 220, .24);
-    border-radius: 9px;
-    background: rgba(255, 255, 255, .08);
+    border-radius: 12px;
+    background: rgba(15, 15, 15, .74);
     color: #c8c8c8;
     font: inherit;
     font-size: .8rem;
@@ -504,21 +513,58 @@ body.bedside-mode #datum { color: #c8c8c8 !important; }
 }
 #bedsideExitButton:hover,
 #bedsideExitButton:focus-visible {
-    background: rgba(255, 255, 255, .16);
+    background: rgba(255, 255, 255, .14);
     color: #fff;
 }
-body.bedside-mode #bedsideBrightnessControl { display: grid; }
-body.bedside-mode #bedsideBrightnessControl.bedside-controls-visible { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+body.bedside-mode #bedsideBrightnessControl { display: flex; }
+body.bedside-mode #bedsideBrightnessControl.bedside-controls-visible {
+    opacity: 1;
+    transform: translate(-50%, 0);
+    pointer-events: auto;
+}
+
+#bedsideModeHint {
+    position: fixed;
+    left: 50%;
+    bottom: 88px;
+    z-index: 3250;
+    max-width: min(680px, calc(100vw - 36px));
+    transform: translate(-50%, 8px);
+    opacity: 0;
+    pointer-events: none;
+    padding: 9px 14px;
+    border: 1px solid rgba(220, 220, 220, .20);
+    border-radius: 12px;
+    background: rgba(15, 15, 15, .80);
+    color: #c8c8c8;
+    font-size: .82rem;
+    text-align: center;
+    transition: opacity .22s ease, transform .22s ease;
+}
+#bedsideModeHint i { margin-right: 6px; }
+body.bedside-mode #bedsideModeHint.bedside-hint-visible {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
 body.bedside-mode #sat,
 body.bedside-mode #datum { opacity: var(--bedside-brightness, .35); }
 
-@media (max-width: 560px) {
+@media (max-width: 620px) {
     #bedsideBrightnessControl {
+        width: min(420px, calc(100vw - 28px));
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .bedside-brightness-panel {
+        flex: 0 0 auto;
         grid-template-columns: auto minmax(0, 1fr) auto;
     }
     #bedsideExitButton {
-        grid-column: 1 / -1;
-        justify-self: stretch;
+        width: 100%;
+    }
+    #bedsideModeHint {
+        bottom: 130px;
     }
 }
 
