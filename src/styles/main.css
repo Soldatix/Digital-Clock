@@ -494,3 +494,32 @@ body.bedside-mode #bedsideBrightnessControl { display: grid; }
 body.bedside-mode #bedsideBrightnessControl.bedside-controls-visible { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
 body.bedside-mode #sat,
 body.bedside-mode #datum { opacity: var(--bedside-brightness, .35); }
+
+
+/* Standalone Windows Screen Saver configuration and display. */
+body.screen-saver-window { cursor: none; }
+body.screen-saver-config {
+    min-height: 100vh;
+    height: auto;
+    overflow: auto;
+    padding: 24px 0 40px;
+    box-sizing: border-box;
+}
+body.screen-saver-config .fullscreen-toggle,
+body.screen-saver-config .icon-button-container,
+body.screen-saver-config .top-center-container,
+body.screen-saver-config .app-container,
+body.screen-saver-config #infoSidePanel,
+body.screen-saver-config #bedsideBrightnessControl { display: none !important; }
+body.screen-saver-config .settings-panel {
+    position: static;
+    display: block;
+    max-height: none;
+    width: min(560px, calc(100vw - 32px));
+    margin: 22px auto;
+    box-sizing: border-box;
+}
+body.screen-saver-config .clock-container {
+    min-height: 30vh;
+    margin-bottom: 12px;
+}
