@@ -3,6 +3,7 @@ using System.Globalization;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
+using System.Windows.Input;
 using Microsoft.Web.WebView2.Core;
 using Forms = System.Windows.Forms;
 
@@ -14,12 +15,18 @@ public partial class MainWindow : Window
     private readonly WindowsHostPreferencesService _hostPreferences = new();
     private Forms.NotifyIcon? _trayIcon;
     private bool _exitRequested;
+    private bool _bedsideMode;
+    private WindowStyle _previousWindowStyle;
+    private ResizeMode _previousResizeMode;
+    private bool _previousTopmost;
+    private WindowState _previousWindowState;
 
     public MainWindow()
     {
         InitializeComponent();
         Loaded += MainWindow_Loaded;
         Closing += MainWindow_Closing;
+        PreviewKeyDown += MainWindow_PreviewKeyDown;
         Closed += (_, _) =>
         {
             _soundService.Dispose();
@@ -56,6 +63,7 @@ public partial class MainWindow : Window
         var menu = new Forms.ContextMenuStrip();
         menu.Items.Add("Show Digital Clock", null, (_, _) => Dispatcher.Invoke(ShowFromTray));
         menu.Items.Add("Hide", null, (_, _) => Dispatcher.Invoke(Hide));
+        menu.Items.Add("Exit Bedside Mode", null, (_, _) => Dispatcher.Invoke(ExitBedsideModeFromTray));
         menu.Items.Add(new Forms.ToolStripSeparator());
         menu.Items.Add("Exit", null, (_, _) => Dispatcher.Invoke(ExitApplication));
 
@@ -82,11 +90,30 @@ public partial class MainWindow : Window
         _trayIcon?.ShowBalloonTip(2000, "Digital Clock", "The clock is still running in the system tray.", Forms.ToolTipIcon.Info);
     }
 
+    private void MainWindow_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (_bedsideMode && e.Key == Key.Escape)
+        {
+            SetBedsideMode(false);
+            e.Handled = true;
+        }
+    }
+
     private void ShowFromTray()
     {
         Show();
         WindowState = WindowState.Normal;
         Activate();
+    }
+
+    private void ExitBedsideModeFromTray()
+    {
+        if (_bedsideMode)
+        {
+            SetBedsideMode(false);
+        }
+
+        ShowFromTray();
     }
 
     private void ExitApplication()
@@ -108,6 +135,43 @@ public partial class MainWindow : Window
         _trayIcon = null;
     }
 
+    private void SetBedsideMode(bool enabled)
+    {
+        if (_bedsideMode == enabled)
+        {
+            return;
+        }
+
+        _bedsideMode = enabled;
+        _hostPreferences.SetBedsideMode(enabled);
+
+        if (enabled)
+        {
+            _previousWindowStyle = WindowStyle;
+            _previousResizeMode = ResizeMode;
+            _previousTopmost = Topmost;
+            _previousWindowState = WindowState;
+
+            WindowState = WindowState.Normal;
+            WindowStyle = WindowStyle.None;
+            ResizeMode = ResizeMode.NoResize;
+            Topmost = true;
+            WindowState = WindowState.Maximized;
+        }
+        else
+        {
+            WindowState = WindowState.Normal;
+            WindowStyle = _previousWindowStyle;
+            ResizeMode = _previousResizeMode;
+            Topmost = _previousTopmost;
+            WindowState = _previousWindowState == WindowState.Minimized
+                ? WindowState.Normal
+                : _previousWindowState;
+        }
+
+        SendHostEvent("bedsideModeChanged", new { enabled = _bedsideMode });
+    }
+
     private void ClockWebView_WebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
     {
         string? requestId = null;
@@ -125,7 +189,12 @@ public partial class MainWindow : Window
                 {
                     language = GetSupportedWindowsLanguage(CultureInfo.CurrentUICulture.Name),
                     customSounds = _soundService.GetSelectedSoundNames(),
-                    hostPreferences = _hostPreferences.GetState()
+                    hostPreferences = new
+                    {
+                        startWithWindows = _hostPreferences.GetState().GetType().GetProperty("startWithWindows")?.GetValue(_hostPreferences.GetState()),
+                        keepDisplayAwake = _hostPreferences.GetState().GetType().GetProperty("keepDisplayAwake")?.GetValue(_hostPreferences.GetState()),
+                        bedsideMode = _bedsideMode
+                    }
                 },
                 "pickCustomSound" => PickCustomSound(ReadString(root, "channel")),
                 "playCustomSound" => PlayCustomSound(
@@ -135,6 +204,7 @@ public partial class MainWindow : Window
                 "stopCustomSound" => StopCustomSound(ReadString(root, "channel")),
                 "setStartWithWindows" => SetStartWithWindows(ReadBoolean(root, "enabled")),
                 "setKeepDisplayAwake" => SetKeepDisplayAwake(ReadBoolean(root, "enabled")),
+                "setBedsideMode" => SetBedsideModeFromBridge(ReadBoolean(root, "enabled")),
                 _ => throw new InvalidOperationException("Unsupported Windows bridge action.")
             };
 
@@ -176,6 +246,12 @@ public partial class MainWindow : Window
         return new { enabled = _hostPreferences.SetKeepDisplayAwake(enabled) };
     }
 
+    private object SetBedsideModeFromBridge(bool enabled)
+    {
+        SetBedsideMode(enabled);
+        return new { enabled = _bedsideMode };
+    }
+
     private void SendBridgeResponse(string? requestId, bool ok, object? payload)
     {
         if (ClockWebView.CoreWebView2 is null || string.IsNullOrWhiteSpace(requestId))
@@ -188,6 +264,21 @@ public partial class MainWindow : Window
             type = "windowsBridgeResponse",
             requestId,
             ok,
+            payload
+        }));
+    }
+
+    private void SendHostEvent(string eventName, object payload)
+    {
+        if (ClockWebView.CoreWebView2 is null)
+        {
+            return;
+        }
+
+        ClockWebView.CoreWebView2.PostWebMessageAsJson(JsonSerializer.Serialize(new
+        {
+            type = "windowsHostEvent",
+            eventName,
             payload
         }));
     }
