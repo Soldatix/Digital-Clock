@@ -78,6 +78,11 @@ Source: "prerequisites\MicrosoftEdgeWebView2Setup.exe"; DestDir: "{tmp}"; DestNa
 Name: "{group}\Digital Clock"; Filename: "{app}\{#MyAppExeName}"
 Name: "{group}\Uninstall Digital Clock"; Filename: "{uninstallexe}"
 
+[UninstallDelete]
+Type: files; Name: "{app}\previous-screensaver-path.txt"
+Type: files; Name: "{app}\previous-screensaver-active.txt"
+Type: filesandordirs; Name: "{app}\DigitalClock.Windows.exe.WebView2"
+
 [Run]
 Filename: "{tmp}\MicrosoftEdgeWebView2Setup.exe"; Parameters: "/silent /install"; StatusMsg: "{cm:InstallingWebView2}"; Flags: waituntilterminated
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchDigitalClock}"; Flags: nowait postinstall skipifsilent
