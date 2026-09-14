@@ -52,7 +52,7 @@ Name: "activateScreensaver"; Description: "Activate the Apps & Games Digital Clo
 [Files]
 Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#SourceDir}\{#MyAppExeName}"; DestDir: "{app}"; DestName: "{#MyScreenSaverName}"; Flags: ignoreversion
-Source: "prerequisites\MicrosoftEdgeWebView2Setup.exe"; Flags: dontcopy
+Source: "prerequisites\MicrosoftEdgeWebView2Setup.exe"; DestDir: "{tmp}"; DestName: "MicrosoftEdgeWebView2Setup.exe"; Flags: ignoreversion deleteafterinstall
 
 [Icons]
 Name: "{group}\Digital Clock"; Filename: "{app}\{#MyAppExeName}"
