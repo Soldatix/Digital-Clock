@@ -11,6 +11,7 @@ namespace DigitalClock.Windows;
 public partial class MainWindow : Window
 {
     private readonly WindowsSoundService _soundService = new();
+    private readonly WindowsHostPreferencesService _hostPreferences = new();
     private Forms.NotifyIcon? _trayIcon;
     private bool _exitRequested;
 
@@ -22,6 +23,7 @@ public partial class MainWindow : Window
         Closed += (_, _) =>
         {
             _soundService.Dispose();
+            _hostPreferences.Dispose();
             DisposeTrayIcon();
         };
     }
@@ -122,7 +124,8 @@ public partial class MainWindow : Window
                 "getHostInfo" => new
                 {
                     language = GetSupportedWindowsLanguage(CultureInfo.CurrentUICulture.Name),
-                    customSounds = _soundService.GetSelectedSoundNames()
+                    customSounds = _soundService.GetSelectedSoundNames(),
+                    hostPreferences = _hostPreferences.GetState()
                 },
                 "pickCustomSound" => PickCustomSound(ReadString(root, "channel")),
                 "playCustomSound" => PlayCustomSound(
@@ -130,6 +133,8 @@ public partial class MainWindow : Window
                     root.TryGetProperty("preview", out JsonElement preview) && preview.GetBoolean()
                 ),
                 "stopCustomSound" => StopCustomSound(ReadString(root, "channel")),
+                "setStartWithWindows" => SetStartWithWindows(ReadBoolean(root, "enabled")),
+                "setKeepDisplayAwake" => SetKeepDisplayAwake(ReadBoolean(root, "enabled")),
                 _ => throw new InvalidOperationException("Unsupported Windows bridge action.")
             };
 
@@ -161,6 +166,16 @@ public partial class MainWindow : Window
         return new { stopped = true };
     }
 
+    private object SetStartWithWindows(bool enabled)
+    {
+        return new { enabled = _hostPreferences.SetStartWithWindows(enabled) };
+    }
+
+    private object SetKeepDisplayAwake(bool enabled)
+    {
+        return new { enabled = _hostPreferences.SetKeepDisplayAwake(enabled) };
+    }
+
     private void SendBridgeResponse(string? requestId, bool ok, object? payload)
     {
         if (ClockWebView.CoreWebView2 is null || string.IsNullOrWhiteSpace(requestId))
@@ -175,6 +190,13 @@ public partial class MainWindow : Window
             ok,
             payload
         }));
+    }
+
+    private static bool ReadBoolean(JsonElement root, string propertyName)
+    {
+        return root.TryGetProperty(propertyName, out JsonElement property) &&
+               property.ValueKind is JsonValueKind.True or JsonValueKind.False &&
+               property.GetBoolean();
     }
 
     private static string? ReadString(JsonElement root, string propertyName)
