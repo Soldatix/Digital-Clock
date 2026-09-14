@@ -461,4 +461,6 @@ body.bedside-mode .settings-panel,
 body.bedside-mode #infoSidePanel { display: none !important; }
 body.bedside-mode .clock-container { background: #000 !important; }
 body.bedside-mode #sat,
-body.bedside-mode #datum { color: #ffd45a !important; }
+body.bedside-mode #datum { color: #c8c8c8 !important; }
+
+#bedsideModeButton.active { background-color: #48515a; color: #e7e7e7; }
