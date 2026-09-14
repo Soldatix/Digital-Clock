@@ -15,6 +15,7 @@ internal sealed class WindowsHostPreferencesService : IDisposable
 
     private readonly string _settingsPath;
     private HostPreferences _preferences;
+    private bool _bedsideModeAwake;
 
     public WindowsHostPreferencesService()
     {
@@ -27,10 +28,7 @@ internal sealed class WindowsHostPreferencesService : IDisposable
         _settingsPath = Path.Combine(directory, "windows-host-preferences.json");
         _preferences = LoadPreferences();
 
-        if (_preferences.KeepDisplayAwake)
-        {
-            ApplyDisplayAwakeState(true);
-        }
+        ApplyDisplayAwakeState(IsDisplayAwakeRequested());
     }
 
     public object GetState() => new
@@ -68,14 +66,21 @@ internal sealed class WindowsHostPreferencesService : IDisposable
 
     public bool SetKeepDisplayAwake(bool enabled)
     {
-        ApplyDisplayAwakeState(enabled);
         _preferences.KeepDisplayAwake = enabled;
+        ApplyDisplayAwakeState(IsDisplayAwakeRequested());
         SavePreferences();
         return _preferences.KeepDisplayAwake;
     }
 
+    public void SetBedsideMode(bool enabled)
+    {
+        _bedsideModeAwake = enabled;
+        ApplyDisplayAwakeState(IsDisplayAwakeRequested());
+    }
+
     public void Dispose()
     {
+        _bedsideModeAwake = false;
         ApplyDisplayAwakeState(false);
     }
 
@@ -84,6 +89,8 @@ internal sealed class WindowsHostPreferencesService : IDisposable
         using RegistryKey? key = Registry.CurrentUser.OpenSubKey(RunKeyPath, writable: false);
         return key?.GetValue(RunValueName) is string;
     }
+
+    private bool IsDisplayAwakeRequested() => _preferences.KeepDisplayAwake || _bedsideModeAwake;
 
     private static void ApplyDisplayAwakeState(bool enabled)
     {
