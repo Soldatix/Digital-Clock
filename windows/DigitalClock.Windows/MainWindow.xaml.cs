@@ -4,22 +4,31 @@ using System.IO;
 using System.Text.Json;
 using System.Windows;
 using Microsoft.Web.WebView2.Core;
+using Forms = System.Windows.Forms;
 
 namespace DigitalClock.Windows;
 
 public partial class MainWindow : Window
 {
     private readonly WindowsSoundService _soundService = new();
+    private Forms.NotifyIcon? _trayIcon;
+    private bool _exitRequested;
 
     public MainWindow()
     {
         InitializeComponent();
         Loaded += MainWindow_Loaded;
-        Closed += (_, _) => _soundService.Dispose();
+        Closing += MainWindow_Closing;
+        Closed += (_, _) =>
+        {
+            _soundService.Dispose();
+            DisposeTrayIcon();
+        };
     }
 
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
+        CreateTrayIcon();
         await ClockWebView.EnsureCoreWebView2Async();
 
         ClockWebView.CoreWebView2.WebMessageReceived += ClockWebView_WebMessageReceived;
@@ -33,6 +42,68 @@ public partial class MainWindow : Window
         );
 
         ClockWebView.Source = new Uri("https://digitalclock.local/index.html");
+    }
+
+    private void CreateTrayIcon()
+    {
+        if (_trayIcon is not null)
+        {
+            return;
+        }
+
+        var menu = new Forms.ContextMenuStrip();
+        menu.Items.Add("Show Digital Clock", null, (_, _) => Dispatcher.Invoke(ShowFromTray));
+        menu.Items.Add("Hide", null, (_, _) => Dispatcher.Invoke(Hide));
+        menu.Items.Add(new Forms.ToolStripSeparator());
+        menu.Items.Add("Exit", null, (_, _) => Dispatcher.Invoke(ExitApplication));
+
+        _trayIcon = new Forms.NotifyIcon
+        {
+            Text = "Digital Clock",
+            Icon = System.Drawing.SystemIcons.Application,
+            ContextMenuStrip = menu,
+            Visible = true
+        };
+
+        _trayIcon.DoubleClick += (_, _) => Dispatcher.Invoke(ShowFromTray);
+    }
+
+    private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
+    {
+        if (_exitRequested)
+        {
+            return;
+        }
+
+        e.Cancel = true;
+        Hide();
+        _trayIcon?.ShowBalloonTip(2000, "Digital Clock", "The clock is still running in the system tray.", Forms.ToolTipIcon.Info);
+    }
+
+    private void ShowFromTray()
+    {
+        Show();
+        WindowState = WindowState.Normal;
+        Activate();
+    }
+
+    private void ExitApplication()
+    {
+        _exitRequested = true;
+        DisposeTrayIcon();
+        Application.Current.Shutdown();
+    }
+
+    private void DisposeTrayIcon()
+    {
+        if (_trayIcon is null)
+        {
+            return;
+        }
+
+        _trayIcon.Visible = false;
+        _trayIcon.Dispose();
+        _trayIcon = null;
     }
 
     private void ClockWebView_WebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
