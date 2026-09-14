@@ -55,6 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 timerDisplay: document.getElementById('timerDisplay'), timerHours: document.getElementById('timerHours'), timerMinutes: document.getElementById('timerMinutes'), timerSeconds: document.getElementById('timerSeconds'),
                 timerHoursLabel: document.getElementById('timerHoursLabel'), timerMinutesLabel: document.getElementById('timerMinutesLabel'), timerSecondsLabel: document.getElementById('timerSecondsLabel'),
                 startPauseTimer: document.getElementById('startPauseTimer'), resetTimer: document.getElementById('resetTimer'), timerStartLabel: document.getElementById('timerStartLabel'), timerResetLabel: document.getElementById('timerResetLabel'),
+                timerCompleteModal: document.getElementById('timerCompleteModal'), timerFinishedTitle: document.getElementById('timerFinishedTitle'), stopTimerSoundButton: document.getElementById('stopTimerSoundButton'),
 
                 // Stopwatch elements
                 stopwatchAppButton: document.getElementById('stopwatchAppButton'), stopwatchContainer: document.getElementById('stopwatchContainer'), closeStopwatchButton: document.getElementById('closeStopwatchButton'),
@@ -69,7 +70,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Alarm elements
                 alarmAppButton: document.getElementById('alarmAppButton'), alarmContainer: document.getElementById('alarmContainer'), closeAlarmButton: document.getElementById('closeAlarmButton'),
-                alarmTitle: document.getElementById('alarmTitle'), alarmHourSelect: document.getElementById('alarmHourSelect'), alarmMinuteSelect: document.getElementById('alarmMinuteSelect'),
+                alarmTitle: document.getElementById('alarmTitle'), alarmTimeLabel: document.getElementById('alarmTimeLabel'), alarmHourLabel: document.getElementById('alarmHourLabel'), alarmMinuteLabel: document.getElementById('alarmMinuteLabel'),
+                alarmHourSelect: document.getElementById('alarmHourSelect'), alarmMinuteSelect: document.getElementById('alarmMinuteSelect'),
                 setAlarmButton: document.getElementById('setAlarmButton'), alarmsListContainer: document.getElementById('alarmsListContainer'), alarmsListTitle: document.getElementById('alarmsListTitle'),
                 alarmsList: document.getElementById('alarmsList'), alarmSetBtn: document.getElementById('alarmSetBtn'),
                 alarmRingingModal: document.getElementById('alarmRingingModal'), stopAlarmButton: document.getElementById('stopAlarmButton'),
@@ -113,6 +115,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 setAccessibleName(elements.installAppButton, text.install);
                 setAccessibleName(elements.screenSaverButton, screenSaverActive ? text.exitScreenSaver : text.screenSaver);
                 setAccessibleName(elements.closeTimerButton, T('timer.close'));
+                setAccessibleName(elements.stopTimerSoundButton, T('timer.stopSound'));
                 setAccessibleName(elements.closeStopwatchButton, T('stopwatch.close'));
                 setAccessibleName(elements.closeWorldClockButton, T('worldClock.close'));
                 setAccessibleName(elements.closeAlarmButton, T('alarm.close'));
@@ -177,7 +180,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const WORLD_CLOCK_KEY = 'worldClockCitiesList';
             let alarms = [];
             const ALARM_KEY = 'clockAlarmsList';
-            let currentAlarmSound = { oscillator: null, timeoutId: null };
+            let currentAlarmSound = { intervalId: null, oscillators: [] };
+            let currentTimerSound = { timeoutId: null, oscillators: [] };
 
             const AUTO_SIZE_SAT_VW = 18, AUTO_SIZE_DATUM_VW = 8, DEFAULT_MANUAL_SAT_EM = 20, DEFAULT_MANUAL_DATUM_EM = 10;
             const CURRENT_SETTINGS_KEY = 'clockCurrentSettings', PROFILES_STORAGE_KEY = 'clockAppProfiles';
@@ -379,6 +383,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 elements.timerMinutesLabel.textContent = T('timer.minutes');
                 elements.timerSecondsLabel.textContent = T('timer.seconds');
                 elements.timerResetLabel.textContent = T('timer.reset');
+                elements.timerFinishedTitle.textContent = T('timer.finished');
+                elements.stopTimerSoundButton.textContent = T('timer.stopSound');
                 if (isTimerRunning) { elements.timerStartLabel.textContent = T('timer.pause'); } 
                 else if (timerSecondsRemaining > 0 && timerSecondsRemaining < initialTimerSeconds) { elements.timerStartLabel.textContent = T('timer.resume'); } 
                 else { elements.timerStartLabel.textContent = T('timer.start'); }
@@ -398,6 +404,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 elements.alarmAppButton.title = T('alarm.title');
                 elements.alarmTitle.textContent = T('alarm.title');
+                elements.alarmTimeLabel.textContent = T('alarm.time');
+                elements.alarmHourLabel.textContent = T('alarm.hour');
+                elements.alarmMinuteLabel.textContent = T('alarm.minute');
                 elements.closeAlarmButton.title = T('alarm.close');
                 elements.alarmSetBtn.textContent = T('alarm.set');
                 elements.alarmsListTitle.textContent = T('alarm.active');
@@ -509,16 +518,88 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             // --- App Logic ---
-            function playSound(freq = 440, duration = 0.5) {
-                if (!audioContext) { try { audioContext = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { console.error("Web Audio API is not supported."); return; } }
-                if (audioContext.state === 'suspended') { audioContext.resume(); }
-                const oscillator = audioContext.createOscillator(); const gainNode = audioContext.createGain();
-                oscillator.connect(gainNode); gainNode.connect(audioContext.destination);
-                oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(freq, audioContext.currentTime);
-                gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
-                oscillator.start(audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + duration);
-                oscillator.stop(audioContext.currentTime + duration);
+            function ensureAudioContext() {
+                if (!audioContext) {
+                    try {
+                        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    } catch (e) {
+                        console.error("Web Audio API is not supported.");
+                        return null;
+                    }
+                }
+
+                if (audioContext.state === 'suspended') {
+                    const resumePromise = audioContext.resume();
+                    if (resumePromise?.catch) {
+                        resumePromise.catch(error => console.warn('Could not resume audio context.', error));
+                    }
+                }
+
+                return audioContext;
+            }
+
+            function stopOscillators(soundState) {
+                soundState.oscillators.forEach(oscillator => {
+                    try { oscillator.stop(); } catch (_) { /* already stopped */ }
+                });
+                soundState.oscillators = [];
+            }
+
+            function scheduleChimeNote(soundState, frequency, startOffset, duration, volume = 0.16, type = 'sine') {
+                const context = ensureAudioContext();
+                if (!context) return;
+
+                const oscillator = context.createOscillator();
+                const gainNode = context.createGain();
+                const startTime = context.currentTime + startOffset;
+                const endTime = startTime + duration;
+
+                oscillator.connect(gainNode);
+                gainNode.connect(context.destination);
+                oscillator.type = type;
+                oscillator.frequency.setValueAtTime(frequency, startTime);
+
+                gainNode.gain.setValueAtTime(0.0001, startTime);
+                gainNode.gain.exponentialRampToValueAtTime(volume, startTime + 0.03);
+                gainNode.gain.exponentialRampToValueAtTime(0.0001, endTime);
+
+                oscillator.start(startTime);
+                oscillator.stop(endTime + 0.05);
+                soundState.oscillators.push(oscillator);
+            }
+
+            function stopTimerCompletionSound(hideModal = true) {
+                if (currentTimerSound.timeoutId) {
+                    clearTimeout(currentTimerSound.timeoutId);
+                    currentTimerSound.timeoutId = null;
+                }
+                stopOscillators(currentTimerSound);
+                if (hideModal) elements.timerCompleteModal.style.display = 'none';
+            }
+
+            function playTimerCompletionSound() {
+                stopTimerCompletionSound(false);
+                elements.timerCompleteModal.style.display = 'flex';
+
+                const pattern = [
+                    [523.25, 0.00, 0.34],
+                    [659.25, 0.32, 0.34],
+                    [783.99, 0.64, 0.38],
+                    [1046.50, 1.02, 0.70]
+                ];
+
+                for (let cycle = 0; cycle < 3; cycle++) {
+                    const offset = cycle * 2.55;
+                    pattern.forEach(([frequency, noteOffset, duration]) => {
+                        scheduleChimeNote(currentTimerSound, frequency, offset + noteOffset, duration, 0.15, 'triangle');
+                    });
+                }
+
+                currentTimerSound.timeoutId = setTimeout(() => {
+                    stopOscillators(currentTimerSound);
+                    currentTimerSound.timeoutId = null;
+                    elements.timerCompleteModal.style.display = 'none';
+                }, 8200);
             }
 
             // Timer Logic
@@ -541,7 +622,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return value;
             }
             function startPauseTimer() {
-                if (!audioContext) { try { audioContext = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) { console.error("Could not create audio context"); } }
+                ensureAudioContext();
                 if (isTimerRunning) { clearInterval(timerInterval); isTimerRunning = false; elements.timerStartLabel.textContent = T('timer.resume'); elements.startPauseTimer.classList.remove('running'); } 
                 else {
                     if (timerSecondsRemaining <= 0 || timerSecondsRemaining === initialTimerSeconds) {
@@ -567,12 +648,13 @@ document.addEventListener('DOMContentLoaded', function() {
                             elements.startPauseTimer.classList.remove('running');
                             [elements.timerHours, elements.timerMinutes, elements.timerSeconds]
                                 .forEach(input => input.disabled = false);
-                            playSound(880, 0.5);
+                            playTimerCompletionSound();
                         }
                     }, 1000);
                 }
             }
             function resetTimer() {
+                stopTimerCompletionSound();
                 clearInterval(timerInterval);
                 timerInterval = null;
                 isTimerRunning = false;
@@ -591,7 +673,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     .forEach(input => input.disabled = false);
             }
             function openTimer() { elements.timerContainer.style.display = 'flex'; elements.clockContainer.style.display = 'none'; elements.stopwatchContainer.style.display = 'none'; elements.worldClockContainer.style.display = 'none'; elements.alarmContainer.style.display = 'none'; }
-            function closeTimer() { elements.timerContainer.style.display = 'none'; elements.clockContainer.style.display = 'flex'; clearInterval(timerInterval); isTimerRunning = false; }
+            function closeTimer() {
+                elements.timerContainer.style.display = 'none';
+                elements.clockContainer.style.display = 'flex';
+                clearInterval(timerInterval);
+                timerInterval = null;
+                isTimerRunning = false;
+                stopTimerCompletionSound();
+                elements.startPauseTimer.classList.remove('running');
+                elements.timerStartLabel.textContent = timerSecondsRemaining > 0 ? T('timer.resume') : T('timer.start');
+                [elements.timerHours, elements.timerMinutes, elements.timerSeconds].forEach(input => input.disabled = false);
+            }
 
             // Stopwatch Logic
             function formatStopwatchTime(ms) {
@@ -763,6 +855,7 @@ function closeStopwatch() {
             }
 
             function setAlarm() {
+                ensureAudioContext();
                 const hour = elements.alarmHourSelect.value;
                 const minute = elements.alarmMinuteSelect.value;
                 const time = `${hour}:${minute}`;
@@ -799,39 +892,42 @@ function closeStopwatch() {
                 });
             }
 
+            function playAlarmChimeCycle() {
+                stopOscillators(currentAlarmSound);
+                const pattern = [
+                    [659.25, 0.00, 0.30],
+                    [783.99, 0.36, 0.30],
+                    [987.77, 0.72, 0.34],
+                    [783.99, 1.12, 0.30],
+                    [659.25, 1.48, 0.48]
+                ];
+
+                pattern.forEach(([frequency, offset, duration]) => {
+                    scheduleChimeNote(currentAlarmSound, frequency, offset, duration, 0.18, 'triangle');
+                });
+            }
+
             function triggerAlarm(alarm) {
-                if (!audioContext) { try { audioContext = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { console.error("Could not create audio context"); return; } }
-                
+                if (!ensureAudioContext()) return;
+
                 alarm.isRinging = true;
                 elements.alarmRingingModal.style.display = 'flex';
-                
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-                oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(900, audioContext.currentTime);
-                oscillator.loop = true;
-                gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
-                oscillator.start();
-                currentAlarmSound.oscillator = oscillator;
 
-                currentAlarmSound.timeoutId = setTimeout(() => {
-                    stopAlarmSound(alarm);
-                }, 20000);
+                if (currentAlarmSound.intervalId) clearInterval(currentAlarmSound.intervalId);
+                stopOscillators(currentAlarmSound);
+                playAlarmChimeCycle();
+                currentAlarmSound.intervalId = setInterval(playAlarmChimeCycle, 2800);
             }
 
             function stopAlarmSound(alarm = null) {
                 elements.alarmRingingModal.style.display = 'none';
-                if (currentAlarmSound.oscillator) {
-                    currentAlarmSound.oscillator.stop();
-                    currentAlarmSound.oscillator = null;
+
+                if (currentAlarmSound.intervalId) {
+                    clearInterval(currentAlarmSound.intervalId);
+                    currentAlarmSound.intervalId = null;
                 }
-                if (currentAlarmSound.timeoutId) {
-                    clearTimeout(currentAlarmSound.timeoutId);
-                    currentAlarmSound.timeoutId = null;
-                }
-                
+                stopOscillators(currentAlarmSound);
+
                 const ringingAlarm = alarm || alarms.find(a => a.isRinging);
                 if (ringingAlarm) {
                     ringingAlarm.isRinging = false;
@@ -980,6 +1076,7 @@ function closeStopwatch() {
             elements.closeTimerButton.addEventListener('click', closeTimer);
             elements.startPauseTimer.addEventListener('click', startPauseTimer);
             elements.resetTimer.addEventListener('click', resetTimer);
+            elements.stopTimerSoundButton.addEventListener('click', stopTimerCompletionSound);
             elements.stopwatchAppButton.addEventListener('click', openStopwatch);
             elements.closeStopwatchButton.addEventListener('click', closeStopwatch);
             elements.startPauseStopwatch.addEventListener('click', startPauseStopwatch);

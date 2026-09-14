@@ -130,6 +130,12 @@
         }
         .app-container .app-header { width: 100%; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; position: relative; }
         .app-container .app-header .close-app-btn { position: absolute; top: 0; right: 0; }
+        #timerContainer #closeTimerButton {
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            z-index: 2100;
+        }
         .app-container h2 { font-size: 2.5rem; }
         .app-controls button { font-size: 1.2rem; padding: 15px 30px; border-radius: 8px; border: none; cursor: pointer; transition: background-color 0.2s, transform 0.1s; }
         .app-controls button:active { transform: scale(0.95); }
@@ -143,6 +149,13 @@
         #startPauseTimer { background-color: #28a745; color: white; }
         #startPauseTimer.running { background-color: #ffc107; color: black; }
         #resetTimer { background-color: #6c757d; color: white; }
+        #timerCompleteModal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.6); display: none;
+            justify-content: center; align-items: center; z-index: 2000;
+        }
+        .timer-modal-icon { font-size: 4rem; margin-bottom: 20px; color: #17a2b8; }
+        #stopTimerSoundButton { background-color: #dc3545; color: white; padding: 15px 40px; font-size: 1.2rem; }
 
         /* Stopwatch Styles */
         #stopwatchDisplay { font-size: 10vw; font-family: 'Roboto Mono', monospace; margin-bottom: 10px; }
@@ -174,9 +187,12 @@
         .world-clock-date { font-size: 1rem; color: #666; }
         
         /* Alarm Styles */
-        .alarm-controls { display: flex; gap: 10px; align-items: center; margin-bottom: 20px; }
+        .alarm-time-label { margin: 0 0 10px; font-size: 1.05rem; font-weight: 700; }
+        .alarm-controls { display: flex; gap: 10px; align-items: flex-end; margin-bottom: 20px; }
+        .alarm-select-group { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .alarm-field-label { font-size: 0.9rem; font-weight: 700; }
         .alarm-controls select { font-size: 1.5rem; padding: 10px; border-radius: 8px; border: 1px solid #ccc; }
-        .alarm-controls span { font-size: 1.5rem; font-weight: bold; padding: 0 5px; }
+        .alarm-time-separator { font-size: 1.5rem; font-weight: bold; padding: 0 5px 10px; }
         #setAlarmButton { background-color: #007bff; color: white; }
         #alarmsListContainer { width: 80%; max-width: 500px; text-align: center; }
         #alarmsList { list-style: none; padding: 0; margin: 0; max-height: 50vh; overflow-y: auto; background-color: #f8f9fa; border-radius: 8px; }
@@ -224,8 +240,8 @@
 #timerContainer .app-header { margin-bottom: 5px; }
             #timerContainer #closeTimerButton {
                 position: fixed;
-                top: 20px;
-                right: 20px;
+                top: 12px;
+                right: 12px;
             }
             #timerContainer h2 { font-size: 2rem; margin: 0.5rem 0; }
             #timerDisplay { font-size: clamp(2.75rem, 14vw, 5.5rem); line-height: 1.1; margin: 10px 0 20px; max-width: 100%; }
@@ -245,6 +261,8 @@
             #infoSidePanel.info-panel-visible { right:0; transform: translateX(0);}
             .world-clock-controls { flex-direction: column; width: 80%; }
             #worldClockCitySelect, #addWorldClockCity { width: 100%; }
+            .alarm-controls { flex-wrap: wrap; justify-content: center; }
+            #setAlarmButton { flex-basis: 100%; max-width: 240px; }
         }
 #infoSidePanelContent .dc-copy-wallet {
     align-self: center;
