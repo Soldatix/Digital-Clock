@@ -101,6 +101,7 @@ procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 var
   CurrentPath: String;
   PreviousPath: String;
+  PreviousPathAnsi: AnsiString;
 begin
   if CurUninstallStep <> usUninstall then
     exit;
@@ -112,7 +113,9 @@ begin
     exit;
 
   PreviousPath := '';
-  LoadStringFromFile(PreviousScreenSaverPathFile(), PreviousPath);
+  PreviousPathAnsi := '';
+  if LoadStringFromFile(PreviousScreenSaverPathFile(), PreviousPathAnsi) then
+    PreviousPath := String(PreviousPathAnsi);
 
   if PreviousPath <> '' then
     RegWriteStringValue(HKCU, ScreenSaverRegistryKey, ScreenSaverValueName, PreviousPath)
