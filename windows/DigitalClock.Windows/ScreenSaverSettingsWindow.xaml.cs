@@ -15,7 +15,11 @@ public partial class ScreenSaverSettingsWindow : Window
 
     private async void ScreenSaverSettingsWindow_Loaded(object sender, RoutedEventArgs e)
     {
-        await SettingsWebView.EnsureCoreWebView2Async();
+        var webViewEnvironment = await CoreWebView2Environment.CreateAsync(
+            null,
+            Path.Combine(AppContext.BaseDirectory, "DigitalClock.Windows.exe.WebView2")
+        );
+        await SettingsWebView.EnsureCoreWebView2Async(webViewEnvironment);
 
         string webFolder = Path.Combine(AppContext.BaseDirectory, "Web");
         SettingsWebView.CoreWebView2.SetVirtualHostNameToFolderMapping(
