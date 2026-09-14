@@ -91,7 +91,7 @@ public partial class MainWindow : Window
     {
         _exitRequested = true;
         DisposeTrayIcon();
-        Application.Current.Shutdown();
+        System.Windows.Application.Current.Shutdown();
     }
 
     private void DisposeTrayIcon()
