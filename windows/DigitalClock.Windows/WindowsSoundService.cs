@@ -27,13 +27,7 @@ internal sealed class WindowsSoundService : IDisposable
 
     public WindowsSoundService()
     {
-        string directory = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "AppsAndGames",
-            "DigitalClock"
-        );
-
-        _settingsPath = Path.Combine(directory, "windows-sounds.json");
+        _settingsPath = Path.Combine(AppDataPaths.RootDirectory, "windows-sounds.json");
         _selections = LoadSelections();
     }
 

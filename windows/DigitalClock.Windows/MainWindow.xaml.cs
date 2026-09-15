@@ -33,6 +33,10 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        if (AppDataPaths.IsTestBuild)
+        {
+            Title = "Digital Clock [TEST]";
+        }
         Loaded += MainWindow_Loaded;
         Closing += MainWindow_Closing;
         PreviewKeyDown += MainWindow_PreviewKeyDown;
@@ -49,7 +53,7 @@ public partial class MainWindow : Window
         CreateTrayIcon();
         var webViewEnvironment = await CoreWebView2Environment.CreateAsync(
             null,
-            Path.Combine(AppContext.BaseDirectory, "DigitalClock.Windows.exe.WebView2")
+            AppDataPaths.DesktopWebView2Directory
         );
         await ClockWebView.EnsureCoreWebView2Async(webViewEnvironment);
 
@@ -89,7 +93,7 @@ public partial class MainWindow : Window
 
         _trayIcon = new Forms.NotifyIcon
         {
-            Text = "Digital Clock",
+            Text = AppDataPaths.IsTestBuild ? "Digital Clock Test" : "Digital Clock",
             Icon = trayIcon,
             ContextMenuStrip = menu,
             Visible = true

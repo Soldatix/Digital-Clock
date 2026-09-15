@@ -93,9 +93,8 @@ public partial class ScreenSaverWindow : Window
     private async void ScreenSaverWindow_Loaded(object sender, RoutedEventArgs e)
     {
         string userDataFolder = _isPreview
-            ? Path.Combine(AppContext.BaseDirectory, "DigitalClock.Windows.exe.WebView2")
-            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "AppsAndGames", "DigitalClock", "ScreenSaver.WebView2");
+            ? AppDataPaths.DesktopWebView2Directory
+            : AppDataPaths.ScreenSaverWebView2Directory;
         string stage = "Create environment";
         CoreWebView2Environment? webViewEnvironment = null;
         try
@@ -142,8 +141,7 @@ public partial class ScreenSaverWindow : Window
     {
         try
         {
-            string logDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "AppsAndGames", "DigitalClock", "Logs");
+            string logDirectory = AppDataPaths.LogsDirectory;
             Directory.CreateDirectory(logDirectory);
             File.AppendAllText(Path.Combine(logDirectory, "screen-saver.log"),
                 $"{DateTimeOffset.Now:O} Mode={(_isPreview ? "/p" : "/s")} PID={Environment.ProcessId} Stage={stage}\n" +
