@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 brightness: document.getElementById('brightness'), contrast: document.getElementById('contrast'), showSecondsCheckbox: document.getElementById('showSecondsCheckbox'), showDateCheckbox: document.getElementById('showDateCheckbox'),
                 timeFormatSelect: document.getElementById('timeFormat'), dateFormatSelect: document.getElementById('dateFormat'), languageSelect: document.getElementById('languageSelect'), fontSelect: document.getElementById('fontSelect'),
                 windowsHostSettings: document.getElementById('windowsHostSettings'), windowsSettingsTitle: document.getElementById('windowsSettingsTitle'), startWithWindowsCheckbox: document.getElementById('startWithWindowsCheckbox'), startWithWindowsLabel: document.getElementById('startWithWindowsLabel'), keepDisplayAwakeCheckbox: document.getElementById('keepDisplayAwakeCheckbox'), keepDisplayAwakeLabel: document.getElementById('keepDisplayAwakeLabel'), bedsideModeButton: document.getElementById('bedsideModeButton'),
-                screenSaverAppearanceSync: document.getElementById('screenSaverAppearanceSync'), copyAppearanceFromAppButton: document.getElementById('copyAppearanceFromAppButton'), copyAppearanceFromAppButtonText: document.getElementById('copyAppearanceFromAppButtonText'), copyAppearanceFromAppStatus: document.getElementById('copyAppearanceFromAppStatus'),
+                screenSaverAppearanceSync: document.getElementById('screenSaverAppearanceSync'), copyAppearanceFromAppButton: document.getElementById('copyAppearanceFromAppButton'), copyAppearanceFromAppButtonText: document.getElementById('copyAppearanceFromAppButtonText'), copyAppearanceFromAppStatus: document.getElementById('copyAppearanceFromAppStatus'), screenSaverAutoSaveNote: document.getElementById('screenSaverAutoSaveNote'),
                 satFontSize: document.getElementById('satFontSize'), datumFontSize: document.getElementById('datumFontSize'), satFontColor: document.getElementById('satFontColor'), datumFontColor: document.getElementById('datumFontColor'),
                 backgroundColor: document.getElementById('backgroundColor'), resetButton: document.getElementById('resetButton'), bedsideBrightness: document.getElementById('bedsideBrightness'), bedsideBrightnessLabel: document.getElementById('bedsideBrightnessLabel'), bedsideBrightnessValue: document.getElementById('bedsideBrightnessValue'), bedsideBrightnessControl: document.getElementById('bedsideBrightnessControl'), bedsideExitButton: document.getElementById('bedsideExitButton'), bedsideExitButtonText: document.getElementById('bedsideExitButtonText'), bedsideModeHint: document.getElementById('bedsideModeHint'), bedsideModeHintText: document.getElementById('bedsideModeHintText'), nightModeToggle: document.getElementById('nightModeToggle'), nightModeIcon: document.getElementById('nightModeIcon'),
                 autoSizeCheckbox: document.getElementById('autoSizeCheckbox'), autoSizeLabel: document.getElementById('autoSizeLabel'), autoSizeLabelSpan: document.getElementById('autoSizeLabelSpan'), satFontSizeLabel: document.getElementById('satFontSizeLabel'),
@@ -224,11 +224,11 @@ document.addEventListener('DOMContentLoaded', function() {
             };
 
             const SCREEN_SAVER_SYNC_TEXT = {
-                hr: { button: "Preuzmi izgled iz aplikacije", copied: "Izgled glavne aplikacije je preuzet.", unavailable: "Izgled glavne aplikacije nije dostupan." },
-                en: { button: "Copy appearance from app", copied: "The main app appearance was copied.", unavailable: "The main app appearance is not available." },
-                de: { button: "Darstellung aus der App übernehmen", copied: "Die Darstellung der Haupt-App wurde übernommen.", unavailable: "Die Darstellung der Haupt-App ist nicht verfügbar." },
-                it: { button: "Copia aspetto dall'app", copied: "L'aspetto dell'app principale è stato copiato.", unavailable: "L'aspetto dell'app principale non è disponibile." },
-                es: { button: "Copiar apariencia de la app", copied: "Se copió la apariencia de la aplicación principal.", unavailable: "La apariencia de la aplicación principal no está disponible." }
+                hr: { button: "Preuzmi izgled iz aplikacije", copied: "Izgled glavne aplikacije je preuzet.", unavailable: "Izgled glavne aplikacije nije dostupan.", autoSave: "Promjene se spremaju automatski." },
+                en: { button: "Copy appearance from app", copied: "The main app appearance was copied.", unavailable: "The main app appearance is not available.", autoSave: "Changes are saved automatically." },
+                de: { button: "Darstellung aus der App übernehmen", copied: "Die Darstellung der Haupt-App wurde übernommen.", unavailable: "Die Darstellung der Haupt-App ist nicht verfügbar.", autoSave: "Änderungen werden automatisch gespeichert." },
+                it: { button: "Copia aspetto dall'app", copied: "L'aspetto dell'app principale è stato copiato.", unavailable: "L'aspetto dell'app principale non è disponibile.", autoSave: "Le modifiche vengono salvate automaticamente." },
+                es: { button: "Copiar apariencia de la app", copied: "Se copió la apariencia de la aplicación principal.", unavailable: "La apariencia de la aplicación principal no está disponible.", autoSave: "Los cambios se guardan automáticamente." }
             };
             let selectedSounds = {
                 alarm: { ...defaultSettings.alarmSound },
@@ -518,6 +518,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!elements.copyAppearanceFromAppButtonText) return;
                 const ui = screenSaverSyncText();
                 elements.copyAppearanceFromAppButtonText.textContent = ui.button;
+                if (elements.screenSaverAutoSaveNote) elements.screenSaverAutoSaveNote.textContent = ui.autoSave;
             }
 
             function copyAppearanceFromMainApp() {
