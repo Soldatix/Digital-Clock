@@ -31,9 +31,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const elements = {
                 sat: document.getElementById('sat'), datum: document.getElementById('datum'), clockContainer: document.querySelector('.clock-container'),
                 settingsMenu: document.querySelector('.settings-menu'), settingsPanel: document.querySelector('.settings-panel'),
-                brightness: document.getElementById('brightness'), contrast: document.getElementById('contrast'), showSecondsCheckbox: document.getElementById('showSecondsCheckbox'), showDateCheckbox: document.getElementById('showDateCheckbox'),
+                brightness: document.getElementById('brightness'), contrast: document.getElementById('contrast'), brightnessValue: document.getElementById('brightnessValue'), contrastValue: document.getElementById('contrastValue'), showSecondsCheckbox: document.getElementById('showSecondsCheckbox'), showDateCheckbox: document.getElementById('showDateCheckbox'),
                 timeFormatSelect: document.getElementById('timeFormat'), dateFormatSelect: document.getElementById('dateFormat'), languageSelect: document.getElementById('languageSelect'), fontSelect: document.getElementById('fontSelect'),
-                satFontSize: document.getElementById('satFontSize'), datumFontSize: document.getElementById('datumFontSize'), satFontColor: document.getElementById('satFontColor'), datumFontColor: document.getElementById('datumFontColor'),
+                satFontSize: document.getElementById('satFontSize'), datumFontSize: document.getElementById('datumFontSize'), satFontSizeValue: document.getElementById('satFontSizeValue'), datumFontSizeValue: document.getElementById('datumFontSizeValue'), satFontColor: document.getElementById('satFontColor'), datumFontColor: document.getElementById('datumFontColor'),
                 backgroundColor: document.getElementById('backgroundColor'), resetButton: document.getElementById('resetButton'), nightModeToggle: document.getElementById('nightModeToggle'), nightModeIcon: document.getElementById('nightModeIcon'),
                 autoSizeCheckbox: document.getElementById('autoSizeCheckbox'), autoSizeLabel: document.getElementById('autoSizeLabel'), autoSizeLabelSpan: document.getElementById('autoSizeLabelSpan'), satFontSizeLabel: document.getElementById('satFontSizeLabel'),
                 datumFontSizeLabel: document.getElementById('datumFontSizeLabel'), infoButton: document.getElementById('infoButton'), infoSidePanel: document.getElementById('infoSidePanel'), infoSidePanelCloseButton: document.getElementById('infoSidePanelCloseButton'),
@@ -188,6 +188,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const defaultSettings = { backgroundColor: "#ffffff", satFontColor: "#000000", datumFontColor: "#000000", fontSelect: "Arial, sans-serif", satFontSize: DEFAULT_MANUAL_SAT_EM.toString(), datumFontSize: DEFAULT_MANUAL_DATUM_EM.toString(), brightness: "1", contrast: "1", timeFormat: "24", dateFormat: "dd.mm.yyyy.", showSeconds: true, showDate: true, language: "en", isNightModeActive: false, isAutoSizeActive: true };
 
+            function updateSliderValueDisplays() {
+                elements.brightnessValue.value = `${Math.round(Number(elements.brightness.value) * 100)}%`;
+                elements.contrastValue.value = `${Math.round(Number(elements.contrast.value) * 100)}%`;
+                elements.satFontSizeValue.value = `${Math.round((Number(elements.satFontSize.value) / DEFAULT_MANUAL_SAT_EM) * 100)}%`;
+                elements.datumFontSizeValue.value = `${Math.round((Number(elements.datumFontSize.value) / DEFAULT_MANUAL_DATUM_EM) * 100)}%`;
+            }
+
             function T(key) {
                 const keys = key.split('.'); let result = currentTranslations;
                 for (const k of keys) {
@@ -221,6 +228,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 elements.satFontSizeLabel.classList.toggle('disabled', autoSizeActive); elements.datumFontSizeLabel.classList.toggle('disabled', autoSizeActive);
                 if (autoSizeActive) { elements.sat.style.fontSize = `${AUTO_SIZE_SAT_VW}vw`; elements.datum.style.fontSize = `${AUTO_SIZE_DATUM_VW}vw`; } 
                 else { elements.sat.style.fontSize = `${elements.satFontSize.value}em`; elements.datum.style.fontSize = `${elements.datumFontSize.value}em`; }
+                updateSliderValueDisplays();
             }
 
             function populateInfoPanel() {
@@ -445,6 +453,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.documentElement.style.setProperty('--font-family', elements.fontSelect.value); document.documentElement.style.setProperty('--contrast', elements.contrast.value);
                 if (!isNightModeActive) applyDayModeStyles();
                 elements.satFontColor.style.backgroundColor = elements.satFontColor.value; elements.datumFontColor.style.backgroundColor = elements.datumFontColor.value; elements.backgroundColor.style.backgroundColor = elements.backgroundColor.value;
+                updateSliderValueDisplays();
             }
             
             function resetSettings() { if (confirm(T('resetConfirm'))) { applySettingsFromObject(defaultSettings); saveCurrentSettings(); hideInfoPanel(); } }
