@@ -775,43 +775,9 @@ document.addEventListener('DOMContentLoaded', function() {
             function configureScreenSaverContext() {
                 if (isScreenSaverWindow) {
                     document.body.classList.add('screen-saver-active', 'screen-saver-window');
-
-                    const POINTER_EXIT_THRESHOLD = 8;
-                    let isArmed = false;
-                    let initialPointer = null;
-
-                    const exitScreenSaverWindow = () => {
-                        if (!isArmed) return;
-                        if (window.chrome?.webview) {
-                            window.chrome.webview.postMessage({ action: 'exitScreenSaver' });
-                        } else {
-                            window.close();
-                        }
-                    };
-
-                    const handleScreenSaverPointerMove = event => {
-                        if (!isArmed) return;
-
-                        if (!initialPointer) {
-                            initialPointer = { x: event.screenX, y: event.screenY };
-                            return;
-                        }
-
-                        const deltaX = Math.abs(event.screenX - initialPointer.x);
-                        const deltaY = Math.abs(event.screenY - initialPointer.y);
-
-                        if (deltaX >= POINTER_EXIT_THRESHOLD || deltaY >= POINTER_EXIT_THRESHOLD) {
-                            exitScreenSaverWindow();
-                        }
-                    };
-
-                    window.setTimeout(() => {
-                        isArmed = true;
-                    }, 1200);
-
-                    document.addEventListener('pointermove', handleScreenSaverPointerMove);
-                    document.addEventListener('pointerdown', exitScreenSaverWindow);
-                    document.addEventListener('keydown', exitScreenSaverWindow);
+                    // Native Windows Screen Saver mode monitors real user input in the WPF host.
+                    // Do not exit from DOM pointer/key events because WebView2 can emit synthetic events
+                    // while the full-screen saver is starting.
                 }
 
                 if (isScreenSaverConfig) {
