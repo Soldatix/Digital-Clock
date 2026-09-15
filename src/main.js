@@ -40,6 +40,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 brightness: document.getElementById('brightness'), contrast: document.getElementById('contrast'), showSecondsCheckbox: document.getElementById('showSecondsCheckbox'), showDateCheckbox: document.getElementById('showDateCheckbox'),
                 timeFormatSelect: document.getElementById('timeFormat'), dateFormatSelect: document.getElementById('dateFormat'), languageSelect: document.getElementById('languageSelect'), fontSelect: document.getElementById('fontSelect'),
                 windowsHostSettings: document.getElementById('windowsHostSettings'), windowsSettingsTitle: document.getElementById('windowsSettingsTitle'), startWithWindowsCheckbox: document.getElementById('startWithWindowsCheckbox'), startWithWindowsLabel: document.getElementById('startWithWindowsLabel'), keepDisplayAwakeCheckbox: document.getElementById('keepDisplayAwakeCheckbox'), keepDisplayAwakeLabel: document.getElementById('keepDisplayAwakeLabel'), bedsideModeButton: document.getElementById('bedsideModeButton'),
+                screenSaverAppearanceSync: document.getElementById('screenSaverAppearanceSync'), copyAppearanceFromAppButton: document.getElementById('copyAppearanceFromAppButton'), copyAppearanceFromAppButtonText: document.getElementById('copyAppearanceFromAppButtonText'), copyAppearanceFromAppStatus: document.getElementById('copyAppearanceFromAppStatus'),
                 satFontSize: document.getElementById('satFontSize'), datumFontSize: document.getElementById('datumFontSize'), satFontColor: document.getElementById('satFontColor'), datumFontColor: document.getElementById('datumFontColor'),
                 backgroundColor: document.getElementById('backgroundColor'), resetButton: document.getElementById('resetButton'), bedsideBrightness: document.getElementById('bedsideBrightness'), bedsideBrightnessLabel: document.getElementById('bedsideBrightnessLabel'), bedsideBrightnessValue: document.getElementById('bedsideBrightnessValue'), bedsideBrightnessControl: document.getElementById('bedsideBrightnessControl'), bedsideExitButton: document.getElementById('bedsideExitButton'), bedsideExitButtonText: document.getElementById('bedsideExitButtonText'), bedsideModeHint: document.getElementById('bedsideModeHint'), bedsideModeHintText: document.getElementById('bedsideModeHintText'), nightModeToggle: document.getElementById('nightModeToggle'), nightModeIcon: document.getElementById('nightModeIcon'),
                 autoSizeCheckbox: document.getElementById('autoSizeCheckbox'), autoSizeLabel: document.getElementById('autoSizeLabel'), autoSizeLabelSpan: document.getElementById('autoSizeLabelSpan'), satFontSizeLabel: document.getElementById('satFontSizeLabel'),
@@ -214,6 +215,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 de: { title: "Windows-Update", check: "Nach Updates suchen", checking: "Wird geprüft...", ready: "Prüfe, ob eine neuere Windows-Version verfügbar ist.", latest: "Du hast die neueste Version ({version}).", available: "Version {version} ist verfügbar.", install: "{version} herunterladen und installieren", downloading: "Download und Prüfung...", starting: "Installationsprogramm wird gestartet...", failed: "Update-Prüfung fehlgeschlagen.", installFailed: "Das Update konnte nicht gestartet werden.", confirm: "Version {version} herunterladen und installieren? Digital Clock wird automatisch geschlossen.", checkAgain: "Erneut prüfen" },
                 it: { title: "Aggiornamento Windows", check: "Controlla aggiornamenti", checking: "Controllo...", ready: "Controlla se è disponibile una versione Windows più recente.", latest: "Hai la versione più recente ({version}).", available: "È disponibile la versione {version}.", install: "Scarica e installa {version}", downloading: "Download e verifica...", starting: "Avvio del programma di installazione...", failed: "Controllo aggiornamenti non riuscito.", installFailed: "Impossibile avviare l'aggiornamento.", confirm: "Scaricare e installare la versione {version}? Digital Clock si chiuderà automaticamente.", checkAgain: "Controlla di nuovo" },
                 es: { title: "Actualización de Windows", check: "Buscar actualizaciones", checking: "Comprobando...", ready: "Comprueba si hay una versión de Windows más reciente.", latest: "Tienes la versión más reciente ({version}).", available: "La versión {version} está disponible.", install: "Descargar e instalar {version}", downloading: "Descargando y verificando...", starting: "Iniciando el instalador...", failed: "No se pudo comprobar la actualización.", installFailed: "No se pudo iniciar la actualización.", confirm: "¿Descargar e instalar la versión {version}? Digital Clock se cerrará automáticamente.", checkAgain: "Comprobar de nuevo" }
+            };
+
+            const SCREEN_SAVER_SYNC_TEXT = {
+                hr: { button: "Preuzmi izgled iz aplikacije", copied: "Izgled glavne aplikacije je preuzet.", unavailable: "Izgled glavne aplikacije nije dostupan." },
+                en: { button: "Copy appearance from app", copied: "The main app appearance was copied.", unavailable: "The main app appearance is not available." },
+                de: { button: "Darstellung aus der App übernehmen", copied: "Die Darstellung der Haupt-App wurde übernommen.", unavailable: "Die Darstellung der Haupt-App ist nicht verfügbar." },
+                it: { button: "Copia aspetto dall'app", copied: "L'aspetto dell'app principale è stato copiato.", unavailable: "L'aspetto dell'app principale non è disponibile." },
+                es: { button: "Copiar apariencia de la app", copied: "Se copió la apariencia de la aplicación principal.", unavailable: "La apariencia de la aplicación principal no está disponible." }
             };
             let selectedSounds = {
                 alarm: { ...defaultSettings.alarmSound },
@@ -494,6 +503,33 @@ document.addEventListener('DOMContentLoaded', function() {
                 else { elements.sat.style.fontSize = `${elements.satFontSize.value}em`; elements.datum.style.fontSize = `${elements.datumFontSize.value}em`; }
             }
 
+            function screenSaverSyncText() {
+                const lang = elements.languageSelect?.value || 'en';
+                return SCREEN_SAVER_SYNC_TEXT[lang] || SCREEN_SAVER_SYNC_TEXT.en;
+            }
+
+            function updateScreenSaverSyncText() {
+                if (!elements.copyAppearanceFromAppButtonText) return;
+                const ui = screenSaverSyncText();
+                elements.copyAppearanceFromAppButtonText.textContent = ui.button;
+            }
+
+            function copyAppearanceFromMainApp() {
+                if (!isScreenSaverConfig) return;
+
+                const seed = window.__digitalClockScreenSaverSeed;
+                const ui = screenSaverSyncText();
+
+                if (!seed || typeof seed !== 'object') {
+                    elements.copyAppearanceFromAppStatus.textContent = ui.unavailable;
+                    return;
+                }
+
+                applySettingsFromObject({ ...defaultSettings, ...seed });
+                saveCurrentSettings();
+                elements.copyAppearanceFromAppStatus.textContent = ui.copied;
+            }
+
             function windowsUpdateText() {
                 const lang = elements.languageSelect?.value || 'en';
                 return WINDOWS_UPDATE_TEXT[lang] || WINDOWS_UPDATE_TEXT.en;
@@ -698,6 +734,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 currentTranslations = translations[settingsObj.language] || translations.en;
                 updateLanguageUI();
+                updateScreenSaverSyncText();
                 applyBasicVisualSettings(); updateSizingMode();
                 if (isNightModeActive) applyNightModeStyles(); else applyDayModeStyles();
                 updateNightModeIcon();
@@ -1413,6 +1450,7 @@ function closeStopwatch() {
 
 
             // --- Event Listeners ---
+            elements.copyAppearanceFromAppButton?.addEventListener('click', copyAppearanceFromMainApp);
             elements.settingsMenu.addEventListener('click', () => { const isVisible = elements.settingsPanel.style.display === 'block'; elements.settingsPanel.style.display = isVisible ? 'none' : 'block'; if (!isVisible) hideInfoPanel(); });
             elements.infoButton.addEventListener('click', () => { toggleInfoPanel(); if (elements.infoSidePanel.classList.contains('info-panel-visible')) elements.settingsPanel.style.display = 'none'; });
             elements.languageSelect.addEventListener('change', (e) => { languageWasSelectedByUser = true; currentTranslations = translations[e.target.value] || translations.en; updateLanguageUI(); if (elements.infoSidePanel.classList.contains('info-panel-visible')) populateInfoPanel(); saveCurrentSettings(); });
