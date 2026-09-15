@@ -1,7 +1,9 @@
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Text.Json;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using Microsoft.Web.WebView2.Core;
@@ -14,6 +16,7 @@ public partial class MainWindow : Window
     private readonly WindowsSoundService _soundService = new();
     private readonly WindowsHostPreferencesService _hostPreferences = new();
     private readonly ClockAppearanceStore _appearanceStore = new();
+    private readonly WindowsUpdateService _updateService = new();
     private Forms.NotifyIcon? _trayIcon;
     private bool _exitRequested;
     private bool _bedsideMode;
@@ -235,9 +238,10 @@ public partial class MainWindow : Window
         SendHostEvent("fullscreenChanged", new { enabled = _fullscreenMode });
     }
 
-    private void ClockWebView_WebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
+    private async void ClockWebView_WebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
     {
         string? requestId = null;
+        bool exitForUpdate = false;
 
         try
         {
@@ -246,24 +250,67 @@ public partial class MainWindow : Window
             requestId = ReadString(root, "requestId");
 
             string? action = ReadString(root, "action");
-            object? payload = action switch
+            object? payload;
+
+            switch (action)
             {
-                "getHostInfo" => GetHostInfo(),
-                "pickCustomSound" => PickCustomSound(ReadString(root, "channel")),
-                "playCustomSound" => PlayCustomSound(
-                    ReadString(root, "channel"),
-                    root.TryGetProperty("preview", out JsonElement preview) && preview.GetBoolean()
-                ),
-                "stopCustomSound" => StopCustomSound(ReadString(root, "channel")),
-                "setStartWithWindows" => SetStartWithWindows(ReadBoolean(root, "enabled")),
-                "setKeepDisplayAwake" => SetKeepDisplayAwake(ReadBoolean(root, "enabled")),
-                "setBedsideMode" => SetBedsideModeFromBridge(ReadBoolean(root, "enabled")),
-                "setFullscreen" => SetFullscreenModeFromBridge(ReadBoolean(root, "enabled")),
-                "saveClockAppearance" => SaveClockAppearance(root),
-                _ => throw new InvalidOperationException("Unsupported Windows bridge action.")
-            };
+                case "getHostInfo":
+                    payload = GetHostInfo();
+                    break;
+                case "checkForUpdates":
+                    payload = await _updateService.CheckForUpdatesAsync();
+                    break;
+                case "installUpdate":
+                {
+                    string installerPath = await _updateService.DownloadUpdateInstallerAsync();
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = installerPath,
+                        Arguments = "/CLOSEAPPLICATIONS /NORESTARTAPPLICATIONS",
+                        UseShellExecute = true
+                    });
+                    payload = new { started = true };
+                    exitForUpdate = true;
+                    break;
+                }
+                case "pickCustomSound":
+                    payload = PickCustomSound(ReadString(root, "channel"));
+                    break;
+                case "playCustomSound":
+                    payload = PlayCustomSound(
+                        ReadString(root, "channel"),
+                        root.TryGetProperty("preview", out JsonElement preview) && preview.GetBoolean()
+                    );
+                    break;
+                case "stopCustomSound":
+                    payload = StopCustomSound(ReadString(root, "channel"));
+                    break;
+                case "setStartWithWindows":
+                    payload = SetStartWithWindows(ReadBoolean(root, "enabled"));
+                    break;
+                case "setKeepDisplayAwake":
+                    payload = SetKeepDisplayAwake(ReadBoolean(root, "enabled"));
+                    break;
+                case "setBedsideMode":
+                    payload = SetBedsideModeFromBridge(ReadBoolean(root, "enabled"));
+                    break;
+                case "setFullscreen":
+                    payload = SetFullscreenModeFromBridge(ReadBoolean(root, "enabled"));
+                    break;
+                case "saveClockAppearance":
+                    payload = SaveClockAppearance(root);
+                    break;
+                default:
+                    throw new InvalidOperationException("Unsupported Windows bridge action.");
+            }
 
             SendBridgeResponse(requestId, true, payload);
+
+            if (exitForUpdate)
+            {
+                await Task.Delay(350);
+                ExitApplication();
+            }
         }
         catch (Exception exception)
         {
@@ -288,6 +335,7 @@ public partial class MainWindow : Window
         return new
         {
             language = GetSupportedWindowsLanguage(CultureInfo.CurrentUICulture.Name),
+            appVersion = _updateService.CurrentVersion,
             customSounds = _soundService.GetSelectedSoundNames(),
             hostPreferences = new
             {
