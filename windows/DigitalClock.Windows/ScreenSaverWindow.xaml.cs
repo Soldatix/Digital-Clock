@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Interop;
+using System.Windows.Threading;
 using Microsoft.Web.WebView2.Core;
 
 namespace DigitalClock.Windows;
@@ -19,13 +20,13 @@ public partial class ScreenSaverWindow : Window
     private const uint SwpNoActivate = 0x0010;
     private const uint SwpShowWindow = 0x0040;
 
-    private const int MouseExitThresholdPixels = 8;
     private readonly Stopwatch _startupStopwatch = Stopwatch.StartNew();
     private readonly bool _isPreview;
     private readonly IntPtr _previewParentHandle;
     private readonly ClockAppearanceStore _appearanceStore = new();
-    private CursorPoint _initialCursorPosition;
-    private bool _hasInitialCursorPosition;
+    private readonly DispatcherTimer _inputMonitorTimer;
+    private uint _initialLastInputTick;
+    private bool _hasInitialLastInputTick;
     private bool _closeRequested;
 
     public ScreenSaverWindow(bool isPreview = false, IntPtr previewParentHandle = default)
@@ -34,10 +35,15 @@ public partial class ScreenSaverWindow : Window
         _previewParentHandle = previewParentHandle;
         InitializeComponent();
 
-        if (!_isPreview && GetCursorPos(out CursorPoint cursorPosition))
+        _inputMonitorTimer = new DispatcherTimer
         {
-            _initialCursorPosition = cursorPosition;
-            _hasInitialCursorPosition = true;
+            Interval = TimeSpan.FromMilliseconds(200)
+        };
+        _inputMonitorTimer.Tick += InputMonitorTimer_Tick;
+
+        if (!_isPreview)
+        {
+            _hasInitialLastInputTick = TryGetLastInputTick(out _initialLastInputTick);
         }
 
         if (_isPreview)
@@ -54,8 +60,7 @@ public partial class ScreenSaverWindow : Window
         }
 
         Loaded += ScreenSaverWindow_Loaded;
-        PreviewKeyDown += ScreenSaverWindow_PreviewKeyDown;
-        MouseMove += ScreenSaverWindow_MouseMove;
+        Closed += ScreenSaverWindow_Closed;
     }
 
     private void ScreenSaverWindow_SourceInitialized(object? sender, EventArgs e)
@@ -106,42 +111,41 @@ public partial class ScreenSaverWindow : Window
         );
 
         ScreenSaverWebView.Source = new Uri("https://digitalclock.local/index.html?screenSaver=1");
-    }
 
-    private void ScreenSaverWindow_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
-    {
         if (!_isPreview)
         {
+            _inputMonitorTimer.Start();
+        }
+    }
+
+    private void InputMonitorTimer_Tick(object? sender, EventArgs e)
+    {
+        if (_isPreview || _closeRequested || _startupStopwatch.ElapsedMilliseconds <= 1500)
+        {
+            return;
+        }
+
+        if (!TryGetLastInputTick(out uint currentLastInputTick))
+        {
+            return;
+        }
+
+        if (!_hasInitialLastInputTick)
+        {
+            _initialLastInputTick = currentLastInputTick;
+            _hasInitialLastInputTick = true;
+            return;
+        }
+
+        if (currentLastInputTick != _initialLastInputTick)
+        {
             CloseScreenSaver();
         }
     }
 
-    private void ScreenSaverWindow_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+    private void ScreenSaverWindow_Closed(object? sender, EventArgs e)
     {
-        if (_isPreview || _startupStopwatch.ElapsedMilliseconds <= 1200)
-        {
-            return;
-        }
-
-        if (!GetCursorPos(out CursorPoint currentPosition))
-        {
-            return;
-        }
-
-        if (!_hasInitialCursorPosition)
-        {
-            _initialCursorPosition = currentPosition;
-            _hasInitialCursorPosition = true;
-            return;
-        }
-
-        int deltaX = Math.Abs(currentPosition.X - _initialCursorPosition.X);
-        int deltaY = Math.Abs(currentPosition.Y - _initialCursorPosition.Y);
-
-        if (deltaX >= MouseExitThresholdPixels || deltaY >= MouseExitThresholdPixels)
-        {
-            CloseScreenSaver();
-        }
+        _inputMonitorTimer.Stop();
     }
 
     private void ScreenSaverWebView_WebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
@@ -173,9 +177,26 @@ public partial class ScreenSaverWindow : Window
         Close();
     }
 
+    private static bool TryGetLastInputTick(out uint tick)
+    {
+        var lastInputInfo = new LastInputInfo
+        {
+            CbSize = (uint)Marshal.SizeOf<LastInputInfo>()
+        };
+
+        if (GetLastInputInfo(ref lastInputInfo))
+        {
+            tick = lastInputInfo.DwTime;
+            return true;
+        }
+
+        tick = 0;
+        return false;
+    }
+
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool GetCursorPos(out CursorPoint point);
+    private static extern bool GetLastInputInfo(ref LastInputInfo lastInputInfo);
 
     [DllImport("user32.dll", SetLastError = true)]
     private static extern IntPtr SetParent(IntPtr childWindow, IntPtr newParent);
@@ -223,10 +244,10 @@ public partial class ScreenSaverWindow : Window
     private static extern int SetWindowLong32(IntPtr windowHandle, int index, int value);
 
     [StructLayout(LayoutKind.Sequential)]
-    private struct CursorPoint
+    private struct LastInputInfo
     {
-        public int X;
-        public int Y;
+        public uint CbSize;
+        public uint DwTime;
     }
 
     [StructLayout(LayoutKind.Sequential)]
