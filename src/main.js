@@ -568,14 +568,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
             function toggleNightMode() { isNightModeActive = !isNightModeActive; if (isNightModeActive) applyNightModeStyles(); else applyDayModeStyles(); updateNightModeIcon(); saveCurrentSettings(); }
 
+            let copiedScreenSaverRenderedSizes = null;
+
             function updateSizingMode() {
                 const autoSizeActive = elements.autoSizeCheckbox.checked;
                 elements.satFontSize.disabled = autoSizeActive; elements.datumFontSize.disabled = autoSizeActive;
                 elements.satFontSizeLabel.classList.toggle('disabled', autoSizeActive); elements.datumFontSizeLabel.classList.toggle('disabled', autoSizeActive);
 
                 if (autoSizeActive) {
+                    copiedScreenSaverRenderedSizes = null;
                     elements.sat.style.fontSize = `${AUTO_SIZE_SAT_VW}vw`;
                     elements.datum.style.fontSize = `${AUTO_SIZE_DATUM_VW}vw`;
+                } else if (isScreenSaverContext && copiedScreenSaverRenderedSizes) {
+                    const copiedClockPx = Number(copiedScreenSaverRenderedSizes.clock);
+                    const copiedDatePx = Number(copiedScreenSaverRenderedSizes.date);
+
+                    if (Number.isFinite(copiedClockPx) && copiedClockPx > 0) {
+                        elements.sat.style.fontSize = `${Math.round(copiedClockPx)}px`;
+                    }
+                    if (Number.isFinite(copiedDatePx) && copiedDatePx > 0) {
+                        elements.datum.style.fontSize = `${Math.round(copiedDatePx)}px`;
+                    }
                 } else {
                     const { clockMaxPx, dateMaxPx } = getSafeManualFontSizes();
                     const clockPercent = sliderValueToPercent(elements.satFontSize) / 100;
@@ -610,29 +623,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
 
-                const copiedSettings = { ...defaultSettings, ...seed };
+                const copiedSettings = {
+                    ...defaultSettings,
+                    ...seed,
+                    copiedRenderedSatFontPx: !seed.isAutoSizeActive ? Number(seed.renderedSatFontPx) || null : null,
+                    copiedRenderedDatumFontPx: !seed.isAutoSizeActive ? Number(seed.renderedDatumFontPx) || null : null
+                };
+
                 applySettingsFromObject(copiedSettings);
-
-                if (!copiedSettings.isAutoSizeActive) {
-                    const sourceClockPx = Number(seed.renderedSatFontPx);
-                    const sourceDatePx = Number(seed.renderedDatumFontPx);
-                    const targetWidth = Number(window.screen?.availWidth || window.screen?.width || window.innerWidth);
-                    const targetHeight = Number(window.screen?.availHeight || window.screen?.height || window.innerHeight);
-                    const { clockMaxPx, dateMaxPx } = getSafeManualFontSizes(targetWidth, targetHeight);
-
-                    if (Number.isFinite(sourceClockPx) && sourceClockPx > 0) {
-                        const targetClockPercent = (sourceClockPx / clockMaxPx) * 100;
-                        elements.satFontSize.value = sliderPercentToValue(elements.satFontSize, targetClockPercent);
-                    }
-
-                    if (Number.isFinite(sourceDatePx) && sourceDatePx > 0) {
-                        const targetDatePercent = (sourceDatePx / dateMaxPx) * 100;
-                        elements.datumFontSize.value = sliderPercentToValue(elements.datumFontSize, targetDatePercent);
-                    }
-
-                    updateSizingMode();
-                }
-
                 saveCurrentSettings();
                 elements.copyAppearanceFromAppStatus.textContent = ui.copied;
             }
@@ -837,6 +835,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     datumFontSize: elements.datumFontSize.value,
                     renderedSatFontPx: Number.isFinite(renderedSatFontPx) ? renderedSatFontPx : null,
                     renderedDatumFontPx: Number.isFinite(renderedDatumFontPx) ? renderedDatumFontPx : null,
+                    copiedRenderedSatFontPx: isScreenSaverContext && copiedScreenSaverRenderedSizes
+                        ? Number(copiedScreenSaverRenderedSizes.clock) || null
+                        : null,
+                    copiedRenderedDatumFontPx: isScreenSaverContext && copiedScreenSaverRenderedSizes
+                        ? Number(copiedScreenSaverRenderedSizes.date) || null
+                        : null,
                     brightness: elements.brightness.value,
                     contrast: elements.contrast.value,
                     timeFormat: elements.timeFormatSelect.value,
@@ -859,6 +863,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 elements.brightness.value = settingsObj.brightness; elements.contrast.value = settingsObj.contrast; elements.timeFormatSelect.value = settingsObj.timeFormat;
                 elements.dateFormatSelect.value = settingsObj.dateFormat; elements.showSecondsCheckbox.checked = settingsObj.showSeconds; elements.showDateCheckbox.checked = settingsObj.showDate;
                 elements.languageSelect.value = settingsObj.language; elements.autoSizeCheckbox.checked = settingsObj.isAutoSizeActive;
+                copiedScreenSaverRenderedSizes = isScreenSaverContext && !settingsObj.isAutoSizeActive &&
+                    (Number(settingsObj.copiedRenderedSatFontPx) > 0 || Number(settingsObj.copiedRenderedDatumFontPx) > 0)
+                    ? {
+                        clock: Number(settingsObj.copiedRenderedSatFontPx) || null,
+                        date: Number(settingsObj.copiedRenderedDatumFontPx) || null
+                    }
+                    : null;
                 elements.bedsideBrightness.value = settingsObj.bedsideBrightness || defaultSettings.bedsideBrightness;
                 isNightModeActive = settingsObj.isNightModeActive;
                 languageWasSelectedByUser = settingsObj.languageWasSelectedByUser === true;
@@ -1587,7 +1598,11 @@ function closeStopwatch() {
             ['showDateCheckbox', 'dateFormatSelect'].forEach(id => elements[id].addEventListener('change', () => { updateDate(true); updateSizingMode(); saveCurrentSettings(); }));
             elements.autoSizeCheckbox.addEventListener('change', () => { updateSizingMode(); saveCurrentSettings(); });
             [elements.satFontSize, elements.datumFontSize].forEach(slider => {
-                slider.addEventListener('input', () => { if (elements.autoSizeCheckbox.checked) elements.autoSizeCheckbox.checked = false; updateSizingMode(); });
+                slider.addEventListener('input', () => {
+                    if (elements.autoSizeCheckbox.checked) elements.autoSizeCheckbox.checked = false;
+                    if (isScreenSaverContext) copiedScreenSaverRenderedSizes = null;
+                    updateSizingMode();
+                });
                 slider.addEventListener('change', saveCurrentSettings);
             });
             [elements.brightness, elements.contrast, elements.fontSelect, elements.satFontColor, elements.datumFontColor, elements.backgroundColor].forEach(input => {
