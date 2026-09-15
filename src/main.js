@@ -824,8 +824,25 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             function getCurrentSettingsObject() {
-                const renderedSatFontPx = Number.parseFloat(getComputedStyle(elements.sat).fontSize);
-                const renderedDatumFontPx = Number.parseFloat(getComputedStyle(elements.datum).fontSize);
+                const autoSizeActive = elements.autoSizeCheckbox.checked;
+                let renderedSatFontPx = null;
+                let renderedDatumFontPx = null;
+
+                if (!autoSizeActive) {
+                    if (isScreenSaverContext && copiedScreenSaverRenderedSizes) {
+                        const copiedClockPx = Number(copiedScreenSaverRenderedSizes.clock);
+                        const copiedDatePx = Number(copiedScreenSaverRenderedSizes.date);
+                        renderedSatFontPx = Number.isFinite(copiedClockPx) && copiedClockPx > 0 ? copiedClockPx : null;
+                        renderedDatumFontPx = Number.isFinite(copiedDatePx) && copiedDatePx > 0 ? copiedDatePx : null;
+                    } else {
+                        const { clockMaxPx, dateMaxPx } = getSafeManualFontSizes();
+                        const clockPercent = sliderValueToPercent(elements.satFontSize) / 100;
+                        const datePercent = sliderValueToPercent(elements.datumFontSize) / 100;
+                        renderedSatFontPx = Math.round(clockMaxPx * clockPercent);
+                        renderedDatumFontPx = Math.round(dateMaxPx * datePercent);
+                    }
+                }
+
                 return {
                     backgroundColor: elements.backgroundColor.value,
                     satFontColor: elements.satFontColor.value,
@@ -833,8 +850,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     fontSelect: elements.fontSelect.value,
                     satFontSize: elements.satFontSize.value,
                     datumFontSize: elements.datumFontSize.value,
-                    renderedSatFontPx: Number.isFinite(renderedSatFontPx) ? renderedSatFontPx : null,
-                    renderedDatumFontPx: Number.isFinite(renderedDatumFontPx) ? renderedDatumFontPx : null,
+                    renderedSatFontPx,
+                    renderedDatumFontPx,
                     copiedRenderedSatFontPx: isScreenSaverContext && copiedScreenSaverRenderedSizes
                         ? Number(copiedScreenSaverRenderedSizes.clock) || null
                         : null,
