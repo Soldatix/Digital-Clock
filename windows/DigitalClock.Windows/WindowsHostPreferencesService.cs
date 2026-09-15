@@ -11,7 +11,6 @@ internal sealed record WindowsHostState(bool StartWithWindows, bool KeepDisplayA
 internal sealed class WindowsHostPreferencesService : IDisposable
 {
     private const string RunKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
-    private const string RunValueName = "AppsAndGamesDigitalClock";
     private const uint EsContinuous = 0x80000000;
     private const uint EsDisplayRequired = 0x00000002;
 
@@ -21,13 +20,7 @@ internal sealed class WindowsHostPreferencesService : IDisposable
 
     public WindowsHostPreferencesService()
     {
-        string directory = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "AppsAndGames",
-            "DigitalClock"
-        );
-
-        _settingsPath = Path.Combine(directory, "windows-host-preferences.json");
+        _settingsPath = Path.Combine(AppDataPaths.RootDirectory, "windows-host-preferences.json");
         _preferences = LoadPreferences();
 
         ApplyDisplayAwakeState(IsDisplayAwakeRequested());
@@ -55,11 +48,11 @@ internal sealed class WindowsHostPreferencesService : IDisposable
 
         if (enabled)
         {
-            key.SetValue(RunValueName, $"\"{executablePath}\"");
+            key.SetValue(AppDataPaths.StartupRunValueName, $"\"{executablePath}\"");
         }
         else
         {
-            key.DeleteValue(RunValueName, false);
+            key.DeleteValue(AppDataPaths.StartupRunValueName, false);
         }
 
         return IsStartWithWindowsEnabled() == enabled;
@@ -88,7 +81,7 @@ internal sealed class WindowsHostPreferencesService : IDisposable
     private bool IsStartWithWindowsEnabled()
     {
         using RegistryKey? key = Registry.CurrentUser.OpenSubKey(RunKeyPath, writable: false);
-        return key?.GetValue(RunValueName) is string;
+        return key?.GetValue(AppDataPaths.StartupRunValueName) is string;
     }
 
     private bool IsDisplayAwakeRequested() => _preferences.KeepDisplayAwake || _bedsideModeAwake;
