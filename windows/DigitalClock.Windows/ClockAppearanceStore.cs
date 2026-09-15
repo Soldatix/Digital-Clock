@@ -11,12 +11,7 @@ internal sealed class ClockAppearanceStore
 
     public ClockAppearanceStore()
     {
-        _settingsPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "AppsAndGames",
-            "DigitalClock",
-            "clock-appearance.json"
-        );
+        _settingsPath = Path.Combine(AppDataPaths.RootDirectory, "clock-appearance.json");
     }
 
     public void Save(JsonElement settings)
@@ -43,7 +38,7 @@ internal sealed class ClockAppearanceStore
             throw new ArgumentException("Screen saver appearance must be an object.", nameof(settings));
 
         // Serialize migration and explicit saves across the app and /c processes.
-        using var mutex = new Mutex(false, "Local\\DigitalClock.ScreenSaverAppearance");
+        using var mutex = new Mutex(false, AppDataPaths.ScreenSaverMutexName);
         bool acquired = false;
         try
         {
