@@ -673,3 +673,12 @@ body.screen-saver-config .screen-saver-config-only {
     font-size: .82rem;
     color: #65708a;
 }
+
+#screenSaverAppearanceSync .screen-saver-autosave-note {
+    margin: 10px 0 0;
+    padding-top: 10px;
+    border-top: 1px solid rgba(91,128,230,.18);
+    color: #65708a;
+    font-size: .82rem;
+    font-style: italic;
+}
