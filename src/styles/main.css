@@ -354,6 +354,48 @@
 #infoSidePanelContent .dc-portal-link:hover {
     background: #1a315b;
 }
+
+#infoSidePanelContent .dc-windows-update {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(91,128,230,.25);
+}
+#infoSidePanelContent .dc-update-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 10px;
+    color: #eef4ff;
+}
+#infoSidePanelContent .dc-update-heading span {
+    color: #aebddd;
+    font-size: .8rem;
+}
+#infoSidePanelContent #windowsUpdateButton {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 14px;
+    border: 1px solid rgba(84,232,255,.35);
+    border-radius: 11px;
+    background: #173f8f;
+    color: #fff;
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+}
+#infoSidePanelContent #windowsUpdateButton:hover:not(:disabled) {
+    background: #1f52b7;
+}
+#infoSidePanelContent #windowsUpdateButton:disabled {
+    opacity: .68;
+    cursor: wait;
+}
+#infoSidePanelContent .dc-update-status {
+    margin: 9px 0 0;
+    color: #aebddd;
+    font-size: .82rem;
+}
 @media (max-width: 520px) {
     #infoSidePanelContent .dc-app-heading {
         flex-direction: column;
