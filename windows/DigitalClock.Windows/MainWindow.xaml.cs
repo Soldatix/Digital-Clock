@@ -80,10 +80,17 @@ public partial class MainWindow : Window
         menu.Items.Add(new Forms.ToolStripSeparator());
         menu.Items.Add("Exit", null, (_, _) => Dispatcher.Invoke(ExitApplication));
 
+        string? executablePath = Environment.ProcessPath;
+        System.Drawing.Icon trayIcon =
+            (!string.IsNullOrWhiteSpace(executablePath)
+                ? System.Drawing.Icon.ExtractAssociatedIcon(executablePath)
+                : null)
+            ?? System.Drawing.SystemIcons.Application;
+
         _trayIcon = new Forms.NotifyIcon
         {
             Text = "Digital Clock",
-            Icon = System.Drawing.SystemIcons.Application,
+            Icon = trayIcon,
             ContextMenuStrip = menu,
             Visible = true
         };
