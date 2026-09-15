@@ -107,9 +107,70 @@ public partial class MainWindow : Window
 
         e.Cancel = true;
         Hide();
-        _trayIcon?.ShowBalloonTip(2000, "Digital Clock", "The clock is still running in the system tray.", Forms.ToolTipIcon.Info);
+        ShowTrayMessage();
     }
 
+    private void ShowTrayMessage()
+    {
+        Rect workArea = SystemParameters.WorkArea;
+
+        var popup = new Window
+        {
+            Width = 360,
+            Height = 96,
+            WindowStyle = WindowStyle.None,
+            ResizeMode = ResizeMode.NoResize,
+            ShowInTaskbar = false,
+            Topmost = true,
+            ShowActivated = false,
+            AllowsTransparency = true,
+            Background = System.Windows.Media.Brushes.Transparent,
+            Left = workArea.Right - 372,
+            Top = workArea.Bottom - 108
+        };
+
+        var border = new System.Windows.Controls.Border
+        {
+            Background = new System.Windows.Media.SolidColorBrush(
+                System.Windows.Media.Color.FromRgb(32, 32, 36)),
+            BorderBrush = new System.Windows.Media.SolidColorBrush(
+                System.Windows.Media.Color.FromRgb(72, 72, 78)),
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(12),
+            Padding = new Thickness(16)
+        };
+
+        var panel = new System.Windows.Controls.StackPanel();
+
+        panel.Children.Add(new System.Windows.Controls.TextBlock
+        {
+            Text = "Digital Clock",
+            Foreground = System.Windows.Media.Brushes.White,
+            FontSize = 15,
+            FontWeight = FontWeights.SemiBold
+        });
+
+        panel.Children.Add(new System.Windows.Controls.TextBlock
+        {
+            Text = "Digital Clock is still running in the system tray.",
+            Foreground = new System.Windows.Media.SolidColorBrush(
+                System.Windows.Media.Color.FromRgb(210, 210, 215)),
+            FontSize = 13,
+            Margin = new Thickness(0, 6, 0, 0),
+            TextWrapping = TextWrapping.Wrap
+        });
+
+        border.Child = panel;
+        popup.Content = border;
+
+        popup.Loaded += async (_, _) =>
+        {
+            await Task.Delay(3000);
+            popup.Close();
+        };
+
+        popup.Show();
+    }
     private void MainWindow_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
     {
         if (_bedsideMode && e.Key == Key.Escape)

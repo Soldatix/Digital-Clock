@@ -2,7 +2,7 @@
 ; The resulting public installer is publish/installer/DigitalClock-Setup-x64.exe.
 
 #ifndef MyAppVersion
-  #define MyAppVersion "2.0.2"
+  #define MyAppVersion "2.0.3"
 #endif
 
 #ifndef SourceDir
@@ -12,6 +12,7 @@
 #define MyAppName "Digital Clock"
 #define MyAppPublisher "Apps & Games"
 #define MyAppURL "https://appsandgames.org/digital-clock"
+#define MyPortalURL "https://appsandgames.org"
 #define MyAppExeName "DigitalClock.Windows.exe"
 #define MyScreenSaverName "AppsAndGames-DigitalClock.scr"
 
@@ -74,9 +75,11 @@ Name: "activateScreensaver"; Description: "{cm:ActivateScreenSaverTask}"; Flags:
 Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#SourceDir}\{#MyAppExeName}"; DestDir: "{app}"; DestName: "{#MyScreenSaverName}"; Flags: ignoreversion
 Source: "prerequisites\MicrosoftEdgeWebView2Setup.exe"; DestDir: "{tmp}"; DestName: "MicrosoftEdgeWebView2Setup.exe"; Flags: ignoreversion deleteafterinstall
+Source: "assets\AppsAndGames.ico"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\Digital Clock"; Filename: "{app}\{#MyAppExeName}"
+Name: "{group}\Apps & Games Website"; Filename: "{#MyPortalURL}"; IconFilename: "{app}\AppsAndGames.ico"
 Name: "{group}\Uninstall Digital Clock"; Filename: "{uninstallexe}"
 
 [UninstallDelete]
