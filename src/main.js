@@ -1630,17 +1630,7 @@ function closeStopwatch() {
                 exitScreenSaver();
             });
             document.addEventListener('fullscreenchange', () => { updateFullscreenIcon(); updateSizingMode(); });
-            let resizeAppearanceSaveTimer = null;
-            window.addEventListener('resize', () => {
-                updateSizingMode();
-                if (!isScreenSaverContext && isWindowsHost()) {
-                    if (resizeAppearanceSaveTimer) clearTimeout(resizeAppearanceSaveTimer);
-                    resizeAppearanceSaveTimer = setTimeout(() => {
-                        resizeAppearanceSaveTimer = null;
-                        saveCurrentSettings();
-                    }, 250);
-                }
-            });
+            window.addEventListener('resize', updateSizingMode);
             elements.saveProfileButton.addEventListener('click', () => {
                 const profileName = elements.profileNameInput.value.trim(); if (!profileName) { alert(T('enterProfileName')); return; }
                 const profiles = getProfiles(); const i = profiles.findIndex(p => p.name === profileName); const settings = getCurrentSettingsObject();
