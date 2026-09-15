@@ -19,10 +19,13 @@ public partial class ScreenSaverWindow : Window
     private const uint SwpNoActivate = 0x0010;
     private const uint SwpShowWindow = 0x0040;
 
+    private const int MouseExitThresholdPixels = 8;
     private readonly Stopwatch _startupStopwatch = Stopwatch.StartNew();
     private readonly bool _isPreview;
     private readonly IntPtr _previewParentHandle;
     private readonly ClockAppearanceStore _appearanceStore = new();
+    private CursorPoint _initialCursorPosition;
+    private bool _hasInitialCursorPosition;
     private bool _closeRequested;
 
     public ScreenSaverWindow(bool isPreview = false, IntPtr previewParentHandle = default)
@@ -30,6 +33,12 @@ public partial class ScreenSaverWindow : Window
         _isPreview = isPreview;
         _previewParentHandle = previewParentHandle;
         InitializeComponent();
+
+        if (!_isPreview && GetCursorPos(out CursorPoint cursorPosition))
+        {
+            _initialCursorPosition = cursorPosition;
+            _hasInitialCursorPosition = true;
+        }
 
         if (_isPreview)
         {
@@ -109,7 +118,27 @@ public partial class ScreenSaverWindow : Window
 
     private void ScreenSaverWindow_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
     {
-        if (!_isPreview && _startupStopwatch.ElapsedMilliseconds > 900)
+        if (_isPreview || _startupStopwatch.ElapsedMilliseconds <= 1200)
+        {
+            return;
+        }
+
+        if (!GetCursorPos(out CursorPoint currentPosition))
+        {
+            return;
+        }
+
+        if (!_hasInitialCursorPosition)
+        {
+            _initialCursorPosition = currentPosition;
+            _hasInitialCursorPosition = true;
+            return;
+        }
+
+        int deltaX = Math.Abs(currentPosition.X - _initialCursorPosition.X);
+        int deltaY = Math.Abs(currentPosition.Y - _initialCursorPosition.Y);
+
+        if (deltaX >= MouseExitThresholdPixels || deltaY >= MouseExitThresholdPixels)
         {
             CloseScreenSaver();
         }
@@ -143,6 +172,10 @@ public partial class ScreenSaverWindow : Window
         _closeRequested = true;
         Close();
     }
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool GetCursorPos(out CursorPoint point);
 
     [DllImport("user32.dll", SetLastError = true)]
     private static extern IntPtr SetParent(IntPtr childWindow, IntPtr newParent);
@@ -188,6 +221,13 @@ public partial class ScreenSaverWindow : Window
 
     [DllImport("user32.dll", EntryPoint = "SetWindowLong", SetLastError = true)]
     private static extern int SetWindowLong32(IntPtr windowHandle, int index, int value);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct CursorPoint
+    {
+        public int X;
+        public int Y;
+    }
 
     [StructLayout(LayoutKind.Sequential)]
     private struct Rect
