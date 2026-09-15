@@ -3,10 +3,28 @@
             --button-bg: #f0f0f0; --button-hover-bg: #e0e0e0; --button-icon-color: #333; --button-border-color: #ccc; --button-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         body {
-            display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: var(--bg-color); color: var(--text-color);
-            font-family: var(--font-family); transition: background-color 0.3s ease, color 0.3s ease; filter: brightness(var(--brightness)) contrast(var(--contrast)); overflow: hidden;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #000000; color: var(--text-color);
+            font-family: var(--font-family); transition: color 0.3s ease; overflow: hidden; isolation: isolate;
         }
-        .clock-container { display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background-color: var(--bg-color);
+            filter: brightness(var(--brightness)) contrast(var(--contrast));
+            transition: background-color 0.3s ease, filter 0.1s linear;
+        }
+        .clock-container {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            filter: brightness(var(--brightness)) contrast(var(--contrast));
+        }
         #sat, #datum { transition: color 0.3s ease, font-size 0.1s linear; background-color: transparent; text-align: center; white-space: nowrap; }
         #sat { line-height: 1; color: var(--text-color); }
         #datum { margin-top: 1vh; color: var(--text-color); }
