@@ -3,10 +3,28 @@
             --button-bg: #f0f0f0; --button-hover-bg: #e0e0e0; --button-icon-color: #333; --button-border-color: #ccc; --button-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         body {
-            display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: var(--bg-color); color: var(--text-color);
-            font-family: var(--font-family); transition: background-color 0.3s ease, color 0.3s ease; filter: brightness(var(--brightness)) contrast(var(--contrast)); overflow: hidden;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #000000; color: var(--text-color);
+            font-family: var(--font-family); transition: color 0.3s ease; overflow: hidden; isolation: isolate;
         }
-        .clock-container { display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background-color: var(--bg-color);
+            filter: brightness(var(--brightness)) contrast(var(--contrast));
+            transition: background-color 0.3s ease, filter 0.1s linear;
+        }
+        .clock-container {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            filter: brightness(var(--brightness)) contrast(var(--contrast));
+        }
         #sat, #datum { transition: color 0.3s ease, font-size 0.1s linear; background-color: transparent; text-align: center; white-space: nowrap; }
         #sat { line-height: 1; color: var(--text-color); }
         #datum { margin-top: 1vh; color: var(--text-color); }
@@ -56,6 +74,9 @@
         .settings-panel input[type="checkbox"] { width: auto; margin-right: 5px; accent-color: #007bff; flex-shrink: 0; }
         .settings-panel input[type="range"] { accent-color: #007bff; width: 100%; box-sizing: border-box; margin-bottom: 15px; }
         .settings-panel input[type="range"]:disabled { cursor: not-allowed; }
+        .slider-control { display: grid; grid-template-columns: minmax(0, 1fr) 52px; gap: 10px; align-items: center; margin-bottom: 15px; }
+        .slider-control input[type="range"] { margin-bottom: 0; }
+        .slider-value { min-width: 52px; text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; color: #333; }
         .settings-panel select, .settings-panel input[type="color"] { width: 100%; box-sizing: border-box; margin-bottom: 15px; padding: 8px; border-radius: 4px; border: 1px solid #ccc; background-color: #f8f9fa; color: #333; }
         .settings-panel input[type="color"] { padding: 2px; height: 35px; }
         .settings-panel select option { background-color: #fff; color: #333; }
@@ -496,6 +517,7 @@
 
 /* Windows Bedside Mode: keep only the quiet clock visible. */
 body.bedside-mode { background: #000 !important; }
+body.bedside-mode::before { background: #000 !important; }
 body.bedside-mode .icon-button-container,
 body.bedside-mode .top-center-container,
 body.bedside-mode .fullscreen-toggle,
