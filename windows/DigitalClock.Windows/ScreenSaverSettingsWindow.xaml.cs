@@ -13,6 +13,10 @@ public partial class ScreenSaverSettingsWindow : Window
     public ScreenSaverSettingsWindow()
     {
         InitializeComponent();
+        if (AppDataPaths.IsTestBuild)
+        {
+            Title = "Digital Clock Screen Saver Settings [TEST]";
+        }
         Loaded += ScreenSaverSettingsWindow_Loaded;
     }
 
@@ -20,7 +24,7 @@ public partial class ScreenSaverSettingsWindow : Window
     {
         var webViewEnvironment = await CoreWebView2Environment.CreateAsync(
             null,
-            Path.Combine(AppContext.BaseDirectory, "DigitalClock.Windows.exe.WebView2")
+            AppDataPaths.DesktopWebView2Directory
         );
         await SettingsWebView.EnsureCoreWebView2Async(webViewEnvironment);
         SettingsWebView.CoreWebView2.WebMessageReceived += SettingsWebView_WebMessageReceived;
