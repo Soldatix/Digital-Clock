@@ -8,7 +8,7 @@
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>..\..\favicon.ico</ApplicationIcon>
-    <Version>2.0.4</Version>
+    <Version>2.0.5</Version>
     <DigitalClockTestBuild Condition="'$(DigitalClockTestBuild)' == ''">false</DigitalClockTestBuild>
     <DefineConstants Condition="'$(DigitalClockTestBuild)' == 'true'">$(DefineConstants);DIGITALCLOCK_TEST_BUILD</DefineConstants>
   </PropertyGroup>
