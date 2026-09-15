@@ -92,29 +92,67 @@ public partial class ScreenSaverWindow : Window
 
     private async void ScreenSaverWindow_Loaded(object sender, RoutedEventArgs e)
     {
-        var webViewEnvironment = await CoreWebView2Environment.CreateAsync(
-            null,
-            Path.Combine(AppContext.BaseDirectory, "DigitalClock.Windows.exe.WebView2")
-        );
-        await ScreenSaverWebView.EnsureCoreWebView2Async(webViewEnvironment);
-        string appearanceJson = _appearanceStore.Read() ?? "null";
-        await ScreenSaverWebView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(
-            $"window.__digitalClockScreenSaverSeed = {appearanceJson};"
-        );
-        ScreenSaverWebView.CoreWebView2.WebMessageReceived += ScreenSaverWebView_WebMessageReceived;
-
-        string webFolder = Path.Combine(AppContext.BaseDirectory, "Web");
-        ScreenSaverWebView.CoreWebView2.SetVirtualHostNameToFolderMapping(
-            "digitalclock.local",
-            webFolder,
-            CoreWebView2HostResourceAccessKind.Allow
-        );
-
-        ScreenSaverWebView.Source = new Uri("https://digitalclock.local/index.html?screenSaver=1");
-
-        if (!_isPreview)
+        string userDataFolder = _isPreview
+            ? Path.Combine(AppContext.BaseDirectory, "DigitalClock.Windows.exe.WebView2")
+            : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "AppsAndGames", "DigitalClock", "ScreenSaver.WebView2");
+        string stage = "Create environment";
+        CoreWebView2Environment? webViewEnvironment = null;
+        try
         {
-            _inputMonitorTimer.Start();
+            webViewEnvironment = await CoreWebView2Environment.CreateAsync(null, userDataFolder);
+            if (_closeRequested) return;
+            stage = "Create controller";
+            await ScreenSaverWebView.EnsureCoreWebView2Async(webViewEnvironment);
+            if (_closeRequested) return;
+            stage = "Inject appearance";
+            string appearanceJson = _appearanceStore.Read() ?? "null";
+            string saverJson = _appearanceStore.ReadScreenSaver() ?? "null";
+            await ScreenSaverWebView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(
+                $"window.__digitalClockScreenSaverSeed = {appearanceJson}; " +
+                $"window.__digitalClockScreenSaverAppearance = {saverJson}; " +
+                $"window.__digitalClockIsolatedScreenSaver = {(_isPreview ? "false" : "true")};"
+            );
+            if (_closeRequested) return;
+            stage = "Map web content and navigate";
+            ScreenSaverWebView.CoreWebView2.WebMessageReceived += ScreenSaverWebView_WebMessageReceived;
+
+            string webFolder = Path.Combine(AppContext.BaseDirectory, "Web");
+            ScreenSaverWebView.CoreWebView2.SetVirtualHostNameToFolderMapping(
+                "digitalclock.local",
+                webFolder,
+                CoreWebView2HostResourceAccessKind.Allow
+            );
+
+            ScreenSaverWebView.Source = new Uri("https://digitalclock.local/index.html?screenSaver=1");
+
+            if (!_isPreview)
+            {
+                _inputMonitorTimer.Start();
+            }
+        }
+        catch (Exception exception)
+        {
+            LogInitializationFailure(exception, stage, userDataFolder, webViewEnvironment);
+            CloseScreenSaver();
+        }
+    }
+
+    private void LogInitializationFailure(Exception exception, string stage, string requestedFolder, CoreWebView2Environment? environment)
+    {
+        try
+        {
+            string logDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "AppsAndGames", "DigitalClock", "Logs");
+            Directory.CreateDirectory(logDirectory);
+            File.AppendAllText(Path.Combine(logDirectory, "screen-saver.log"),
+                $"{DateTimeOffset.Now:O} Mode={(_isPreview ? "/p" : "/s")} PID={Environment.ProcessId} Stage={stage}\n" +
+                $"RequestedFolder={requestedFolder}\nActualFolder={environment?.UserDataFolder}\nRuntime={environment?.BrowserVersionString}\n" +
+                $"HRESULT=0x{exception.HResult:X8}\n{exception}\n\n");
+        }
+        catch (Exception loggingException)
+        {
+            Debug.WriteLine($"Screen saver initialization failed: {exception}; logging failed: {loggingException}");
         }
     }
 
@@ -145,7 +183,9 @@ public partial class ScreenSaverWindow : Window
 
     private void ScreenSaverWindow_Closed(object? sender, EventArgs e)
     {
+        _closeRequested = true;
         _inputMonitorTimer.Stop();
+        ScreenSaverWebView.Dispose();
     }
 
     private void ScreenSaverWebView_WebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)

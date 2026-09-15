@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using System.Text.Json;
+using System.Diagnostics;
 using System.Windows;
 using Microsoft.Web.WebView2.Core;
 
@@ -21,9 +23,11 @@ public partial class ScreenSaverSettingsWindow : Window
             Path.Combine(AppContext.BaseDirectory, "DigitalClock.Windows.exe.WebView2")
         );
         await SettingsWebView.EnsureCoreWebView2Async(webViewEnvironment);
+        SettingsWebView.CoreWebView2.WebMessageReceived += SettingsWebView_WebMessageReceived;
         string appearanceJson = _appearanceStore.Read() ?? "null";
+        string saverJson = _appearanceStore.ReadScreenSaver() ?? "null";
         await SettingsWebView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(
-            $"window.__digitalClockScreenSaverSeed = {appearanceJson};"
+            $"window.__digitalClockScreenSaverSeed = {appearanceJson}; window.__digitalClockScreenSaverAppearance = {saverJson};"
         );
 
         string webFolder = Path.Combine(AppContext.BaseDirectory, "Web");
@@ -34,5 +38,21 @@ public partial class ScreenSaverSettingsWindow : Window
         );
 
         SettingsWebView.Source = new Uri("https://digitalclock.local/index.html?screenSaverConfig=1");
+    }
+
+    private void SettingsWebView_WebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
+    {
+        try
+        {
+            using JsonDocument document = JsonDocument.Parse(e.WebMessageAsJson);
+            JsonElement root = document.RootElement;
+            string? action = root.GetProperty("action").GetString();
+            if (action is "saveScreenSaverAppearance" or "migrateScreenSaverAppearance")
+                _appearanceStore.SaveScreenSaver(root.GetProperty("settings"), migrateOnly: action == "migrateScreenSaverAppearance");
+        }
+        catch (Exception exception)
+        {
+            Trace.TraceError("Could not save screen saver appearance: {0}", exception);
+        }
     }
 }

@@ -307,6 +307,10 @@ public partial class MainWindow : Window
                 case "saveClockAppearance":
                     payload = SaveClockAppearance(root);
                     break;
+                case "migrateScreenSaverAppearance":
+                    _appearanceStore.SaveScreenSaver(root.GetProperty("settings"), migrateOnly: true);
+                    payload = new { saved = true };
+                    break;
                 default:
                     throw new InvalidOperationException("Unsupported Windows bridge action.");
             }

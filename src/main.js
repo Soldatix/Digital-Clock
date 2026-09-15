@@ -749,26 +749,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateSoundControls();
             }
             
-            function saveCurrentSettings() {
+            function saveCurrentSettings(persistScreenSaver = true) {
                 const settings = getCurrentSettingsObject();
                 writeStorage(CURRENT_SETTINGS_KEY, settings);
                 if (!isScreenSaverContext && isWindowsHost()) {
                     postWindowsMessage('saveClockAppearance', { settings });
                 }
+                if (isScreenSaverConfig && isWindowsHost() && persistScreenSaver) {
+                    window.chrome.webview.postMessage({ action: 'saveScreenSaverAppearance', settings });
+                }
             }
 
             function loadSettings(preferredLanguage = null) {
-                const stored = readStorage(CURRENT_SETTINGS_KEY, null);
+                const stored = window.__digitalClockIsolatedScreenSaver === true ? null : readStorage(CURRENT_SETTINGS_KEY, null);
                 const screenSaverSeed = isScreenSaverContext && !stored && window.__digitalClockScreenSaverSeed && typeof window.__digitalClockScreenSaverSeed === 'object'
                     ? window.__digitalClockScreenSaverSeed
                     : null;
-                const inheritedSettings = isScreenSaverContext && !stored
+                const snapshot = isScreenSaverContext && window.__digitalClockScreenSaverAppearance;
+                const authoritativeSettings = snapshot && typeof snapshot === 'object' && !Array.isArray(snapshot) ? snapshot : null;
+                const inheritedSettings = authoritativeSettings || (isScreenSaverContext && !stored
                     ? (screenSaverSeed || readStorage(NORMAL_SETTINGS_KEY, null))
-                    : stored;
+                    : stored);
                 const shouldUseHostLanguage = !inheritedSettings?.languageWasSelectedByUser && ['hr', 'en', 'de', 'it', 'es'].includes(preferredLanguage);
                 const initialLanguage = shouldUseHostLanguage ? preferredLanguage : defaultSettings.language;
                 applySettingsFromObject({ ...defaultSettings, ...(inheritedSettings || {}), language: shouldUseHostLanguage ? initialLanguage : (inheritedSettings?.language || initialLanguage) });
-                if (isScreenSaverContext && !stored) saveCurrentSettings();
+                if (isScreenSaverContext && !stored) saveCurrentSettings(false);
                 populateProfileDropdown();
             }
 
@@ -1602,6 +1607,17 @@ function closeStopwatch() {
                 populateAlarmSelectors();
                 loadAlarms();
                 const hostInfo = isScreenSaverContext ? null : await initialiseWindowsBridge();
+                // Export only actual legacy settings; the native store never replaces a valid snapshot during migration.
+                if (isWindowsHost() && (!isScreenSaverContext || isScreenSaverConfig)) {
+                    const legacy = readStorage(SCREEN_SAVER_SETTINGS_KEY, null);
+                    if (legacy && typeof legacy === 'object' && !Array.isArray(legacy)) {
+                        if (isScreenSaverConfig) {
+                            window.chrome.webview.postMessage({ action: 'migrateScreenSaverAppearance', settings: legacy });
+                        } else {
+                            await postWindowsMessage('migrateScreenSaverAppearance', { settings: legacy });
+                        }
+                    }
+                }
                 windowsFullscreenActive = hostInfo?.hostPreferences?.fullscreenMode === true;
                 applyWindowsHostPreferences(hostInfo?.hostPreferences);
                 loadSettings(hostInfo?.language || null);
