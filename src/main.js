@@ -207,11 +207,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 it: { label: "Suono", choose: "Scegli file", preview: "Prova suono", chime: "Melodia", bell: "Campanella", pulse: "Impulso", custom: "File personale…", customPrefix: "Personale: " },
                 es: { label: "Sonido", choose: "Elegir archivo", preview: "Probar sonido", chime: "Melodía", bell: "Campana", pulse: "Pulso", custom: "Archivo propio…", customPrefix: "Propio: " }
             };
+
+            const WINDOWS_UPDATE_TEXT = {
+                hr: { title: "Windows nadogradnja", check: "Provjeri nadogradnje", checking: "Provjera...", ready: "Provjeri postoji li novija Windows verzija.", latest: "Imaš najnoviju verziju ({version}).", available: "Dostupna je verzija {version}.", install: "Preuzmi i instaliraj {version}", downloading: "Preuzimanje i provjera...", starting: "Pokrećem instalaciju...", failed: "Provjera nadogradnje nije uspjela.", installFailed: "Nadogradnju nije moguće pokrenuti.", confirm: "Preuzeti i instalirati verziju {version}? Digital Clock će se automatski zatvoriti.", checkAgain: "Provjeri ponovno" },
+                en: { title: "Windows update", check: "Check for updates", checking: "Checking...", ready: "Check whether a newer Windows version is available.", latest: "You have the latest version ({version}).", available: "Version {version} is available.", install: "Download and install {version}", downloading: "Downloading and verifying...", starting: "Starting the installer...", failed: "Update check failed.", installFailed: "The update could not be started.", confirm: "Download and install version {version}? Digital Clock will close automatically.", checkAgain: "Check again" },
+                de: { title: "Windows-Update", check: "Nach Updates suchen", checking: "Wird geprüft...", ready: "Prüfe, ob eine neuere Windows-Version verfügbar ist.", latest: "Du hast die neueste Version ({version}).", available: "Version {version} ist verfügbar.", install: "{version} herunterladen und installieren", downloading: "Download und Prüfung...", starting: "Installationsprogramm wird gestartet...", failed: "Update-Prüfung fehlgeschlagen.", installFailed: "Das Update konnte nicht gestartet werden.", confirm: "Version {version} herunterladen und installieren? Digital Clock wird automatisch geschlossen.", checkAgain: "Erneut prüfen" },
+                it: { title: "Aggiornamento Windows", check: "Controlla aggiornamenti", checking: "Controllo...", ready: "Controlla se è disponibile una versione Windows più recente.", latest: "Hai la versione più recente ({version}).", available: "È disponibile la versione {version}.", install: "Scarica e installa {version}", downloading: "Download e verifica...", starting: "Avvio del programma di installazione...", failed: "Controllo aggiornamenti non riuscito.", installFailed: "Impossibile avviare l'aggiornamento.", confirm: "Scaricare e installare la versione {version}? Digital Clock si chiuderà automaticamente.", checkAgain: "Controlla di nuovo" },
+                es: { title: "Actualización de Windows", check: "Buscar actualizaciones", checking: "Comprobando...", ready: "Comprueba si hay una versión de Windows más reciente.", latest: "Tienes la versión más reciente ({version}).", available: "La versión {version} está disponible.", install: "Descargar e instalar {version}", downloading: "Descargando y verificando...", starting: "Iniciando el instalador...", failed: "No se pudo comprobar la actualización.", installFailed: "No se pudo iniciar la actualización.", confirm: "¿Descargar e instalar la versión {version}? Digital Clock se cerrará automáticamente.", checkAgain: "Comprobar de nuevo" }
+            };
             let selectedSounds = {
                 alarm: { ...defaultSettings.alarmSound },
                 timer: { ...defaultSettings.timerSound }
             };
             let windowsHostReady = false;
+            let windowsAppVersion = APP_VERSION;
+            let latestWindowsUpdateInfo = null;
             let windowsFullscreenActive = false;
             let languageWasSelectedByUser = false;
             let bridgeRequestSequence = 0;
@@ -229,14 +239,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 return { kind: 'builtin', value: ['chime', 'bell', 'pulse'].includes(value.value) ? value.value : fallback.value, name: '' };
             }
 
-            function postWindowsMessage(action, payload = {}) {
+            function postWindowsMessage(action, payload = {}, timeoutMs = 8000) {
                 if (!isWindowsHost()) return Promise.resolve(null);
                 const requestId = 'dc-' + (++bridgeRequestSequence);
                 return new Promise(resolve => {
                     const timeout = window.setTimeout(() => {
                         bridgeRequests.delete(requestId);
                         resolve(null);
-                    }, 8000);
+                    }, timeoutMs);
                     bridgeRequests.set(requestId, response => {
                         window.clearTimeout(timeout);
                         resolve(response);
@@ -268,6 +278,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const response = await postWindowsMessage('getHostInfo');
                 if (!response?.ok) return null;
                 windowsHostReady = true;
+                windowsAppVersion = response.payload?.appVersion || APP_VERSION;
                 document.querySelectorAll('.windows-host-only').forEach(element => element.classList.add('windows-feature-enabled'));
                 return response.payload || null;
             }
@@ -483,10 +494,75 @@ document.addEventListener('DOMContentLoaded', function() {
                 else { elements.sat.style.fontSize = `${elements.satFontSize.value}em`; elements.datum.style.fontSize = `${elements.datumFontSize.value}em`; }
             }
 
+            function windowsUpdateText() {
+                const lang = elements.languageSelect?.value || 'en';
+                return WINDOWS_UPDATE_TEXT[lang] || WINDOWS_UPDATE_TEXT.en;
+            }
+
+            function formatWindowsUpdateText(value, version) {
+                return value.replace('{version}', version || windowsAppVersion || APP_VERSION);
+            }
+
+            async function handleWindowsUpdateButton() {
+                const button = elements.infoSidePanelContent.querySelector('#windowsUpdateButton');
+                const status = elements.infoSidePanelContent.querySelector('#windowsUpdateStatus');
+                if (!button || !status || !windowsHostReady) return;
+
+                const ui = windowsUpdateText();
+
+                if (button.dataset.mode === 'install' && latestWindowsUpdateInfo?.updateAvailable) {
+                    const latestVersion = latestWindowsUpdateInfo.latestVersion;
+                    if (!window.confirm(formatWindowsUpdateText(ui.confirm, latestVersion))) return;
+
+                    button.disabled = true;
+                    button.textContent = ui.downloading;
+                    status.textContent = ui.downloading;
+
+                    const response = await postWindowsMessage('installUpdate', {}, 300000);
+                    if (!response?.ok) {
+                        button.disabled = false;
+                        button.textContent = formatWindowsUpdateText(ui.install, latestVersion);
+                        status.textContent = ui.installFailed;
+                        return;
+                    }
+
+                    status.textContent = ui.starting;
+                    return;
+                }
+
+                button.disabled = true;
+                button.textContent = ui.checking;
+                status.textContent = ui.checking;
+
+                const response = await postWindowsMessage('checkForUpdates', {}, 20000);
+                button.disabled = false;
+
+                if (!response?.ok || !response.payload) {
+                    latestWindowsUpdateInfo = null;
+                    button.dataset.mode = 'check';
+                    button.textContent = ui.checkAgain;
+                    status.textContent = ui.failed;
+                    return;
+                }
+
+                latestWindowsUpdateInfo = response.payload;
+                if (latestWindowsUpdateInfo.updateAvailable) {
+                    button.dataset.mode = 'install';
+                    button.textContent = formatWindowsUpdateText(ui.install, latestWindowsUpdateInfo.latestVersion);
+                    status.textContent = formatWindowsUpdateText(ui.available, latestWindowsUpdateInfo.latestVersion);
+                } else {
+                    button.dataset.mode = 'check';
+                    button.textContent = ui.checkAgain;
+                    status.textContent = formatWindowsUpdateText(ui.latest, latestWindowsUpdateInfo.currentVersion || windowsAppVersion);
+                }
+            }
+
             function populateInfoPanel() {
                 const tInfo = T('info');
                 const lang = elements.languageSelect?.value || 'en';
                 const appInfo = APP_INFO[lang] || APP_INFO.en;
+                const updateUi = WINDOWS_UPDATE_TEXT[lang] || WINDOWS_UPDATE_TEXT.en;
+                const displayedVersion = windowsHostReady ? windowsAppVersion : APP_VERSION;
                 const uiMap = {
                     en: { paypalDesc: 'Pay securely with PayPal or other payment options offered by PayPal Checkout.', stripeDesc: 'Pay securely by card or with payment methods available through Stripe Checkout.', cards: 'Debit / Credit Card', wallets: 'Digital wallets', paypalBtn: 'Donate with PayPal ↗', stripeBtn: 'Donate with Stripe ↗', note: 'Available payment methods can vary by country, device and payment provider.', crypto: 'Crypto Wallet' },
                     hr: { paypalDesc: 'Platite sigurno putem PayPala ili drugim načinima plaćanja koje nudi PayPal Checkout.', stripeDesc: 'Platite sigurno karticom ili načinima plaćanja dostupnima putem Stripe Checkouta.', cards: 'Debitna / kreditna kartica', wallets: 'Digitalni novčanici', paypalBtn: 'Doniraj putem PayPala ↗', stripeBtn: 'Doniraj putem Stripea ↗', note: 'Dostupni načini plaćanja mogu se razlikovati ovisno o državi, uređaju i pružatelju plaćanja.', crypto: 'Kripto novčanik' },
@@ -516,7 +592,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <span class="dc-app-brand">Apps & Games</span>
                                 <h5>${appInfo.name}</h5>
                             </div>
-                            <span class="dc-version">${appInfo.versionLabel} ${APP_VERSION}</span>
+                            <span class="dc-version">${appInfo.versionLabel} ${displayedVersion}</span>
                         </div>
                         <p>${appInfo.description}</p>
                         <strong class="dc-features-title">${appInfo.featuresTitle}</strong>
@@ -526,6 +602,16 @@ document.addEventListener('DOMContentLoaded', function() {
                             <span>${appInfo.privacy}</span>
                         </div>
                         <a class="dc-portal-link" href="https://appsandgames.org/" target="_blank" rel="noopener noreferrer">${appInfo.portalLabel} ↗</a>
+                        ${windowsHostReady ? `
+                            <div class="dc-windows-update">
+                                <div class="dc-update-heading">
+                                    <strong>${updateUi.title}</strong>
+                                    <span>${appInfo.versionLabel} ${displayedVersion}</span>
+                                </div>
+                                <button id="windowsUpdateButton" type="button" data-mode="check">${updateUi.check}</button>
+                                <p id="windowsUpdateStatus" class="dc-update-status" role="status" aria-live="polite">${updateUi.ready}</p>
+                            </div>
+                        ` : ''}
                     </section>
                     <div class="info-charity"><p>${tInfo.line1}</p><p>${tInfo.line2} ${tInfo.line3}</p></div>
                     <strong class="donation-header">${tInfo.donationHeader}</strong>
@@ -546,6 +632,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     <p class="dc-payment-note">${ui.note}</p>
                     <div class="dc-crypto"><h5>${ui.crypto}</h5><div class="dc-wallet-list">${cryptoRows}</div></div>`;
                 elements.infoSidePanelContent.innerHTML = contentHTML;
+                const windowsUpdateButton = elements.infoSidePanelContent.querySelector('#windowsUpdateButton');
+                if (windowsUpdateButton) windowsUpdateButton.addEventListener('click', handleWindowsUpdateButton);
                 elements.infoSidePanelContent.querySelectorAll('.dc-copy-wallet').forEach(button => {
                     button.addEventListener('click', async () => {
                         const originalText = button.textContent;
