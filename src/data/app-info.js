@@ -3,7 +3,7 @@ export const APP_VERSION = '2.0.0';
 export const APP_INFO = {
     en: {
         name: 'Multifunctional Digital Clock',
-        description: 'A free browser clock with customizable display and practical tools for everyday time management.',
+        description: 'A free digital clock with customizable display and practical tools for everyday time management.',
         featuresTitle: 'Main features',
         features: ['Digital clock and date', 'Multiple alarms', 'Countdown timer', 'Stopwatch with laps', 'World clock and saved profiles'],
         versionLabel: 'Version',
@@ -13,7 +13,7 @@ export const APP_INFO = {
     },
     hr: {
         name: 'Višenamjenski digitalni sat',
-        description: 'Besplatan preglednički sat s prilagodljivim prikazom i praktičnim alatima za svakodnevno upravljanje vremenom.',
+        description: 'Besplatan digitalni sat s prilagodljivim prikazom i praktičnim alatima za svakodnevno upravljanje vremenom.',
         featuresTitle: 'Glavne funkcije',
         features: ['Digitalni sat i datum', 'Više alarma', 'Mjerač vremena', 'Štoperica s krugovima', 'Svjetski sat i spremljeni profili'],
         versionLabel: 'Verzija',
@@ -23,7 +23,7 @@ export const APP_INFO = {
     },
     de: {
         name: 'Multifunktionale Digitaluhr',
-        description: 'Eine kostenlose Browser-Uhr mit anpassbarer Anzeige und praktischen Werkzeugen für das tägliche Zeitmanagement.',
+        description: 'Eine kostenlose Digitaluhr mit anpassbarer Anzeige und praktischen Werkzeugen für das tägliche Zeitmanagement.',
         featuresTitle: 'Hauptfunktionen',
         features: ['Digitaluhr und Datum', 'Mehrere Alarme', 'Countdown-Timer', 'Stoppuhr mit Runden', 'Weltzeituhr und gespeicherte Profile'],
         versionLabel: 'Version',
@@ -33,7 +33,7 @@ export const APP_INFO = {
     },
     it: {
         name: 'Orologio digitale multifunzione',
-        description: 'Un orologio gratuito per il browser con visualizzazione personalizzabile e strumenti pratici per gestire il tempo.',
+        description: 'Un orologio digitale gratuito con visualizzazione personalizzabile e strumenti pratici per gestire il tempo.',
         featuresTitle: 'Funzioni principali',
         features: ['Orologio digitale e data', 'Più sveglie', 'Timer con conto alla rovescia', 'Cronometro con giri', 'Orologio mondiale e profili salvati'],
         versionLabel: 'Versione',
@@ -43,7 +43,7 @@ export const APP_INFO = {
     },
     es: {
         name: 'Reloj digital multifunción',
-        description: 'Un reloj gratuito para el navegador con pantalla personalizable y herramientas prácticas para gestionar el tiempo.',
+        description: 'Un reloj digital gratuito con pantalla personalizable y herramientas prácticas para gestionar el tiempo.',
         featuresTitle: 'Funciones principales',
         features: ['Reloj digital y fecha', 'Varias alarmas', 'Temporizador de cuenta atrás', 'Cronómetro con vueltas', 'Reloj mundial y perfiles guardados'],
         versionLabel: 'Versión',
