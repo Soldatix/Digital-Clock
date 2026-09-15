@@ -2,7 +2,7 @@
 ; The resulting public installer is publish/installer/DigitalClock-Setup-x64.exe.
 
 #ifndef MyAppVersion
-  #define MyAppVersion "2.0.1"
+  #define MyAppVersion "2.0.2"
 #endif
 
 #ifndef SourceDir
