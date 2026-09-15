@@ -56,6 +56,9 @@
         .settings-panel input[type="checkbox"] { width: auto; margin-right: 5px; accent-color: #007bff; flex-shrink: 0; }
         .settings-panel input[type="range"] { accent-color: #007bff; width: 100%; box-sizing: border-box; margin-bottom: 15px; }
         .settings-panel input[type="range"]:disabled { cursor: not-allowed; }
+        .slider-control { display: grid; grid-template-columns: minmax(0, 1fr) 52px; gap: 10px; align-items: center; margin-bottom: 15px; }
+        .slider-control input[type="range"] { margin-bottom: 0; }
+        .slider-value { min-width: 52px; text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; color: #333; }
         .settings-panel select, .settings-panel input[type="color"] { width: 100%; box-sizing: border-box; margin-bottom: 15px; padding: 8px; border-radius: 4px; border: 1px solid #ccc; background-color: #f8f9fa; color: #333; }
         .settings-panel input[type="color"] { padding: 2px; height: 35px; }
         .settings-panel select option { background-color: #fff; color: #333; }
