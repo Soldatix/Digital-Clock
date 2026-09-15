@@ -230,9 +230,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 return Math.max(context.measureText(sampleText).width, 1);
             }
 
-            function getSafeManualFontSizes() {
-                const usableWidth = Math.max(240, window.innerWidth - 48);
-                const usableHeight = Math.max(180, window.innerHeight - 100);
+            function sliderPercentToValue(slider, percent) {
+                const min = Number(slider.min);
+                const max = Number(slider.max);
+                const step = Number(slider.step) || 1;
+                const clampedPercent = Math.min(100, Math.max(10, Number(percent) || 10));
+                const rawValue = min + ((clampedPercent - 10) / 90) * (max - min);
+                const steppedValue = min + Math.round((rawValue - min) / step) * step;
+                return Math.min(max, Math.max(min, steppedValue));
+            }
+
+            function getSafeManualFontSizes(viewportWidth = window.innerWidth, viewportHeight = window.innerHeight) {
+                const usableWidth = Math.max(240, viewportWidth - 48);
+                const usableHeight = Math.max(180, viewportHeight - 100);
                 const showSeconds = elements.showSecondsCheckbox.checked;
                 const is12Hour = elements.timeFormatSelect.value === '12';
                 const clockSample = is12Hour
@@ -600,7 +610,29 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
 
-                applySettingsFromObject({ ...defaultSettings, ...seed });
+                const copiedSettings = { ...defaultSettings, ...seed };
+                applySettingsFromObject(copiedSettings);
+
+                if (!copiedSettings.isAutoSizeActive) {
+                    const sourceClockPx = Number(seed.renderedSatFontPx);
+                    const sourceDatePx = Number(seed.renderedDatumFontPx);
+                    const targetWidth = Number(window.screen?.availWidth || window.screen?.width || window.innerWidth);
+                    const targetHeight = Number(window.screen?.availHeight || window.screen?.height || window.innerHeight);
+                    const { clockMaxPx, dateMaxPx } = getSafeManualFontSizes(targetWidth, targetHeight);
+
+                    if (Number.isFinite(sourceClockPx) && sourceClockPx > 0) {
+                        const targetClockPercent = (sourceClockPx / clockMaxPx) * 100;
+                        elements.satFontSize.value = sliderPercentToValue(elements.satFontSize, targetClockPercent);
+                    }
+
+                    if (Number.isFinite(sourceDatePx) && sourceDatePx > 0) {
+                        const targetDatePercent = (sourceDatePx / dateMaxPx) * 100;
+                        elements.datumFontSize.value = sliderPercentToValue(elements.datumFontSize, targetDatePercent);
+                    }
+
+                    updateSizingMode();
+                }
+
                 saveCurrentSettings();
                 elements.copyAppearanceFromAppStatus.textContent = ui.copied;
             }
@@ -793,7 +825,33 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
-            function getCurrentSettingsObject() { return { backgroundColor: elements.backgroundColor.value, satFontColor: elements.satFontColor.value, datumFontColor: elements.datumFontColor.value, fontSelect: elements.fontSelect.value, satFontSize: elements.satFontSize.value, datumFontSize: elements.datumFontSize.value, brightness: elements.brightness.value, contrast: elements.contrast.value, timeFormat: elements.timeFormatSelect.value, dateFormat: elements.dateFormatSelect.value, showSeconds: elements.showSecondsCheckbox.checked, showDate: elements.showDateCheckbox.checked, language: elements.languageSelect.value, isNightModeActive: isNightModeActive, isAutoSizeActive: elements.autoSizeCheckbox.checked, bedsideBrightness: elements.bedsideBrightness.value, languageWasSelectedByUser, alarmSound: { ...selectedSounds.alarm }, timerSound: { ...selectedSounds.timer } }; }
+            function getCurrentSettingsObject() {
+                const renderedSatFontPx = Number.parseFloat(getComputedStyle(elements.sat).fontSize);
+                const renderedDatumFontPx = Number.parseFloat(getComputedStyle(elements.datum).fontSize);
+                return {
+                    backgroundColor: elements.backgroundColor.value,
+                    satFontColor: elements.satFontColor.value,
+                    datumFontColor: elements.datumFontColor.value,
+                    fontSelect: elements.fontSelect.value,
+                    satFontSize: elements.satFontSize.value,
+                    datumFontSize: elements.datumFontSize.value,
+                    renderedSatFontPx: Number.isFinite(renderedSatFontPx) ? renderedSatFontPx : null,
+                    renderedDatumFontPx: Number.isFinite(renderedDatumFontPx) ? renderedDatumFontPx : null,
+                    brightness: elements.brightness.value,
+                    contrast: elements.contrast.value,
+                    timeFormat: elements.timeFormatSelect.value,
+                    dateFormat: elements.dateFormatSelect.value,
+                    showSeconds: elements.showSecondsCheckbox.checked,
+                    showDate: elements.showDateCheckbox.checked,
+                    language: elements.languageSelect.value,
+                    isNightModeActive: isNightModeActive,
+                    isAutoSizeActive: elements.autoSizeCheckbox.checked,
+                    bedsideBrightness: elements.bedsideBrightness.value,
+                    languageWasSelectedByUser,
+                    alarmSound: { ...selectedSounds.alarm },
+                    timerSound: { ...selectedSounds.timer }
+                };
+            }
 
             function applySettingsFromObject(settingsObj) {
                 elements.backgroundColor.value = settingsObj.backgroundColor; elements.satFontColor.value = settingsObj.satFontColor; elements.datumFontColor.value = settingsObj.datumFontColor;
@@ -1557,7 +1615,17 @@ function closeStopwatch() {
                 exitScreenSaver();
             });
             document.addEventListener('fullscreenchange', () => { updateFullscreenIcon(); updateSizingMode(); });
-            window.addEventListener('resize', updateSizingMode);
+            let resizeAppearanceSaveTimer = null;
+            window.addEventListener('resize', () => {
+                updateSizingMode();
+                if (!isScreenSaverContext && isWindowsHost()) {
+                    if (resizeAppearanceSaveTimer) clearTimeout(resizeAppearanceSaveTimer);
+                    resizeAppearanceSaveTimer = setTimeout(() => {
+                        resizeAppearanceSaveTimer = null;
+                        saveCurrentSettings();
+                    }, 250);
+                }
+            });
             elements.saveProfileButton.addEventListener('click', () => {
                 const profileName = elements.profileNameInput.value.trim(); if (!profileName) { alert(T('enterProfileName')); return; }
                 const profiles = getProfiles(); const i = profiles.findIndex(p => p.name === profileName); const settings = getCurrentSettingsObject();
