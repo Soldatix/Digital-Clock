@@ -188,11 +188,60 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const defaultSettings = { backgroundColor: "#ffffff", satFontColor: "#000000", datumFontColor: "#000000", fontSelect: "Arial, sans-serif", satFontSize: DEFAULT_MANUAL_SAT_EM.toString(), datumFontSize: DEFAULT_MANUAL_DATUM_EM.toString(), brightness: "1", contrast: "1", timeFormat: "24", dateFormat: "dd.mm.yyyy.", showSeconds: true, showDate: true, language: "en", isNightModeActive: false, isAutoSizeActive: true };
 
+            function sliderValueToPercent(slider) {
+                const min = Number(slider.min);
+                const max = Number(slider.max);
+                const value = Number(slider.value);
+                if (!Number.isFinite(min) || !Number.isFinite(max) || max <= min) return 100;
+                return Math.round(10 + ((value - min) / (max - min)) * 90);
+            }
+
             function updateSliderValueDisplays() {
                 elements.brightnessValue.value = `${Math.round(Number(elements.brightness.value) * 100)}%`;
                 elements.contrastValue.value = `${Math.round(Number(elements.contrast.value) * 100)}%`;
-                elements.satFontSizeValue.value = `${Math.round((Number(elements.satFontSize.value) / DEFAULT_MANUAL_SAT_EM) * 100)}%`;
-                elements.datumFontSizeValue.value = `${Math.round((Number(elements.datumFontSize.value) / DEFAULT_MANUAL_DATUM_EM) * 100)}%`;
+                elements.satFontSizeValue.value = `${sliderValueToPercent(elements.satFontSize)}%`;
+                elements.datumFontSizeValue.value = `${sliderValueToPercent(elements.datumFontSize)}%`;
+            }
+
+            function measureTextWidthAt100(element, sampleText) {
+                const canvas = measureTextWidthAt100.canvas || (measureTextWidthAt100.canvas = document.createElement('canvas'));
+                const context = canvas.getContext('2d');
+                const style = getComputedStyle(element);
+                context.font = `${style.fontStyle} ${style.fontWeight} 100px ${style.fontFamily}`;
+                return Math.max(context.measureText(sampleText).width, 1);
+            }
+
+            function getSafeManualFontSizes() {
+                const usableWidth = Math.max(240, window.innerWidth - 48);
+                const usableHeight = Math.max(180, window.innerHeight - 100);
+                const showSeconds = elements.showSecondsCheckbox.checked;
+                const is12Hour = elements.timeFormatSelect.value === '12';
+                const clockSample = is12Hour
+                    ? (showSeconds ? '88:88:88 PM' : '88:88 PM')
+                    : (showSeconds ? '88:88:88' : '88:88');
+                const dateSample = (elements.datum.textContent || 'Wednesday 30 September 2026').trim();
+
+                const clockWidthAt100 = measureTextWidthAt100(elements.sat, clockSample);
+                const dateWidthAt100 = measureTextWidthAt100(elements.datum, dateSample);
+
+                let clockMaxPx = (usableWidth * 0.92 / clockWidthAt100) * 100;
+                let dateMaxPx = (usableWidth * 0.90 / dateWidthAt100) * 100;
+
+                const estimatedCombinedHeight =
+                    (clockMaxPx * 1.12) +
+                    (elements.showDateCheckbox.checked ? dateMaxPx * 1.20 : 0) +
+                    20;
+
+                if (estimatedCombinedHeight > usableHeight) {
+                    const scale = usableHeight / estimatedCombinedHeight;
+                    clockMaxPx *= scale;
+                    dateMaxPx *= scale;
+                }
+
+                return {
+                    clockMaxPx: Math.max(24, clockMaxPx),
+                    dateMaxPx: Math.max(14, dateMaxPx)
+                };
             }
 
             function T(key) {
@@ -226,8 +275,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 const autoSizeActive = elements.autoSizeCheckbox.checked;
                 elements.satFontSize.disabled = autoSizeActive; elements.datumFontSize.disabled = autoSizeActive;
                 elements.satFontSizeLabel.classList.toggle('disabled', autoSizeActive); elements.datumFontSizeLabel.classList.toggle('disabled', autoSizeActive);
-                if (autoSizeActive) { elements.sat.style.fontSize = `${AUTO_SIZE_SAT_VW}vw`; elements.datum.style.fontSize = `${AUTO_SIZE_DATUM_VW}vw`; } 
-                else { elements.sat.style.fontSize = `${elements.satFontSize.value}em`; elements.datum.style.fontSize = `${elements.datumFontSize.value}em`; }
+
+                if (autoSizeActive) {
+                    elements.sat.style.fontSize = `${AUTO_SIZE_SAT_VW}vw`;
+                    elements.datum.style.fontSize = `${AUTO_SIZE_DATUM_VW}vw`;
+                } else {
+                    const { clockMaxPx, dateMaxPx } = getSafeManualFontSizes();
+                    const clockPercent = sliderValueToPercent(elements.satFontSize) / 100;
+                    const datePercent = sliderValueToPercent(elements.datumFontSize) / 100;
+                    elements.sat.style.fontSize = `${Math.round(clockMaxPx * clockPercent)}px`;
+                    elements.datum.style.fontSize = `${Math.round(dateMaxPx * datePercent)}px`;
+                }
+
                 updateSliderValueDisplays();
             }
 
@@ -990,8 +1049,8 @@ function closeStopwatch() {
             elements.settingsMenu.addEventListener('click', () => { const isVisible = elements.settingsPanel.style.display === 'block'; elements.settingsPanel.style.display = isVisible ? 'none' : 'block'; if (!isVisible) hideInfoPanel(); });
             elements.infoButton.addEventListener('click', () => { toggleInfoPanel(); if (elements.infoSidePanel.classList.contains('info-panel-visible')) elements.settingsPanel.style.display = 'none'; });
             elements.languageSelect.addEventListener('change', (e) => { currentTranslations = translations[e.target.value] || translations.en; updateLanguageUI(); if (elements.infoSidePanel.classList.contains('info-panel-visible')) populateInfoPanel(); saveCurrentSettings(); });
-            ['showSecondsCheckbox', 'timeFormatSelect'].forEach(id => elements[id].addEventListener('change', () => { updateTime(); saveCurrentSettings(); }));
-            ['showDateCheckbox', 'dateFormatSelect'].forEach(id => elements[id].addEventListener('change', () => { updateDate(true); saveCurrentSettings(); }));
+            ['showSecondsCheckbox', 'timeFormatSelect'].forEach(id => elements[id].addEventListener('change', () => { updateTime(); updateSizingMode(); saveCurrentSettings(); }));
+            ['showDateCheckbox', 'dateFormatSelect'].forEach(id => elements[id].addEventListener('change', () => { updateDate(true); updateSizingMode(); saveCurrentSettings(); }));
             elements.autoSizeCheckbox.addEventListener('change', () => { updateSizingMode(); saveCurrentSettings(); });
             [elements.satFontSize, elements.datumFontSize].forEach(slider => {
                 slider.addEventListener('input', () => { if (elements.autoSizeCheckbox.checked) elements.autoSizeCheckbox.checked = false; updateSizingMode(); });
@@ -999,7 +1058,11 @@ function closeStopwatch() {
             });
             [elements.brightness, elements.contrast, elements.fontSelect, elements.satFontColor, elements.datumFontColor, elements.backgroundColor].forEach(input => {
                 const eventType = (input.type === 'range' || input.type === 'color') ? 'input' : 'change';
-                input.addEventListener(eventType, (e) => { if (isNightModeActive && ['backgroundColor', 'satFontColor', 'datumFontColor', 'brightness'].includes(e.target.id)) { isNightModeActive = false; updateNightModeIcon(); } applyBasicVisualSettings(); });
+                input.addEventListener(eventType, (e) => {
+                    if (isNightModeActive && ['backgroundColor', 'satFontColor', 'datumFontColor', 'brightness'].includes(e.target.id)) { isNightModeActive = false; updateNightModeIcon(); }
+                    applyBasicVisualSettings();
+                    if (e.target.id === 'fontSelect') updateSizingMode();
+                });
                 input.addEventListener('change', saveCurrentSettings);
             });
             elements.nightModeToggle.addEventListener('click', toggleNightMode);
@@ -1017,7 +1080,8 @@ function closeStopwatch() {
                 event.stopImmediatePropagation();
                 exitScreenSaver();
             });
-            document.addEventListener('fullscreenchange', updateFullscreenIcon);
+            document.addEventListener('fullscreenchange', () => { updateFullscreenIcon(); updateSizingMode(); });
+            window.addEventListener('resize', updateSizingMode);
             elements.saveProfileButton.addEventListener('click', () => {
                 const profileName = elements.profileNameInput.value.trim(); if (!profileName) { alert(T('enterProfileName')); return; }
                 const profiles = getProfiles(); const i = profiles.findIndex(p => p.name === profileName); const settings = getCurrentSettingsObject();
