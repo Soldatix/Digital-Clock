@@ -204,6 +204,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const SCREEN_SAVER_SETTINGS_KEY = 'clockScreenSaverSettings';
             const CURRENT_SETTINGS_KEY = isScreenSaverContext ? SCREEN_SAVER_SETTINGS_KEY : NORMAL_SETTINGS_KEY;
             const PROFILES_STORAGE_KEY = isScreenSaverContext ? 'clockScreenSaverProfiles' : 'clockAppProfiles';
+            const WINDOWS_DEFAULT_MANUAL_FONT_PERCENT = 75;
 
             const defaultSettings = { backgroundColor: "#ffffff", satFontColor: "#000000", datumFontColor: "#000000", fontSelect: "Arial, sans-serif", satFontSize: DEFAULT_MANUAL_SAT_EM.toString(), datumFontSize: DEFAULT_MANUAL_DATUM_EM.toString(), brightness: "1", contrast: "1", timeFormat: "24", dateFormat: "dd.mm.yyyy.", showSeconds: true, showDate: true, language: "en", isNightModeActive: false, isAutoSizeActive: true, bedsideBrightness: "35", alarmSound: { kind: "builtin", value: "chime", name: "" }, timerSound: { kind: "builtin", value: "chime", name: "" } };
 
@@ -213,6 +214,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 const value = Number(slider.value);
                 if (!Number.isFinite(min) || !Number.isFinite(max) || max <= min) return 100;
                 return Math.round(10 + ((value - min) / (max - min)) * 90);
+            }
+
+            function normaliseWindowsManualFontSettings(settingsObj) {
+                if (!isWindowsHost()) return settingsObj;
+
+                const normalised = { ...settingsObj, isAutoSizeActive: false };
+                if (settingsObj?.isAutoSizeActive === true) {
+                    normalised.satFontSize = sliderPercentToValue(elements.satFontSize, WINDOWS_DEFAULT_MANUAL_FONT_PERCENT).toString();
+                    normalised.datumFontSize = sliderPercentToValue(elements.datumFontSize, WINDOWS_DEFAULT_MANUAL_FONT_PERCENT).toString();
+                    normalised.renderedSatFontPx = null;
+                    normalised.renderedDatumFontPx = null;
+                    normalised.copiedRenderedSatFontPx = null;
+                    normalised.copiedRenderedDatumFontPx = null;
+                }
+
+                return normalised;
+            }
+
+            function configureWindowsManualFontSizing() {
+                if (!isWindowsHost()) return;
+                elements.autoSizeCheckbox.checked = false;
+                const autoSizeItem = elements.autoSizeCheckbox.closest('.checkbox-item');
+                if (autoSizeItem) autoSizeItem.hidden = true;
             }
 
             function updateSliderValueDisplays() {
@@ -571,7 +595,8 @@ document.addEventListener('DOMContentLoaded', function() {
             let copiedScreenSaverRenderedSizes = null;
 
             function updateSizingMode() {
-                const autoSizeActive = elements.autoSizeCheckbox.checked;
+                if (isWindowsHost()) elements.autoSizeCheckbox.checked = false;
+                const autoSizeActive = !isWindowsHost() && elements.autoSizeCheckbox.checked;
                 elements.satFontSize.disabled = autoSizeActive; elements.datumFontSize.disabled = autoSizeActive;
                 elements.satFontSizeLabel.classList.toggle('disabled', autoSizeActive); elements.datumFontSizeLabel.classList.toggle('disabled', autoSizeActive);
 
@@ -623,11 +648,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     return;
                 }
 
+                const manualSeed = normaliseWindowsManualFontSettings(seed);
                 const copiedSettings = {
                     ...defaultSettings,
-                    ...seed,
-                    copiedRenderedSatFontPx: !seed.isAutoSizeActive ? Number(seed.renderedSatFontPx) || null : null,
-                    copiedRenderedDatumFontPx: !seed.isAutoSizeActive ? Number(seed.renderedDatumFontPx) || null : null
+                    ...manualSeed,
+                    copiedRenderedSatFontPx: Number(manualSeed.renderedSatFontPx) || null,
+                    copiedRenderedDatumFontPx: Number(manualSeed.renderedDatumFontPx) || null
                 };
 
                 applySettingsFromObject(copiedSettings);
@@ -824,7 +850,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             function getCurrentSettingsObject() {
-                const autoSizeActive = elements.autoSizeCheckbox.checked;
+                const autoSizeActive = !isWindowsHost() && elements.autoSizeCheckbox.checked;
                 let renderedSatFontPx = null;
                 let renderedDatumFontPx = null;
 
@@ -866,7 +892,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     showDate: elements.showDateCheckbox.checked,
                     language: elements.languageSelect.value,
                     isNightModeActive: isNightModeActive,
-                    isAutoSizeActive: elements.autoSizeCheckbox.checked,
+                    isAutoSizeActive: autoSizeActive,
                     bedsideBrightness: elements.bedsideBrightness.value,
                     languageWasSelectedByUser,
                     alarmSound: { ...selectedSounds.alarm },
@@ -875,6 +901,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             function applySettingsFromObject(settingsObj) {
+                settingsObj = normaliseWindowsManualFontSettings(settingsObj);
                 elements.backgroundColor.value = settingsObj.backgroundColor; elements.satFontColor.value = settingsObj.satFontColor; elements.datumFontColor.value = settingsObj.datumFontColor;
                 elements.fontSelect.value = settingsObj.fontSelect; elements.satFontSize.value = settingsObj.satFontSize; elements.datumFontSize.value = settingsObj.datumFontSize;
                 elements.brightness.value = settingsObj.brightness; elements.contrast.value = settingsObj.contrast; elements.timeFormatSelect.value = settingsObj.timeFormat;
@@ -1613,7 +1640,14 @@ function closeStopwatch() {
             elements.languageSelect.addEventListener('change', (e) => { languageWasSelectedByUser = true; currentTranslations = translations[e.target.value] || translations.en; updateLanguageUI(); if (elements.infoSidePanel.classList.contains('info-panel-visible')) populateInfoPanel(); saveCurrentSettings(); });
             ['showSecondsCheckbox', 'timeFormatSelect'].forEach(id => elements[id].addEventListener('change', () => { updateTime(); updateSizingMode(); saveCurrentSettings(); }));
             ['showDateCheckbox', 'dateFormatSelect'].forEach(id => elements[id].addEventListener('change', () => { updateDate(true); updateSizingMode(); saveCurrentSettings(); }));
-            elements.autoSizeCheckbox.addEventListener('change', () => { updateSizingMode(); saveCurrentSettings(); });
+            elements.autoSizeCheckbox.addEventListener('change', () => {
+                if (isWindowsHost()) {
+                    elements.autoSizeCheckbox.checked = false;
+                    return;
+                }
+                updateSizingMode();
+                saveCurrentSettings();
+            });
             [elements.satFontSize, elements.datumFontSize].forEach(slider => {
                 slider.addEventListener('input', () => {
                     if (elements.autoSizeCheckbox.checked) elements.autoSizeCheckbox.checked = false;
@@ -1784,6 +1818,7 @@ function closeStopwatch() {
                 }
                 windowsFullscreenActive = hostInfo?.hostPreferences?.fullscreenMode === true;
                 applyWindowsHostPreferences(hostInfo?.hostPreferences);
+                configureWindowsManualFontSizing();
                 loadSettings(hostInfo?.language || null);
                 if (!isScreenSaverContext) saveCurrentSettings();
                 configureScreenSaverContext();
