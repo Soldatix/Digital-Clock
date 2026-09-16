@@ -8,7 +8,7 @@ export const ACCESSIBILITY_TEXT = {
         enableAlarm: 'Enable alarm {time}',
         deleteAlarm: 'Delete alarm {time}',
         removeCity: 'Remove {city}',
-        install: 'Install application',
+        downloadVersions: 'Download / Versions',
         screenSaver: 'Start screen saver',
         exitScreenSaver: 'Exit screen saver'
     },
@@ -21,7 +21,7 @@ export const ACCESSIBILITY_TEXT = {
         enableAlarm: 'Uključi alarm {time}',
         deleteAlarm: 'Obriši alarm {time}',
         removeCity: 'Ukloni grad {city}',
-        install: 'Instaliraj aplikaciju',
+        downloadVersions: 'Preuzimanje / verzije',
         screenSaver: 'Pokreni čuvar zaslona',
         exitScreenSaver: 'Izađi iz čuvara zaslona'
     },
@@ -34,7 +34,7 @@ export const ACCESSIBILITY_TEXT = {
         enableAlarm: 'Alarm {time} aktivieren',
         deleteAlarm: 'Alarm {time} löschen',
         removeCity: 'Stadt {city} entfernen',
-        install: 'App installieren',
+        downloadVersions: 'Download / Versionen',
         screenSaver: 'Bildschirmschoner starten',
         exitScreenSaver: 'Bildschirmschoner beenden'
     },
@@ -47,7 +47,7 @@ export const ACCESSIBILITY_TEXT = {
         enableAlarm: 'Attiva la sveglia {time}',
         deleteAlarm: 'Elimina la sveglia {time}',
         removeCity: 'Rimuovi la città {city}',
-        install: 'Installa applicazione',
+        downloadVersions: 'Download / versioni',
         screenSaver: 'Avvia salvaschermo',
         exitScreenSaver: 'Esci dal salvaschermo'
     },
@@ -60,7 +60,7 @@ export const ACCESSIBILITY_TEXT = {
         enableAlarm: 'Activar alarma {time}',
         deleteAlarm: 'Eliminar alarma {time}',
         removeCity: 'Eliminar ciudad {city}',
-        install: 'Instalar aplicación',
+        downloadVersions: 'Descarga / versiones',
         screenSaver: 'Iniciar protector de pantalla',
         exitScreenSaver: 'Salir del protector de pantalla'
     }
