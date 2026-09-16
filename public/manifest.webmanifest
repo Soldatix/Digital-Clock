@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "Multifunctional Digital Clock",
-  "short_name": "Digital Clock",
+  "name": "Digital Clock Web",
+  "short_name": "Digital Clock Web",
   "description": "A free multifunctional clock with alarms, stopwatch, timer and world time zones.",
   "start_url": "/",
   "scope": "/",
