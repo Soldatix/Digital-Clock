@@ -28,10 +28,9 @@ public partial class ScreenSaverSettingsWindow : Window
         );
         await SettingsWebView.EnsureCoreWebView2Async(webViewEnvironment);
         SettingsWebView.CoreWebView2.WebMessageReceived += SettingsWebView_WebMessageReceived;
-        string appearanceJson = _appearanceStore.Read() ?? "null";
         string saverJson = _appearanceStore.ReadScreenSaver() ?? "null";
         await SettingsWebView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(
-            $"window.__digitalClockScreenSaverSeed = {appearanceJson}; window.__digitalClockScreenSaverAppearance = {saverJson};"
+            $"window.__digitalClockScreenSaverAppearance = {saverJson};"
         );
 
         string webFolder = Path.Combine(AppContext.BaseDirectory, "Web");
