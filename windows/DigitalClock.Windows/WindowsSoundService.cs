@@ -37,6 +37,29 @@ internal sealed class WindowsSoundService : IDisposable
         timer = _selections.Timer?.Name
     };
 
+    public bool Restore(string? channel, string? path, string? name)
+    {
+        string validatedChannel = ValidateChannel(channel);
+        string restoredPath = path?.Trim() ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(restoredPath) || !File.Exists(restoredPath))
+        {
+            SetChoice(validatedChannel, null);
+            SaveSelections();
+            return false;
+        }
+
+        var choice = new WindowsSoundChoice
+        {
+            Path = restoredPath,
+            Name = !string.IsNullOrWhiteSpace(name) ? name.Trim() : Path.GetFileName(restoredPath)
+        };
+
+        SetChoice(validatedChannel, choice);
+        SaveSelections();
+        return true;
+    }
+
     public WindowsSoundChoice? Pick(string? channel)
     {
         string validatedChannel = ValidateChannel(channel);
@@ -60,15 +83,7 @@ internal sealed class WindowsSoundService : IDisposable
             Name = Path.GetFileName(dialog.FileName)
         };
 
-        if (validatedChannel == AlarmChannel)
-        {
-            _selections.Alarm = choice;
-        }
-        else
-        {
-            _selections.Timer = choice;
-        }
-
+        SetChoice(validatedChannel, choice);
         SaveSelections();
         return choice;
     }
@@ -145,6 +160,18 @@ internal sealed class WindowsSoundService : IDisposable
 
     private WindowsSoundChoice? GetChoice(string channel) =>
         channel == AlarmChannel ? _selections.Alarm : _selections.Timer;
+
+    private void SetChoice(string channel, WindowsSoundChoice? choice)
+    {
+        if (channel == AlarmChannel)
+        {
+            _selections.Alarm = choice;
+        }
+        else
+        {
+            _selections.Timer = choice;
+        }
+    }
 
     private static string ValidateChannel(string? channel) =>
         channel switch
