@@ -15,7 +15,7 @@ const stylesheetContents = await Promise.all(
 );
 
 const fontUrls = stylesheetContents.flatMap(css =>
-    [...css.matchAll(/url\((['"]?)([^)'"]+\.(?:woff2?|ttf))\1\)/g)]
+    [...css.matchAll(/url\((['"]?)([^)'"]+\.(?:woff2?|ttf|otf))\1\)/g)]
         .map(match => new URL(match[2], 'https://local.invalid/assets/index.css').pathname)
 );
 const appShell = [...new Set([

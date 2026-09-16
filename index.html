@@ -87,14 +87,6 @@
         <select id="languageSelect">
             <option value="hr">Hrvatski</option> <option value="en">English</option> <option value="de">Deutsch</option> <option value="it">Italiano</option> <option value="es">Español</option>
         </select>
-        <section id="screenSaverAppearanceSync" class="screen-saver-config-only" aria-label="Screen saver appearance">
-            <button id="copyAppearanceFromAppButton" type="button">
-                <i class="fas fa-clone"></i>
-                <span id="copyAppearanceFromAppButtonText">Copy appearance from app</span>
-            </button>
-            <p id="copyAppearanceFromAppStatus" role="status" aria-live="polite"></p>
-            <p id="screenSaverAutoSaveNote" class="screen-saver-autosave-note">Changes are saved automatically.</p>
-        </section>
         <section id="windowsHostSettings" class="windows-host-only windows-host-settings" aria-label="Windows settings">
             <h4 id="windowsSettingsTitle">Windows</h4>
             <div class="checkbox-item"><input type="checkbox" id="startWithWindowsCheckbox"><label for="startWithWindowsCheckbox" id="startWithWindowsLabel">Start with Windows</label></div>
@@ -191,6 +183,8 @@
                 <option value="bell">Bell</option>
                 <option value="pulse">Pulse</option>
                 <option value="custom">Custom file…</option>
+                <option value="custom-current" hidden>Custom file…</option>
+                <option value="custom-current" hidden>Custom file…</option>
             </select>
             <div class="sound-actions">
                 <button id="chooseTimerSoundButton" type="button">Choose file</button>

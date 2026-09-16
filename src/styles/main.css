@@ -1,3 +1,19 @@
+@font-face {
+    font-family: 'Digital Numbers';
+    src: url('/fonts/DigitalNumbers-Regular.woff') format('woff');
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Segment7Standard';
+    src: url('/fonts/Segment7Standard.otf') format('opentype');
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+}
+
 :root {
             --bg-color: #ffffff; --text-color: #000000; --font-family: Arial, sans-serif; --brightness: 1; --contrast: 1;
             --button-bg: #f0f0f0; --button-hover-bg: #e0e0e0; --button-icon-color: #333; --button-border-color: #ccc; --button-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -662,45 +678,3 @@ body.screen-saver-config .clock-container {
 }
 
 
-.screen-saver-config-only {
-    display: none;
-}
-body.screen-saver-config .screen-saver-config-only {
-    display: block;
-}
-#screenSaverAppearanceSync {
-    margin: 14px 0 18px;
-    padding: 14px;
-    border: 1px solid rgba(91,128,230,.25);
-    border-radius: 12px;
-    background: rgba(11,20,48,.06);
-}
-#copyAppearanceFromAppButton {
-    width: 100%;
-    min-height: 44px;
-    padding: 10px 14px;
-    border: 1px solid rgba(84,232,255,.35);
-    border-radius: 10px;
-    background: #173f8f;
-    color: #fff;
-    font: inherit;
-    font-weight: 700;
-    cursor: pointer;
-}
-#copyAppearanceFromAppButton:hover {
-    background: #1f52b7;
-}
-#copyAppearanceFromAppStatus {
-    margin: 9px 0 0;
-    font-size: .82rem;
-    color: #65708a;
-}
-
-#screenSaverAppearanceSync .screen-saver-autosave-note {
-    margin: 10px 0 0;
-    padding-top: 10px;
-    border-top: 1px solid rgba(91,128,230,.18);
-    color: #65708a;
-    font-size: .82rem;
-    font-style: italic;
-}

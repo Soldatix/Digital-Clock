@@ -12,6 +12,9 @@ const ALLOWED_FONTS = new Set([
     'Arial, sans-serif',
     "'Orbitron', sans-serif",
     "'Roboto Mono', monospace",
+    "'Rajdhani', sans-serif",
+    "'Play', sans-serif",
+    "'JetBrains Mono', monospace",
     "'Digital Numbers', sans-serif",
     'Times New Roman, serif',
     'Courier New, monospace',
@@ -56,6 +59,26 @@ function requireBoolean(value, fieldName) {
     return value;
 }
 
+function normalizeSoundSetting(value, fieldName) {
+    if (value === undefined || value === null) {
+        return { kind: 'builtin', value: 'chime', name: '' };
+    }
+    if (!isObject(value)) {
+        throw new Error(`Invalid setting: ${fieldName}.`);
+    }
+    if (value.kind === 'builtin' && ['chime', 'bell', 'pulse'].includes(value.value)) {
+        return { kind: 'builtin', value: value.value, name: '' };
+    }
+    if (value.kind === 'custom' && value.value === 'custom'
+        && typeof value.name === 'string' && value.name.trim().length > 0 && value.name.length <= 260) {
+        const path = typeof value.path === 'string' && value.path.length <= 4096
+            ? value.path
+            : '';
+        return { kind: 'custom', value: 'custom', name: value.name, path };
+    }
+    throw new Error(`Invalid setting: ${fieldName}.`);
+}
+
 function normalizeSettings(settings) {
     if (!isObject(settings)) throw new Error('Invalid settings.');
 
@@ -80,7 +103,15 @@ function normalizeSettings(settings) {
         showDate: requireBoolean(settings.showDate, 'showDate'),
         language: requireString(settings.language, ALLOWED_LANGUAGES, 'language'),
         isNightModeActive: requireBoolean(settings.isNightModeActive, 'isNightModeActive'),
-        isAutoSizeActive: requireBoolean(settings.isAutoSizeActive, 'isAutoSizeActive')
+        isAutoSizeActive: requireBoolean(settings.isAutoSizeActive, 'isAutoSizeActive'),
+        bedsideBrightness: settings.bedsideBrightness === undefined
+            ? '35'
+            : requireRangeString(settings.bedsideBrightness, 10, 70, 'bedsideBrightness'),
+        languageWasSelectedByUser: settings.languageWasSelectedByUser === undefined
+            ? false
+            : requireBoolean(settings.languageWasSelectedByUser, 'languageWasSelectedByUser'),
+        alarmSound: normalizeSoundSetting(settings.alarmSound, 'alarmSound'),
+        timerSound: normalizeSoundSetting(settings.timerSound, 'timerSound')
     };
 }
 

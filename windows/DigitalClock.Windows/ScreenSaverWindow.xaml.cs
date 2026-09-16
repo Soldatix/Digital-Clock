@@ -105,10 +105,8 @@ public partial class ScreenSaverWindow : Window
             await ScreenSaverWebView.EnsureCoreWebView2Async(webViewEnvironment);
             if (_closeRequested) return;
             stage = "Inject appearance";
-            string appearanceJson = _appearanceStore.Read() ?? "null";
             string saverJson = _appearanceStore.ReadScreenSaver() ?? "null";
             await ScreenSaverWebView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(
-                $"window.__digitalClockScreenSaverSeed = {appearanceJson}; " +
                 $"window.__digitalClockScreenSaverAppearance = {saverJson}; " +
                 $"window.__digitalClockIsolatedScreenSaver = {(_isPreview ? "false" : "true")};"
             );
