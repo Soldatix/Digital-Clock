@@ -18,6 +18,7 @@ import { TIME_ZONES } from './data/timezones.js';
 import { APP_INFO, APP_VERSION } from './data/app-info.js';
 import { readStorage, writeStorage, writeStorageAtomically } from './js/storage.js';
 import { setupEscapeHandling } from './js/accessibility.js';
+import { WEB_INSTALL_TEXT } from './data/web-install-text.js';
 import { downloadBackup, readBackupFile, BACKUP_TEXT } from './js/backup.js';
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
     window.addEventListener('load', () => {
@@ -48,6 +49,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 loadProfileButtonText: document.getElementById('loadProfileButtonText'), deleteProfileButton: document.getElementById('deleteProfileButton'), deleteProfileButtonText: document.getElementById('deleteProfileButtonText'),
                 fullscreenButton: document.querySelector('.fullscreen-toggle'), fullscreenIcon: document.getElementById('fullscreenIcon'),
                 downloadVersionsButton: document.getElementById('downloadVersionsButton'), screenSaverButton: document.getElementById('screenSaverButton'),
+                webInstallBanner: document.getElementById('webInstallBanner'),
+                webInstallTitle: document.getElementById('webInstallTitle'),
+                webInstallDescription: document.getElementById('webInstallDescription'),
+                webInstallStatus: document.getElementById('webInstallStatus'),
+                installWebAppButton: document.getElementById('installWebAppButton'),
+                continueWebButton: document.getElementById('continueWebButton'),
                 metaDescription: document.querySelector('meta[name="description"]'), metaKeywords: document.querySelector('meta[name="keywords"]'),
                 
                 // Timer elements
@@ -482,6 +489,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
                 updateAccessibilityLabels();
+                updateWebInstallBanner();
                 updateDynamicAccessibilityLabels();
                 updateBackupUI();
                 updateNightModeIcon(); updateFullscreenIcon(); updateTime(); updateDate(true);
@@ -522,6 +530,104 @@ document.addEventListener('DOMContentLoaded', function() {
                 else { elements.fullscreenIcon.classList.replace('fa-compress', 'fa-expand'); elements.fullscreenButton.title = T('enterFullscreen'); }
             }
 
+            let deferredWebInstallPrompt = null;
+            let webInstallStatusKey = 'waiting';
+            const webInstallRequested = new URLSearchParams(window.location.search).get('install') === 'web';
+
+            function getWebInstallText() {
+                const language = elements.languageSelect?.value || 'en';
+                return WEB_INSTALL_TEXT[language] || WEB_INSTALL_TEXT.en;
+            }
+
+            function isWebAppStandalone() {
+                return window.matchMedia('(display-mode: standalone)').matches ||
+                    window.navigator.standalone === true;
+            }
+
+            function updateWebInstallBanner(statusKey = null) {
+                if (!webInstallRequested) {
+                    elements.webInstallBanner.hidden = true;
+                    return;
+                }
+
+                if (statusKey) {
+                    webInstallStatusKey = statusKey;
+                }
+
+                if (isWebAppStandalone()) {
+                    webInstallStatusKey = 'installed';
+                }
+
+                const text = getWebInstallText();
+
+                elements.webInstallBanner.hidden = false;
+                elements.webInstallTitle.textContent = text.title;
+                elements.webInstallDescription.textContent = text.description;
+                elements.installWebAppButton.textContent = text.install;
+                elements.continueWebButton.textContent = text.continue;
+                elements.webInstallStatus.textContent = text[webInstallStatusKey] || '';
+
+                elements.installWebAppButton.disabled =
+                    !deferredWebInstallPrompt || isWebAppStandalone();
+            }
+
+            window.addEventListener('beforeinstallprompt', event => {
+                if (!webInstallRequested) return;
+
+                event.preventDefault();
+                deferredWebInstallPrompt = event;
+                updateWebInstallBanner('ready');
+            });
+
+            window.addEventListener('appinstalled', () => {
+                deferredWebInstallPrompt = null;
+
+                if (webInstallRequested) {
+                    updateWebInstallBanner('installed');
+                }
+            });
+
+            async function installWebApplication() {
+                if (isWebAppStandalone()) {
+                    updateWebInstallBanner('installed');
+                    return;
+                }
+
+                if (!deferredWebInstallPrompt) {
+                    updateWebInstallBanner('unavailable');
+                    return;
+                }
+
+                updateWebInstallBanner('installing');
+                elements.installWebAppButton.disabled = true;
+
+                deferredWebInstallPrompt.prompt();
+                const choice = await deferredWebInstallPrompt.userChoice;
+
+                deferredWebInstallPrompt = null;
+
+                if (choice.outcome === 'accepted') {
+                    updateWebInstallBanner('installing');
+                } else {
+                    updateWebInstallBanner('dismissed');
+                }
+            }
+
+            function continueInBrowser() {
+                elements.webInstallBanner.hidden = true;
+
+                const url = new URL(window.location.href);
+                url.searchParams.delete('install');
+                history.replaceState({}, '', url);
+            }
+
+            if (webInstallRequested) {
+                window.setTimeout(() => {
+                    if (!deferredWebInstallPrompt && !isWebAppStandalone()) {
+                        updateWebInstallBanner('unavailable');
+                    }
+                }, 3000);
+            }
             let screenSaverActive = false;
             let screenSaverRequestedFullscreen = false;
 
@@ -1052,6 +1158,8 @@ function closeStopwatch() {
             elements.resetButton.addEventListener('click', resetSettings);
             elements.fullscreenButton.addEventListener('click', () => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(err => console.warn(`FS error: ${err.message}`)); else if (document.exitFullscreen) document.exitFullscreen(); });
             elements.downloadVersionsButton.addEventListener('click', openDownloadVersions);
+            elements.installWebAppButton.addEventListener('click', installWebApplication);
+            elements.continueWebButton.addEventListener('click', continueInBrowser);
             elements.screenSaverButton.addEventListener('click', startScreenSaver);
             document.addEventListener('pointerdown', () => {
                 if (screenSaverActive) exitScreenSaver();

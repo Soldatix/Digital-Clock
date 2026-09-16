@@ -80,6 +80,20 @@
         <button id="downloadVersionsButton" class="icon-button" type="button" title="Download / Versions" aria-label="Download / Versions"><i class="fas fa-download"></i></button>
         <button id="screenSaverButton" class="icon-button" type="button" title="Start screen saver" aria-label="Start screen saver" aria-pressed="false"><i class="fas fa-desktop"></i></button>
     </div>
+    <section id="webInstallBanner" class="web-install-banner" hidden aria-labelledby="webInstallTitle">
+        <div class="web-install-banner-icon" aria-hidden="true">
+            <i class="fas fa-download"></i>
+        </div>
+        <div class="web-install-banner-content">
+            <strong id="webInstallTitle">Install Digital Clock Web</strong>
+            <p id="webInstallDescription">Install the web version of Digital Clock on this device.</p>
+            <p id="webInstallStatus" class="web-install-status"></p>
+            <div class="web-install-actions">
+                <button id="installWebAppButton" type="button" disabled>Install Digital Clock Web</button>
+                <button id="continueWebButton" type="button">Continue in browser</button>
+            </div>
+        </div>
+    </section>
     <div class="settings-panel">
         <h3><i class="fas fa-cog"></i> <span id="settingsTitle">Settings</span></h3>
         <label for="languageSelect" id="languageLabel"><i class="fas fa-language"></i> <span>Language:</span></label>
