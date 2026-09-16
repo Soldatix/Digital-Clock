@@ -46,7 +46,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 brightness: document.getElementById('brightness'), contrast: document.getElementById('contrast'), brightnessValue: document.getElementById('brightnessValue'), contrastValue: document.getElementById('contrastValue'), showSecondsCheckbox: document.getElementById('showSecondsCheckbox'), showDateCheckbox: document.getElementById('showDateCheckbox'),
                 timeFormatSelect: document.getElementById('timeFormat'), dateFormatSelect: document.getElementById('dateFormat'), languageSelect: document.getElementById('languageSelect'), fontSelect: document.getElementById('fontSelect'),
                 windowsHostSettings: document.getElementById('windowsHostSettings'), windowsSettingsTitle: document.getElementById('windowsSettingsTitle'), startWithWindowsCheckbox: document.getElementById('startWithWindowsCheckbox'), startWithWindowsLabel: document.getElementById('startWithWindowsLabel'), keepDisplayAwakeCheckbox: document.getElementById('keepDisplayAwakeCheckbox'), keepDisplayAwakeLabel: document.getElementById('keepDisplayAwakeLabel'), bedsideModeButton: document.getElementById('bedsideModeButton'),
-                screenSaverAppearanceSync: document.getElementById('screenSaverAppearanceSync'), copyAppearanceFromAppButton: document.getElementById('copyAppearanceFromAppButton'), copyAppearanceFromAppButtonText: document.getElementById('copyAppearanceFromAppButtonText'), copyAppearanceFromAppStatus: document.getElementById('copyAppearanceFromAppStatus'), screenSaverAutoSaveNote: document.getElementById('screenSaverAutoSaveNote'),
                 satFontSize: document.getElementById('satFontSize'), datumFontSize: document.getElementById('datumFontSize'), satFontSizeValue: document.getElementById('satFontSizeValue'), datumFontSizeValue: document.getElementById('datumFontSizeValue'), satFontColor: document.getElementById('satFontColor'), datumFontColor: document.getElementById('datumFontColor'),
                 backgroundColor: document.getElementById('backgroundColor'), resetButton: document.getElementById('resetButton'), bedsideBrightness: document.getElementById('bedsideBrightness'), bedsideBrightnessLabel: document.getElementById('bedsideBrightnessLabel'), bedsideBrightnessValue: document.getElementById('bedsideBrightnessValue'), bedsideBrightnessControl: document.getElementById('bedsideBrightnessControl'), bedsideExitButton: document.getElementById('bedsideExitButton'), bedsideExitButtonText: document.getElementById('bedsideExitButtonText'), bedsideModeHint: document.getElementById('bedsideModeHint'), bedsideModeHintText: document.getElementById('bedsideModeHintText'), nightModeToggle: document.getElementById('nightModeToggle'), nightModeIcon: document.getElementById('nightModeIcon'),
                 autoSizeCheckbox: document.getElementById('autoSizeCheckbox'), autoSizeLabel: document.getElementById('autoSizeLabel'), autoSizeLabelSpan: document.getElementById('autoSizeLabelSpan'), satFontSizeLabel: document.getElementById('satFontSizeLabel'),
@@ -223,10 +222,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (settingsObj?.isAutoSizeActive === true) {
                     normalised.satFontSize = sliderPercentToValue(elements.satFontSize, WINDOWS_DEFAULT_MANUAL_FONT_PERCENT).toString();
                     normalised.datumFontSize = sliderPercentToValue(elements.datumFontSize, WINDOWS_DEFAULT_MANUAL_FONT_PERCENT).toString();
-                    normalised.renderedSatFontPx = null;
-                    normalised.renderedDatumFontPx = null;
-                    normalised.copiedRenderedSatFontPx = null;
-                    normalised.copiedRenderedDatumFontPx = null;
                 }
 
                 return normalised;
@@ -313,13 +308,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 es: { title: "Actualización de Windows", check: "Buscar actualizaciones", checking: "Comprobando...", ready: "Comprueba si hay una versión de Windows más reciente.", latest: "Tienes la versión más reciente ({version}).", available: "La versión {version} está disponible.", install: "Descargar e instalar {version}", downloading: "Descargando y verificando...", starting: "Iniciando el instalador...", failed: "No se pudo comprobar la actualización.", installFailed: "No se pudo iniciar la actualización.", confirm: "¿Descargar e instalar la versión {version}? Digital Clock se cerrará automáticamente.", checkAgain: "Comprobar de nuevo" }
             };
 
-            const SCREEN_SAVER_SYNC_TEXT = {
-                hr: { button: "Preuzmi izgled iz aplikacije", copied: "Izgled glavne aplikacije je preuzet.", unavailable: "Izgled glavne aplikacije nije dostupan.", autoSave: "Promjene se spremaju automatski." },
-                en: { button: "Copy appearance from app", copied: "The main app appearance was copied.", unavailable: "The main app appearance is not available.", autoSave: "Changes are saved automatically." },
-                de: { button: "Darstellung aus der App übernehmen", copied: "Die Darstellung der Haupt-App wurde übernommen.", unavailable: "Die Darstellung der Haupt-App ist nicht verfügbar.", autoSave: "Änderungen werden automatisch gespeichert." },
-                it: { button: "Copia aspetto dall'app", copied: "L'aspetto dell'app principale è stato copiato.", unavailable: "L'aspetto dell'app principale non è disponibile.", autoSave: "Le modifiche vengono salvate automaticamente." },
-                es: { button: "Copiar apariencia de la app", copied: "Se copió la apariencia de la aplicación principal.", unavailable: "La apariencia de la aplicación principal no está disponible.", autoSave: "Los cambios se guardan automáticamente." }
-            };
             let selectedSounds = {
                 alarm: { ...defaultSettings.alarmSound },
                 timer: { ...defaultSettings.timerSound }
@@ -592,8 +580,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             function toggleNightMode() { isNightModeActive = !isNightModeActive; if (isNightModeActive) applyNightModeStyles(); else applyDayModeStyles(); updateNightModeIcon(); saveCurrentSettings(); }
 
-            let copiedScreenSaverRenderedSizes = null;
-
             function updateSizingMode() {
                 if (isWindowsHost()) elements.autoSizeCheckbox.checked = false;
                 const autoSizeActive = !isWindowsHost() && elements.autoSizeCheckbox.checked;
@@ -601,19 +587,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 elements.satFontSizeLabel.classList.toggle('disabled', autoSizeActive); elements.datumFontSizeLabel.classList.toggle('disabled', autoSizeActive);
 
                 if (autoSizeActive) {
-                    copiedScreenSaverRenderedSizes = null;
                     elements.sat.style.fontSize = `${AUTO_SIZE_SAT_VW}vw`;
                     elements.datum.style.fontSize = `${AUTO_SIZE_DATUM_VW}vw`;
-                } else if (isScreenSaverContext && copiedScreenSaverRenderedSizes) {
-                    const copiedClockPx = Number(copiedScreenSaverRenderedSizes.clock);
-                    const copiedDatePx = Number(copiedScreenSaverRenderedSizes.date);
-
-                    if (Number.isFinite(copiedClockPx) && copiedClockPx > 0) {
-                        elements.sat.style.fontSize = `${Math.round(copiedClockPx)}px`;
-                    }
-                    if (Number.isFinite(copiedDatePx) && copiedDatePx > 0) {
-                        elements.datum.style.fontSize = `${Math.round(copiedDatePx)}px`;
-                    }
                 } else {
                     const { clockMaxPx, dateMaxPx } = getSafeManualFontSizes();
                     const clockPercent = sliderValueToPercent(elements.satFontSize) / 100;
@@ -623,42 +598,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 updateSliderValueDisplays();
-            }
-
-            function screenSaverSyncText() {
-                const lang = elements.languageSelect?.value || 'en';
-                return SCREEN_SAVER_SYNC_TEXT[lang] || SCREEN_SAVER_SYNC_TEXT.en;
-            }
-
-            function updateScreenSaverSyncText() {
-                if (!elements.copyAppearanceFromAppButtonText) return;
-                const ui = screenSaverSyncText();
-                elements.copyAppearanceFromAppButtonText.textContent = ui.button;
-                if (elements.screenSaverAutoSaveNote) elements.screenSaverAutoSaveNote.textContent = ui.autoSave;
-            }
-
-            function copyAppearanceFromMainApp() {
-                if (!isScreenSaverConfig) return;
-
-                const seed = window.__digitalClockScreenSaverSeed;
-                const ui = screenSaverSyncText();
-
-                if (!seed || typeof seed !== 'object') {
-                    elements.copyAppearanceFromAppStatus.textContent = ui.unavailable;
-                    return;
-                }
-
-                const manualSeed = normaliseWindowsManualFontSettings(seed);
-                const copiedSettings = {
-                    ...defaultSettings,
-                    ...manualSeed,
-                    copiedRenderedSatFontPx: Number(manualSeed.renderedSatFontPx) || null,
-                    copiedRenderedDatumFontPx: Number(manualSeed.renderedDatumFontPx) || null
-                };
-
-                applySettingsFromObject(copiedSettings);
-                saveCurrentSettings();
-                elements.copyAppearanceFromAppStatus.textContent = ui.copied;
             }
 
             function windowsUpdateText() {
@@ -851,24 +790,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             function getCurrentSettingsObject() {
                 const autoSizeActive = !isWindowsHost() && elements.autoSizeCheckbox.checked;
-                let renderedSatFontPx = null;
-                let renderedDatumFontPx = null;
-
-                if (!autoSizeActive) {
-                    if (isScreenSaverContext && copiedScreenSaverRenderedSizes) {
-                        const copiedClockPx = Number(copiedScreenSaverRenderedSizes.clock);
-                        const copiedDatePx = Number(copiedScreenSaverRenderedSizes.date);
-                        renderedSatFontPx = Number.isFinite(copiedClockPx) && copiedClockPx > 0 ? copiedClockPx : null;
-                        renderedDatumFontPx = Number.isFinite(copiedDatePx) && copiedDatePx > 0 ? copiedDatePx : null;
-                    } else {
-                        const { clockMaxPx, dateMaxPx } = getSafeManualFontSizes();
-                        const clockPercent = sliderValueToPercent(elements.satFontSize) / 100;
-                        const datePercent = sliderValueToPercent(elements.datumFontSize) / 100;
-                        renderedSatFontPx = Math.round(clockMaxPx * clockPercent);
-                        renderedDatumFontPx = Math.round(dateMaxPx * datePercent);
-                    }
-                }
-
                 return {
                     backgroundColor: elements.backgroundColor.value,
                     satFontColor: elements.satFontColor.value,
@@ -876,14 +797,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     fontSelect: elements.fontSelect.value,
                     satFontSize: elements.satFontSize.value,
                     datumFontSize: elements.datumFontSize.value,
-                    renderedSatFontPx,
-                    renderedDatumFontPx,
-                    copiedRenderedSatFontPx: isScreenSaverContext && copiedScreenSaverRenderedSizes
-                        ? Number(copiedScreenSaverRenderedSizes.clock) || null
-                        : null,
-                    copiedRenderedDatumFontPx: isScreenSaverContext && copiedScreenSaverRenderedSizes
-                        ? Number(copiedScreenSaverRenderedSizes.date) || null
-                        : null,
                     brightness: elements.brightness.value,
                     contrast: elements.contrast.value,
                     timeFormat: elements.timeFormatSelect.value,
@@ -907,13 +820,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 elements.brightness.value = settingsObj.brightness; elements.contrast.value = settingsObj.contrast; elements.timeFormatSelect.value = settingsObj.timeFormat;
                 elements.dateFormatSelect.value = settingsObj.dateFormat; elements.showSecondsCheckbox.checked = settingsObj.showSeconds; elements.showDateCheckbox.checked = settingsObj.showDate;
                 elements.languageSelect.value = settingsObj.language; elements.autoSizeCheckbox.checked = settingsObj.isAutoSizeActive;
-                copiedScreenSaverRenderedSizes = isScreenSaverContext && !settingsObj.isAutoSizeActive &&
-                    (Number(settingsObj.copiedRenderedSatFontPx) > 0 || Number(settingsObj.copiedRenderedDatumFontPx) > 0)
-                    ? {
-                        clock: Number(settingsObj.copiedRenderedSatFontPx) || null,
-                        date: Number(settingsObj.copiedRenderedDatumFontPx) || null
-                    }
-                    : null;
                 elements.bedsideBrightness.value = settingsObj.bedsideBrightness || defaultSettings.bedsideBrightness;
                 isNightModeActive = settingsObj.isNightModeActive;
                 languageWasSelectedByUser = settingsObj.languageWasSelectedByUser === true;
@@ -922,7 +828,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 currentTranslations = translations[settingsObj.language] || translations.en;
                 updateLanguageUI();
-                updateScreenSaverSyncText();
                 applyBasicVisualSettings(); updateSizingMode();
                 if (isNightModeActive) applyNightModeStyles(); else applyDayModeStyles();
                 updateNightModeIcon();
@@ -943,14 +848,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             function loadSettings(preferredLanguage = null) {
                 const stored = window.__digitalClockIsolatedScreenSaver === true ? null : readStorage(CURRENT_SETTINGS_KEY, null);
-                const screenSaverSeed = isScreenSaverContext && !stored && window.__digitalClockScreenSaverSeed && typeof window.__digitalClockScreenSaverSeed === 'object'
-                    ? window.__digitalClockScreenSaverSeed
-                    : null;
                 const snapshot = isScreenSaverContext && window.__digitalClockScreenSaverAppearance;
                 const authoritativeSettings = snapshot && typeof snapshot === 'object' && !Array.isArray(snapshot) ? snapshot : null;
-                const inheritedSettings = authoritativeSettings || (isScreenSaverContext && !stored
-                    ? (screenSaverSeed || readStorage(NORMAL_SETTINGS_KEY, null))
-                    : stored);
+                const inheritedSettings = authoritativeSettings || stored;
                 const shouldUseHostLanguage = !inheritedSettings?.languageWasSelectedByUser && ['hr', 'en', 'de', 'it', 'es'].includes(preferredLanguage);
                 const initialLanguage = shouldUseHostLanguage ? preferredLanguage : defaultSettings.language;
                 applySettingsFromObject({ ...defaultSettings, ...(inheritedSettings || {}), language: shouldUseHostLanguage ? initialLanguage : (inheritedSettings?.language || initialLanguage) });
@@ -1634,10 +1534,9 @@ function closeStopwatch() {
 
 
             // --- Event Listeners ---
-            elements.copyAppearanceFromAppButton?.addEventListener('click', copyAppearanceFromMainApp);
             elements.settingsMenu.addEventListener('click', () => { const isVisible = elements.settingsPanel.style.display === 'block'; elements.settingsPanel.style.display = isVisible ? 'none' : 'block'; if (!isVisible) hideInfoPanel(); });
             elements.infoButton.addEventListener('click', () => { toggleInfoPanel(); if (elements.infoSidePanel.classList.contains('info-panel-visible')) elements.settingsPanel.style.display = 'none'; });
-            elements.languageSelect.addEventListener('change', (e) => { languageWasSelectedByUser = true; currentTranslations = translations[e.target.value] || translations.en; updateLanguageUI(); if (elements.infoSidePanel.classList.contains('info-panel-visible')) populateInfoPanel(); saveCurrentSettings(); });
+            elements.languageSelect.addEventListener('change', (e) => { languageWasSelectedByUser = true; currentTranslations = translations[e.target.value] || translations.en; updateLanguageUI(); updateDate(true); updateSizingMode(); if (elements.infoSidePanel.classList.contains('info-panel-visible')) populateInfoPanel(); saveCurrentSettings(); });
             ['showSecondsCheckbox', 'timeFormatSelect'].forEach(id => elements[id].addEventListener('change', () => { updateTime(); updateSizingMode(); saveCurrentSettings(); }));
             ['showDateCheckbox', 'dateFormatSelect'].forEach(id => elements[id].addEventListener('change', () => { updateDate(true); updateSizingMode(); saveCurrentSettings(); }));
             elements.autoSizeCheckbox.addEventListener('change', () => {
@@ -1651,7 +1550,6 @@ function closeStopwatch() {
             [elements.satFontSize, elements.datumFontSize].forEach(slider => {
                 slider.addEventListener('input', () => {
                     if (elements.autoSizeCheckbox.checked) elements.autoSizeCheckbox.checked = false;
-                    if (isScreenSaverContext) copiedScreenSaverRenderedSizes = null;
                     updateSizingMode();
                 });
                 slider.addEventListener('change', saveCurrentSettings);
@@ -1732,7 +1630,9 @@ function closeStopwatch() {
                     }
 
                     loadAlarms();
-                    loadSettings();
+                    applySettingsFromObject(importedData.settings);
+                    saveCurrentSettings();
+                    populateProfileDropdown();
                     renderAlarms();
                     renderWorldClocks();
 
@@ -1820,7 +1720,7 @@ function closeStopwatch() {
                 applyWindowsHostPreferences(hostInfo?.hostPreferences);
                 configureWindowsManualFontSizing();
                 loadSettings(hostInfo?.language || null);
-                if (!isScreenSaverContext) saveCurrentSettings();
+                if (isScreenSaverConfig || !isScreenSaverContext) saveCurrentSettings();
                 configureScreenSaverContext();
                 setInterval(() => { updateTime(); updateDate(); checkAlarms(); }, 1000);
                 updateTimerDisplay();
