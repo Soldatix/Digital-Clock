@@ -71,7 +71,10 @@ function normalizeSoundSetting(value, fieldName) {
     }
     if (value.kind === 'custom' && value.value === 'custom'
         && typeof value.name === 'string' && value.name.trim().length > 0 && value.name.length <= 260) {
-        return { kind: 'custom', value: 'custom', name: value.name };
+        const path = typeof value.path === 'string' && value.path.length <= 4096
+            ? value.path
+            : '';
+        return { kind: 'custom', value: 'custom', name: value.name, path };
     }
     throw new Error(`Invalid setting: ${fieldName}.`);
 }
