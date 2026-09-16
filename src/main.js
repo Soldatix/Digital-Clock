@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 profileSelect: document.getElementById('profileSelect'), profileSelectLabel: document.getElementById('profileSelectLabel'), loadProfileButton: document.getElementById('loadProfileButton'),
                 loadProfileButtonText: document.getElementById('loadProfileButtonText'), deleteProfileButton: document.getElementById('deleteProfileButton'), deleteProfileButtonText: document.getElementById('deleteProfileButtonText'),
                 fullscreenButton: document.querySelector('.fullscreen-toggle'), fullscreenIcon: document.getElementById('fullscreenIcon'),
-                installAppButton: document.getElementById('installAppButton'), screenSaverButton: document.getElementById('screenSaverButton'),
+                downloadVersionsButton: document.getElementById('downloadVersionsButton'), screenSaverButton: document.getElementById('screenSaverButton'),
                 metaDescription: document.querySelector('meta[name="description"]'), metaKeywords: document.querySelector('meta[name="keywords"]'),
                 
                 // Timer elements
@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 setAccessibleName(elements.stopwatchAppButton, T('stopwatch.title'));
                 setAccessibleName(elements.worldClockAppButton, T('worldClock.title'));
                 setAccessibleName(elements.alarmAppButton, T('alarm.title'));
-                setAccessibleName(elements.installAppButton, text.install);
+                setAccessibleName(elements.downloadVersionsButton, text.downloadVersions);
                 setAccessibleName(elements.screenSaverButton, screenSaverActive ? text.exitScreenSaver : text.screenSaver);
                 setAccessibleName(elements.closeTimerButton, T('timer.close'));
                 setAccessibleName(elements.stopTimerSoundButton, T('timer.stopSound'));
@@ -522,30 +522,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 else { elements.fullscreenIcon.classList.replace('fa-compress', 'fa-expand'); elements.fullscreenButton.title = T('enterFullscreen'); }
             }
 
-            let deferredInstallPrompt = null;
             let screenSaverActive = false;
             let screenSaverRequestedFullscreen = false;
 
-            window.addEventListener('beforeinstallprompt', event => {
-                event.preventDefault();
-                deferredInstallPrompt = event;
-                elements.installAppButton.hidden = false;
-            });
-
-            window.addEventListener('appinstalled', () => {
-                deferredInstallPrompt = null;
-                elements.installAppButton.hidden = true;
-            });
-
-            async function installApplication() {
-                if (!deferredInstallPrompt) return;
-
-                deferredInstallPrompt.prompt();
-                await deferredInstallPrompt.userChoice;
-                deferredInstallPrompt = null;
-                elements.installAppButton.hidden = true;
+            function openDownloadVersions() {
+                window.open('https://appsandgames.org/digital-clock', '_blank', 'noopener');
             }
-
             async function startScreenSaver() {
                 if (screenSaverActive) return;
 
@@ -1069,7 +1051,7 @@ function closeStopwatch() {
             elements.infoSidePanelCloseButton.addEventListener('click', hideInfoPanel);
             elements.resetButton.addEventListener('click', resetSettings);
             elements.fullscreenButton.addEventListener('click', () => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(err => console.warn(`FS error: ${err.message}`)); else if (document.exitFullscreen) document.exitFullscreen(); });
-            elements.installAppButton.addEventListener('click', installApplication);
+            elements.downloadVersionsButton.addEventListener('click', openDownloadVersions);
             elements.screenSaverButton.addEventListener('click', startScreenSaver);
             document.addEventListener('pointerdown', () => {
                 if (screenSaverActive) exitScreenSaver();
