@@ -12,3 +12,10 @@ installer/prerequisites/
 # .NET build output
 windows/**/bin/
 windows/**/obj/
+
+# Visual Studio local cache
+**/.vs/
+
+# Visual Studio generated/user files
+**/*.user
+**/*.assets.cache
