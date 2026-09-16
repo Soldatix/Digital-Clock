@@ -1,3 +1,19 @@
+@font-face {
+    font-family: 'Digital Numbers';
+    src: url('/fonts/DigitalNumbers-Regular.woff') format('woff');
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Segment7Standard';
+    src: url('/fonts/Segment7Standard.otf') format('opentype');
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+}
+
 :root {
             --bg-color: #ffffff; --text-color: #000000; --font-family: Arial, sans-serif; --brightness: 1; --contrast: 1;
             --button-bg: #f0f0f0; --button-hover-bg: #e0e0e0; --button-icon-color: #333; --button-border-color: #ccc; --button-shadow: 0 2px 4px rgba(0,0,0,0.1);
