@@ -328,8 +328,43 @@ document.addEventListener('DOMContentLoaded', function() {
 
             function normaliseSoundSelection(value, fallback) {
                 if (!value || typeof value !== 'object') return { ...fallback };
-                if (value.kind === 'custom' && value.name) return { kind: 'custom', value: 'custom', name: value.name };
+                if (value.kind === 'custom' && value.name) {
+                    return {
+                        kind: 'custom',
+                        value: 'custom',
+                        name: value.name,
+                        path: typeof value.path === 'string' ? value.path : ''
+                    };
+                }
                 return { kind: 'builtin', value: ['chime', 'bell', 'pulse'].includes(value.value) ? value.value : fallback.value, name: '' };
+            }
+
+            async function synchroniseWindowsCustomSounds(settingsObj) {
+                if (!isWindowsHost() || isScreenSaverContext) return settingsObj;
+
+                const synchronised = {
+                    ...settingsObj,
+                    alarmSound: normaliseSoundSelection(settingsObj.alarmSound, defaultSettings.alarmSound),
+                    timerSound: normaliseSoundSelection(settingsObj.timerSound, defaultSettings.timerSound)
+                };
+
+                for (const channel of ['alarm', 'timer']) {
+                    const key = channel + 'Sound';
+                    const sound = synchronised[key];
+                    if (sound.kind !== 'custom') continue;
+
+                    const response = await postWindowsMessage('restoreCustomSound', {
+                        channel,
+                        path: sound.path || '',
+                        name: sound.name || ''
+                    });
+
+                    if (!response?.ok || response.payload?.restored !== true) {
+                        synchronised[key] = { kind: 'builtin', value: 'chime', name: '' };
+                    }
+                }
+
+                return synchronised;
             }
 
             function postWindowsMessage(action, payload = {}, timeoutMs = 8000) {
@@ -505,7 +540,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     updateSoundControls();
                     return;
                 }
-                selectedSounds[channel] = { kind: 'custom', value: 'custom', name: response.payload.name };
+                selectedSounds[channel] = {
+                    kind: 'custom',
+                    value: 'custom',
+                    name: response.payload.name,
+                    path: response.payload.path || ''
+                };
                 updateSoundControls();
                 saveCurrentSettings();
             }
@@ -1606,9 +1646,15 @@ function closeStopwatch() {
                 if (i > -1) { if (confirm(T('overwriteProfileConfirm') + profileName + T('overwriteProfileConfirm2'))) profiles[i].settings = settings; else return; } else profiles.push({ name: profileName, settings: settings });
                 saveProfiles(profiles); populateProfileDropdown(); elements.profileNameInput.value = ''; alert(T('profileSaved') + profileName + T('profileSaved2'));
             });
-            elements.loadProfileButton.addEventListener('click', () => {
+            elements.loadProfileButton.addEventListener('click', async () => {
                 const profileName = elements.profileSelect.value; if (!profileName) return;
-                const profile = getProfiles().find(p => p.name === profileName); if (profile) { applySettingsFromObject(profile.settings); saveCurrentSettings(); alert(T('profileLoaded') + profileName + T('profileLoaded2')); }
+                const profile = getProfiles().find(p => p.name === profileName);
+                if (profile) {
+                    const settings = await synchroniseWindowsCustomSounds(profile.settings);
+                    applySettingsFromObject(settings);
+                    saveCurrentSettings();
+                    alert(T('profileLoaded') + profileName + T('profileLoaded2'));
+                }
             });
             elements.deleteProfileButton.addEventListener('click', () => {
                 const profileName = elements.profileSelect.value; if (!profileName) return;
@@ -1638,8 +1684,9 @@ function closeStopwatch() {
 
                     if (!window.confirm(text.importConfirm)) return;
 
+                    const importedSettings = await synchroniseWindowsCustomSounds(importedData.settings);
                     const saved = writeStorageAtomically([
-                        [CURRENT_SETTINGS_KEY, importedData.settings],
+                        [CURRENT_SETTINGS_KEY, importedSettings],
                         [PROFILES_STORAGE_KEY, importedData.profiles],
                         [WORLD_CLOCK_KEY, importedData.cities],
                         [ALARM_KEY, importedData.alarms]
@@ -1650,7 +1697,7 @@ function closeStopwatch() {
                     }
 
                     loadAlarms();
-                    applySettingsFromObject(importedData.settings);
+                    applySettingsFromObject(importedSettings);
                     saveCurrentSettings();
                     populateProfileDropdown();
                     renderAlarms();
