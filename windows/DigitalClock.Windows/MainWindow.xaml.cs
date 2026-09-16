@@ -354,6 +354,13 @@ public partial class MainWindow : Window
                         root.TryGetProperty("preview", out JsonElement preview) && preview.GetBoolean()
                     );
                     break;
+                case "restoreCustomSound":
+                    payload = RestoreCustomSound(
+                        ReadString(root, "channel"),
+                        ReadString(root, "path"),
+                        ReadString(root, "name")
+                    );
+                    break;
                 case "stopCustomSound":
                     payload = StopCustomSound(ReadString(root, "channel"));
                     break;
@@ -428,7 +435,13 @@ public partial class MainWindow : Window
         WindowsSoundChoice? choice = _soundService.Pick(channel);
         return choice is null
             ? new { cancelled = true }
-            : new { name = choice.Name };
+            : new { name = choice.Name, path = choice.Path };
+    }
+
+    private object RestoreCustomSound(string? channel, string? path, string? name)
+    {
+        bool restored = _soundService.Restore(channel, path, name);
+        return new { restored };
     }
 
     private object PlayCustomSound(string? channel, bool preview)
