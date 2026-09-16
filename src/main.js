@@ -828,7 +828,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 currentTranslations = translations[settingsObj.language] || translations.en;
                 updateLanguageUI();
-                applyBasicVisualSettings(); updateSizingMode();
+                applyBasicVisualSettings();
+                updateSizingMode();
+                void updateSizingAfterSelectedFontLoads();
                 if (isNightModeActive) applyNightModeStyles(); else applyDayModeStyles();
                 updateNightModeIcon();
                 updateBedsideBrightness();
@@ -965,6 +967,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!isNightModeActive) applyDayModeStyles();
                 elements.satFontColor.style.backgroundColor = elements.satFontColor.value; elements.datumFontColor.style.backgroundColor = elements.datumFontColor.value; elements.backgroundColor.style.backgroundColor = elements.backgroundColor.value;
                 updateSliderValueDisplays();
+            }
+
+            async function updateSizingAfterSelectedFontLoads() {
+                const selectedFont = elements.fontSelect.value;
+                if (document.fonts?.load) {
+                    try {
+                        const sampleText = `${elements.sat.textContent || '00:00:00'} ${elements.datum.textContent || '00.00.0000.'}`;
+                        await document.fonts.load(`400 100px ${selectedFont}`, sampleText);
+                    } catch (error) {
+                        console.warn('Could not preload selected clock font.', error);
+                    }
+                }
+
+                if (elements.fontSelect.value === selectedFont) {
+                    updateSizingMode();
+                }
             }
             
             function resetSettings() { if (confirm(T('resetConfirm'))) { applySettingsFromObject(defaultSettings); saveCurrentSettings(); hideInfoPanel(); } }
@@ -1559,7 +1577,9 @@ function closeStopwatch() {
                 input.addEventListener(eventType, (e) => {
                     if (isNightModeActive && ['backgroundColor', 'satFontColor', 'datumFontColor', 'brightness'].includes(e.target.id)) { isNightModeActive = false; updateNightModeIcon(); }
                     applyBasicVisualSettings();
-                    if (e.target.id === 'fontSelect') updateSizingMode();
+                    if (e.target.id === 'fontSelect') {
+                        void updateSizingAfterSelectedFontLoads();
+                    }
                 });
                 input.addEventListener('change', saveCurrentSettings);
             });
