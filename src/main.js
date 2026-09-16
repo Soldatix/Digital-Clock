@@ -293,11 +293,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             const WINDOWS_SOUND_TEXT = {
-                hr: { label: "Zvuk", choose: "Odaberi datoteku", preview: "Testiraj zvuk", chime: "Melodija", bell: "Zvono", pulse: "Puls", custom: "Vlastita datoteka…", customPrefix: "Vlastito: " },
-                en: { label: "Sound", choose: "Choose file", preview: "Test sound", chime: "Chime", bell: "Bell", pulse: "Pulse", custom: "Custom file…", customPrefix: "Custom: " },
-                de: { label: "Klang", choose: "Datei auswählen", preview: "Klang testen", chime: "Melodie", bell: "Glocke", pulse: "Signalton", custom: "Eigene Datei…", customPrefix: "Eigene: " },
-                it: { label: "Suono", choose: "Scegli file", preview: "Prova suono", chime: "Melodia", bell: "Campanella", pulse: "Impulso", custom: "File personale…", customPrefix: "Personale: " },
-                es: { label: "Sonido", choose: "Elegir archivo", preview: "Probar sonido", chime: "Melodía", bell: "Campana", pulse: "Pulso", custom: "Archivo propio…", customPrefix: "Propio: " }
+                hr: { label: "Zvuk", choose: "Odaberi datoteku", change: "Promijeni datoteku", preview: "Testiraj zvuk", chime: "Melodija", bell: "Zvono", pulse: "Puls", custom: "Vlastita datoteka…", customPrefix: "Vlastito: " },
+                en: { label: "Sound", choose: "Choose file", change: "Change file", preview: "Test sound", chime: "Chime", bell: "Bell", pulse: "Pulse", custom: "Custom file…", customPrefix: "Custom: " },
+                de: { label: "Klang", choose: "Datei auswählen", change: "Datei ändern", preview: "Klang testen", chime: "Melodie", bell: "Glocke", pulse: "Signalton", custom: "Eigene Datei…", customPrefix: "Eigene: " },
+                it: { label: "Suono", choose: "Scegli file", change: "Cambia file", preview: "Prova suono", chime: "Melodia", bell: "Campanella", pulse: "Impulso", custom: "File personale…", customPrefix: "Personale: " },
+                es: { label: "Sonido", choose: "Elegir archivo", change: "Cambiar archivo", preview: "Probar sonido", chime: "Melodía", bell: "Campana", pulse: "Pulso", custom: "Archivo propio…", customPrefix: "Propio: " }
             };
 
             const WINDOWS_UPDATE_TEXT = {
@@ -514,7 +514,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     select.options[1].textContent = text.bell;
                     select.options[2].textContent = text.pulse;
                     select.options[3].textContent = text.custom;
-                    elements['choose' + (channel === 'alarm' ? 'Alarm' : 'Timer') + 'SoundButton'].textContent = text.choose;
+                    if (select.options[4]) select.options[4].textContent = text.custom;
+                    const chooseButton = elements['choose' + (channel === 'alarm' ? 'Alarm' : 'Timer') + 'SoundButton'];
+                    if (chooseButton) {
+                        chooseButton.textContent = selectedSounds[channel].kind === 'custom' ? text.change : text.choose;
+                    }
                     elements['preview' + (channel === 'alarm' ? 'Alarm' : 'Timer') + 'SoundButton'].textContent = text.preview;
                     const nameElement = elements[prefix + 'CustomSoundName'];
                     if (nameElement) nameElement.textContent = selectedSounds[channel].kind === 'custom' ? text.customPrefix + selectedSounds[channel].name : '';
@@ -526,9 +530,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     const prefix = channel === 'alarm' ? 'alarm' : 'timer';
                     const select = elements[prefix + 'SoundSelect'];
                     const nameElement = elements[prefix + 'CustomSoundName'];
+                    const chooseButton = elements['choose' + (channel === 'alarm' ? 'Alarm' : 'Timer') + 'SoundButton'];
                     if (!select) continue;
                     const selected = selectedSounds[channel];
-                    select.value = selected.kind === 'custom' ? 'custom' : selected.value;
+                    select.value = selected.kind === 'custom' ? 'custom-current' : selected.value;
+                    if (chooseButton) chooseButton.hidden = selected.kind !== 'custom';
                     if (nameElement) nameElement.hidden = selected.kind !== 'custom';
                 }
                 updateWindowsSoundText();
