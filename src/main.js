@@ -316,6 +316,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 es: { title: "Actualización de Windows", managed: "Las actualizaciones las gestiona Microsoft Store." }
             };
 
+            const WINDOWS_STORE_SCREEN_SAVER_TEXT = {
+                hr: { title: "Windows čuvar zaslona", text: "Microsoft Store izdanje ne uključuje integraciju Windows čuvara zaslona. Verzija sa Screen Saver podrškom dostupna je na Apps & Games.", link: "Otvori Apps & Games ↗" },
+                en: { title: "Windows Screen Saver", text: "The Microsoft Store edition does not include Windows Screen Saver integration. A version with Screen Saver support is available on Apps & Games.", link: "Visit Apps & Games ↗" },
+                de: { title: "Windows-Bildschirmschoner", text: "Die Microsoft Store-Version enthält keine Windows-Bildschirmschoner-Integration. Eine Version mit Bildschirmschoner-Unterstützung ist bei Apps & Games verfügbar.", link: "Apps & Games öffnen ↗" },
+                it: { title: "Screen saver di Windows", text: "L'edizione Microsoft Store non include l'integrazione con lo screen saver di Windows. Una versione con supporto screen saver è disponibile su Apps & Games.", link: "Apri Apps & Games ↗" },
+                es: { title: "Protector de pantalla de Windows", text: "La edición de Microsoft Store no incluye integración con el protector de pantalla de Windows. Hay una versión compatible con Screen Saver disponible en Apps & Games.", link: "Abrir Apps & Games ↗" }
+            };
+
             let selectedSounds = {
                 alarm: { ...defaultSettings.alarmSound },
                 timer: { ...defaultSettings.timerSound }
@@ -725,6 +733,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const appInfo = APP_INFO[lang] || APP_INFO.en;
                 const updateUi = WINDOWS_UPDATE_TEXT[lang] || WINDOWS_UPDATE_TEXT.en;
                 const storeUpdateUi = WINDOWS_STORE_UPDATE_TEXT[lang] || WINDOWS_STORE_UPDATE_TEXT.en;
+                const storeScreenSaverUi = WINDOWS_STORE_SCREEN_SAVER_TEXT[lang] || WINDOWS_STORE_SCREEN_SAVER_TEXT.en;
                 const displayedVersion = windowsHostReady ? windowsAppVersion : APP_VERSION;
                 const uiMap = {
                     en: { paypalDesc: 'Pay securely with PayPal or other payment options offered by PayPal Checkout.', stripeDesc: 'Pay securely by card or with payment methods available through Stripe Checkout.', cards: 'Debit / Credit Card', wallets: 'Digital wallets', paypalBtn: 'Donate with PayPal ↗', stripeBtn: 'Donate with Stripe ↗', note: 'Available payment methods can vary by country, device and payment provider.', crypto: 'Crypto Wallet' },
@@ -782,6 +791,13 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <span>${appInfo.versionLabel} ${displayedVersion}</span>
                                 </div>
                                 <p class="dc-update-status" role="status">${storeUpdateUi.managed}</p>
+                            </div>
+                            <div class="dc-windows-update">
+                                <div class="dc-update-heading">
+                                    <strong>${storeScreenSaverUi.title}</strong>
+                                </div>
+                                <p class="dc-update-status">${storeScreenSaverUi.text}</p>
+                                <a class="dc-portal-link" href="https://appsandgames.org/digital-clock" target="_blank" rel="noopener noreferrer">${storeScreenSaverUi.link}</a>
                             </div>
                         ` : ''}
                     </section>
