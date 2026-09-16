@@ -330,10 +330,20 @@ public partial class MainWindow : Window
                     payload = GetHostInfo();
                     break;
                 case "checkForUpdates":
+                    if (WindowsPackageIdentity.HasPackageIdentity)
+                    {
+                        throw new InvalidOperationException("Updates are managed by Microsoft Store.");
+                    }
+
                     payload = await _updateService.CheckForUpdatesAsync();
                     break;
                 case "installUpdate":
                 {
+                    if (WindowsPackageIdentity.HasPackageIdentity)
+                    {
+                        throw new InvalidOperationException("Updates are managed by Microsoft Store.");
+                    }
+
                     string installerPath = await _updateService.DownloadUpdateInstallerAsync();
                     Process.Start(new ProcessStartInfo
                     {
@@ -419,6 +429,7 @@ public partial class MainWindow : Window
         {
             language = GetSupportedWindowsLanguage(CultureInfo.CurrentUICulture.Name),
             appVersion = _updateService.CurrentVersion,
+            updatesManagedByStore = WindowsPackageIdentity.HasPackageIdentity,
             customSounds = _soundService.GetSelectedSoundNames(),
             hostPreferences = new
             {

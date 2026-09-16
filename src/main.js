@@ -308,11 +308,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 es: { title: "Actualización de Windows", check: "Buscar actualizaciones", checking: "Comprobando...", ready: "Comprueba si hay una versión de Windows más reciente.", latest: "Tienes la versión más reciente ({version}).", available: "La versión {version} está disponible.", install: "Descargar e instalar {version}", downloading: "Descargando y verificando...", starting: "Iniciando el instalador...", failed: "No se pudo comprobar la actualización.", installFailed: "No se pudo iniciar la actualización.", confirm: "¿Descargar e instalar la versión {version}? Digital Clock se cerrará automáticamente.", checkAgain: "Comprobar de nuevo" }
             };
 
+            const WINDOWS_STORE_UPDATE_TEXT = {
+                hr: { title: "Windows nadogradnja", managed: "Nadogradnjama upravlja Microsoft Store." },
+                en: { title: "Windows update", managed: "Updates are managed by Microsoft Store." },
+                de: { title: "Windows-Update", managed: "Updates werden vom Microsoft Store verwaltet." },
+                it: { title: "Aggiornamento Windows", managed: "Gli aggiornamenti sono gestiti da Microsoft Store." },
+                es: { title: "Actualización de Windows", managed: "Las actualizaciones las gestiona Microsoft Store." }
+            };
+
             let selectedSounds = {
                 alarm: { ...defaultSettings.alarmSound },
                 timer: { ...defaultSettings.timerSound }
             };
             let windowsHostReady = false;
+            let windowsUpdatesManagedByStore = false;
             let windowsAppVersion = APP_VERSION;
             let latestWindowsUpdateInfo = null;
             let windowsFullscreenActive = false;
@@ -408,6 +417,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!response?.ok) return null;
                 windowsHostReady = true;
                 windowsAppVersion = response.payload?.appVersion || APP_VERSION;
+                windowsUpdatesManagedByStore = response.payload?.updatesManagedByStore === true;
                 document.querySelectorAll('.windows-host-only').forEach(element => element.classList.add('windows-feature-enabled'));
                 return response.payload || null;
             }
@@ -714,6 +724,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const lang = elements.languageSelect?.value || 'en';
                 const appInfo = APP_INFO[lang] || APP_INFO.en;
                 const updateUi = WINDOWS_UPDATE_TEXT[lang] || WINDOWS_UPDATE_TEXT.en;
+                const storeUpdateUi = WINDOWS_STORE_UPDATE_TEXT[lang] || WINDOWS_STORE_UPDATE_TEXT.en;
                 const displayedVersion = windowsHostReady ? windowsAppVersion : APP_VERSION;
                 const uiMap = {
                     en: { paypalDesc: 'Pay securely with PayPal or other payment options offered by PayPal Checkout.', stripeDesc: 'Pay securely by card or with payment methods available through Stripe Checkout.', cards: 'Debit / Credit Card', wallets: 'Digital wallets', paypalBtn: 'Donate with PayPal ↗', stripeBtn: 'Donate with Stripe ↗', note: 'Available payment methods can vary by country, device and payment provider.', crypto: 'Crypto Wallet' },
@@ -754,7 +765,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <span>${appInfo.privacy}</span>
                         </div>
                         <a class="dc-portal-link" href="https://appsandgames.org/" target="_blank" rel="noopener noreferrer">${appInfo.portalLabel} ↗</a>
-                        ${windowsHostReady ? `
+                        ${windowsHostReady && !windowsUpdatesManagedByStore ? `
                             <div class="dc-windows-update">
                                 <div class="dc-update-heading">
                                     <strong>${updateUi.title}</strong>
@@ -762,6 +773,15 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </div>
                                 <button id="windowsUpdateButton" type="button" data-mode="check">${updateUi.check}</button>
                                 <p id="windowsUpdateStatus" class="dc-update-status" role="status" aria-live="polite">${updateUi.ready}</p>
+                            </div>
+                        ` : ''}
+                        ${windowsHostReady && windowsUpdatesManagedByStore ? `
+                            <div class="dc-windows-update">
+                                <div class="dc-update-heading">
+                                    <strong>${storeUpdateUi.title}</strong>
+                                    <span>${appInfo.versionLabel} ${displayedVersion}</span>
+                                </div>
+                                <p class="dc-update-status" role="status">${storeUpdateUi.managed}</p>
                             </div>
                         ` : ''}
                     </section>
