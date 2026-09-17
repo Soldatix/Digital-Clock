@@ -11,6 +11,7 @@
     <Version>2.0.5</Version>
     <DigitalClockTestBuild Condition="'$(DigitalClockTestBuild)' == ''">false</DigitalClockTestBuild>
     <DefineConstants Condition="'$(DigitalClockTestBuild)' == 'true'">$(DefineConstants);DIGITALCLOCK_TEST_BUILD</DefineConstants>
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>

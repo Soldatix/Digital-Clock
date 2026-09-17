@@ -19,3 +19,6 @@ windows/**/obj/
 # Visual Studio generated/user files
 **/*.user
 **/*.assets.cache
+
+# Visual Studio MSIX package output
+windows/DigitalClock.Package/AppPackages/
