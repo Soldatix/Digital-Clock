@@ -1,0 +1,5 @@
+[[redirects]]
+  from = "https://webappdigitalclock.netlify.app/*"
+  to = "https://digitalclock.appsandgames.org/"
+  status = 301
+  force = true
