@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - windows-portable
+  pull_request:
+    branches:
+      - windows-desktop
   workflow_dispatch:
 
 jobs:
