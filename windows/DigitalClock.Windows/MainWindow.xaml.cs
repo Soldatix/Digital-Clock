@@ -344,6 +344,17 @@ public partial class MainWindow : Window
                         throw new InvalidOperationException("Updates are managed by Microsoft Store.");
                     }
 
+                    if (AppDataPaths.IsPortable)
+                    {
+                        Process.Start(new ProcessStartInfo
+                        {
+                            FileName = "https://appsandgames.org/digital-clock#portable-windows",
+                            UseShellExecute = true
+                        });
+                        payload = new { started = true, portable = true };
+                        break;
+                    }
+
                     string installerPath = await _updateService.DownloadUpdateInstallerAsync();
                     Process.Start(new ProcessStartInfo
                     {
@@ -390,7 +401,10 @@ public partial class MainWindow : Window
                     payload = SaveClockAppearance(root);
                     break;
                 case "migrateScreenSaverAppearance":
-                    _appearanceStore.SaveScreenSaver(root.GetProperty("settings"), migrateOnly: true);
+                    if (!AppDataPaths.IsPortable)
+                    {
+                        _appearanceStore.SaveScreenSaver(root.GetProperty("settings"), migrateOnly: true);
+                    }
                     payload = new { saved = true };
                     break;
                 default:
@@ -429,6 +443,7 @@ public partial class MainWindow : Window
         {
             language = GetSupportedWindowsLanguage(CultureInfo.CurrentUICulture.Name),
             appVersion = _updateService.CurrentVersion,
+            portable = AppDataPaths.IsPortable,
             updatesManagedByStore = WindowsPackageIdentity.HasPackageIdentity,
             customSounds = _soundService.GetSelectedSoundNames(),
             hostPreferences = new

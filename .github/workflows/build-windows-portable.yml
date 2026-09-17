@@ -1,0 +1,45 @@
+name: Build Windows Portable
+
+on:
+  push:
+    branches:
+      - windows-portable
+  pull_request:
+    branches:
+      - windows-desktop
+  workflow_dispatch:
+
+jobs:
+  build-portable:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install web dependencies
+        run: npm ci
+
+      - name: Build portable package
+        shell: pwsh
+        run: ./scripts/Build-WindowsPortable.ps1 -Version 2.0.5
+
+      - name: Upload portable package
+        uses: actions/upload-artifact@v4
+        with:
+          name: DigitalClock-Portable-x64-2.0.5
+          path: |
+            publish/portable/DigitalClock-Portable-x64.zip
+            publish/portable/DigitalClock-Portable-x64.sha256.txt
+          if-no-files-found: error
