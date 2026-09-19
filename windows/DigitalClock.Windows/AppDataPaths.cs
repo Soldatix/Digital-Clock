@@ -39,9 +39,7 @@ internal static class AppDataPaths
 
     public static string DesktopWebView2Directory => IsPortable
         ? Path.Combine(RootDirectory, "WebView2")
-        : IsTestBuild
-            ? Path.Combine(RootDirectory, "Desktop.WebView2")
-            : Path.Combine(AppContext.BaseDirectory, "DigitalClock.Windows.exe.WebView2");
+        : Path.Combine(RootDirectory, "Desktop.WebView2");
 
     public static string ScreenSaverWebView2Directory =>
         Path.Combine(RootDirectory, "ScreenSaver.WebView2");
