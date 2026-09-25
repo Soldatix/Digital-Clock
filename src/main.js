@@ -18,6 +18,7 @@ import { TIME_ZONES } from './data/timezones.js';
 import { APP_INFO, APP_VERSION } from './data/app-info.js';
 import { readStorage, writeStorage, writeStorageAtomically } from './js/storage.js';
 import { setupEscapeHandling } from './js/accessibility.js';
+import { enhanceLanguageMenus } from './js/ag-language-menu.js';
 import { WEB_INSTALL_TEXT } from './data/web-install-text.js';
 import { downloadBackup, readBackupFile, BACKUP_TEXT } from './js/backup.js';
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
@@ -1272,8 +1273,9 @@ function closeStopwatch() {
             });
             // --- Initialization ---
             function init() {
-                function populateLanguageOptions() { const langSelect = elements.languageSelect; const current = langSelect.value || 'en'; langSelect.innerHTML = ''; Object.entries(translations.en.languageNames).forEach(([code, name]) => { const opt = document.createElement('option'); opt.value = code; opt.textContent = name; langSelect.appendChild(opt); }); langSelect.value = current; }
+                function populateLanguageOptions() { const langSelect = elements.languageSelect; const current = langSelect.value || 'en'; langSelect.innerHTML = ''; ['en','hr','de','it','es'].forEach(code => { const name = translations.en.languageNames[code]; if (!name) return; const opt = document.createElement('option'); opt.value = code; opt.textContent = name; langSelect.appendChild(opt); }); langSelect.value = current; }
                 populateLanguageOptions();
+                enhanceLanguageMenus();
                 populateTimeZoneSelect();
                 populateAlarmSelectors();
                 loadAlarms();
