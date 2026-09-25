@@ -1,3 +1,4 @@
+// Apps & Games Master Language Menu — Digital Clock local copy
 const LANGUAGES = [
   { value: 'en', code: 'EN', name: 'English' },
   { value: 'hr', code: 'HR', name: 'Hrvatski' },
