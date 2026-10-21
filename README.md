@@ -87,6 +87,12 @@ Digital Clock remains free to use. Optional support methods are available from t
 
 [Apps & Games](https://appsandgames.org/)
 
+## Credits / Attribution
+
+If you use our source code to create your own version, we'd appreciate a mention in its About / Info section:
+
+**Based on Digital Clock by Apps & Games — [appsandgames.org](https://appsandgames.org/)**
+
 ## Version
 
 2.0.0
