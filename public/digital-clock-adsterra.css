@@ -1,0 +1,74 @@
+/* Digital Clock: ads only inside the full-page Alarm / Timer views.
+ * ?clockTool=... is set by a real user click. Styles make the chosen view
+ * visible before parser-time Adsterra loading so requests are never hidden.
+ * No ads on the main clock, Stopwatch, World Clock, or screen saver.
+ */
+html[data-digital-clock-tool="timer"] .clock-container,
+html[data-digital-clock-tool="alarm"] .clock-container { display: none !important; }
+
+html[data-digital-clock-tool="timer"] #timerContainer,
+html[data-digital-clock-tool="alarm"] #alarmContainer { display: flex; }
+
+#timerContainer, #alarmContainer {
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: 36px;
+}
+
+.clock-ad-area[hidden], .clock-ad-unit[hidden] { display: none !important; }
+.clock-ad-area {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  align-self: stretch;
+  flex: 0 0 auto;
+  margin-top: auto;
+  padding: 24px 0 10px;
+  width: 100%;
+  max-width: 100%;
+}
+.clock-ad-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  max-width: 100%;
+  flex: 0 0 auto;
+}
+.clock-ad-label {
+  font: 11px/1.4 system-ui, sans-serif;
+  padding-bottom: 6px;
+  color: var(--text-color, #aaa);
+}
+.clock-privacy-footer {
+  position: fixed;
+  z-index: 1150;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 2px;
+  width: fit-content;
+  max-width: 100%;
+  text-align: center;
+  white-space: nowrap;
+  font: 11px/1.25 system-ui, sans-serif;
+}
+.clock-privacy-footer .ag-privacy-footer-control {
+  cursor: pointer;
+  padding: 4px 10px;
+  font-size: 11px;
+}
+body.screen-saver-active .clock-ad-area,
+body.screen-saver-active .clock-privacy-footer { display: none !important; }
+
+@media (max-width: 319px) {
+  .clock-ad-area { display: none !important; }
+}
+@media (max-height: 660px) {
+  #timerContainer, #alarmContainer { justify-content: flex-start; }
+  .clock-ad-area { margin-top: 22px; }
+}
+@media print {
+  .clock-ad-area, .clock-privacy-footer { display: none !important; }
+}

@@ -30,6 +30,22 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+            // A real page navigation is necessary: the original Adsterra banner
+            // uses parser-time scripts. Never inject it after the DOM has loaded.
+            const clockToolPage = new URLSearchParams(location.search).get('clockTool');
+            function navigateToToolPage(tool) {
+                if (tool !== 'alarm' && tool !== 'timer') return;
+                const url = new URL(location.href);
+                url.searchParams.set('clockTool', tool);
+                location.assign(url.href);
+            }
+            function leaveToolPage(tool) {
+                if (clockToolPage !== tool) return;
+                const url = new URL(location.href);
+                url.searchParams.delete('clockTool');
+                location.replace(url.href);
+            }
+
             const elements = {
                 sat: document.getElementById('sat'), datum: document.getElementById('datum'), clockContainer: document.querySelector('.clock-container'),
                 settingsMenu: document.querySelector('.settings-menu'), settingsPanel: document.querySelector('.settings-panel'),
@@ -840,6 +856,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 elements.startPauseTimer.classList.remove('running');
                 elements.timerStartLabel.textContent = timerSecondsRemaining > 0 ? T('timer.resume') : T('timer.start');
                 [elements.timerHours, elements.timerMinutes, elements.timerSeconds].forEach(input => input.disabled = false);
+                leaveToolPage('timer');
             }
 
             // Stopwatch Logic
@@ -1121,6 +1138,7 @@ function closeStopwatch() {
             function closeAlarm() {
                 elements.alarmContainer.style.display = 'none';
                 elements.clockContainer.style.display = 'flex';
+                leaveToolPage('alarm');
             }
 
             elements.alarmsList.addEventListener('click', e => {
@@ -1236,7 +1254,7 @@ function closeStopwatch() {
                 }
             });
             // App Event Listeners
-            elements.timerAppButton.addEventListener('click', openTimer);
+            elements.timerAppButton.addEventListener('click', () => navigateToToolPage('timer'));
             elements.closeTimerButton.addEventListener('click', closeTimer);
             elements.startPauseTimer.addEventListener('click', startPauseTimer);
             elements.resetTimer.addEventListener('click', resetTimer);
@@ -1249,7 +1267,7 @@ function closeStopwatch() {
             elements.worldClockAppButton.addEventListener('click', openWorldClock);
             elements.closeWorldClockButton.addEventListener('click', closeWorldClock);
             elements.addWorldClockCity.addEventListener('click', addWorldClockCity);
-            elements.alarmAppButton.addEventListener('click', openAlarm);
+            elements.alarmAppButton.addEventListener('click', () => navigateToToolPage('alarm'));
             elements.closeAlarmButton.addEventListener('click', closeAlarm);
             elements.setAlarmButton.addEventListener('click', setAlarm);
             elements.stopAlarmButton.addEventListener('click', () => {
@@ -1280,6 +1298,8 @@ function closeStopwatch() {
                 populateAlarmSelectors();
                 loadAlarms();
                 loadSettings();
+                if (clockToolPage === 'timer') openTimer();
+                else if (clockToolPage === 'alarm') openAlarm();
                 setInterval(() => { updateTime(); updateDate(); checkAlarms(); }, 1000);
                 updateTimerDisplay();
                 elements.stopwatchDisplay.textContent = formatStopwatchTime(0);
