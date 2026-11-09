@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // uses parser-time scripts. Never inject it after the DOM has loaded.
             const clockToolPage = new URLSearchParams(location.search).get('clockTool');
             function navigateToToolPage(tool) {
-                if (tool !== 'alarm' && tool !== 'timer') return;
+                if (!['alarm', 'timer', 'stopwatch', 'worldClock'].includes(tool)) return;
                 const url = new URL(location.href);
                 url.searchParams.set('clockTool', tool);
                 location.assign(url.href);
@@ -885,6 +885,7 @@ function closeStopwatch() {
                 if (isStopwatchRunning) startPauseStopwatch();
                 elements.stopwatchContainer.style.display = 'none';
                 elements.clockContainer.style.display = 'flex';
+                leaveToolPage('stopwatch');
             }
 
             // World Clock Logic
@@ -989,6 +990,7 @@ function closeStopwatch() {
                 elements.worldClockContainer.style.display = 'none';
                 elements.clockContainer.style.display = 'flex';
                 clearInterval(worldClockInterval);
+                leaveToolPage('worldClock');
             }
 
             // Alarm Logic
@@ -1259,12 +1261,12 @@ function closeStopwatch() {
             elements.startPauseTimer.addEventListener('click', startPauseTimer);
             elements.resetTimer.addEventListener('click', resetTimer);
             elements.stopTimerSoundButton.addEventListener('click', stopTimerCompletionSound);
-            elements.stopwatchAppButton.addEventListener('click', openStopwatch);
+            elements.stopwatchAppButton.addEventListener('click', () => navigateToToolPage('stopwatch'));
             elements.closeStopwatchButton.addEventListener('click', closeStopwatch);
             elements.startPauseStopwatch.addEventListener('click', startPauseStopwatch);
             elements.lapStopwatch.addEventListener('click', recordLap);
             elements.resetStopwatch.addEventListener('click', resetStopwatch);
-            elements.worldClockAppButton.addEventListener('click', openWorldClock);
+            elements.worldClockAppButton.addEventListener('click', () => navigateToToolPage('worldClock'));
             elements.closeWorldClockButton.addEventListener('click', closeWorldClock);
             elements.addWorldClockCity.addEventListener('click', addWorldClockCity);
             elements.alarmAppButton.addEventListener('click', () => navigateToToolPage('alarm'));
@@ -1300,6 +1302,8 @@ function closeStopwatch() {
                 loadSettings();
                 if (clockToolPage === 'timer') openTimer();
                 else if (clockToolPage === 'alarm') openAlarm();
+                else if (clockToolPage === 'stopwatch') openStopwatch();
+                else if (clockToolPage === 'worldClock') openWorldClock();
                 setInterval(() => { updateTime(); updateDate(); checkAlarms(); }, 1000);
                 updateTimerDisplay();
                 elements.stopwatchDisplay.textContent = formatStopwatchTime(0);
