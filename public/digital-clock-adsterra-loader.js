@@ -1,22 +1,40 @@
-/* Digital Clock — original Adsterra GET CODE in native Alarm / Timer views.
- * Only an intentional full page navigation (?clockTool=alarm|timer) can load ads.
- * The ordinary clock page does not request an Adsterra banner.
- * Only original parser-time tag (no custom iframe, no document.write after load).
- * No repeated requests on app events, no auto-refresh, no requests offline.
+/* Digital Clock: original Adsterra iframe GET CODE, one unique code per tool and viewport.
+ * Only explicit navigations to the selected tool can request an ad. Main clock and
+ * screen saver are ad-free. Parser-time injection only; no refresh, no retries.
  */
 (() => {
   "use strict";
   if (location.hostname !== "digitalclock.appsandgames.org") return;
   if (document.readyState !== "loading" || navigator.onLine === false) return;
 
+  // Adsterra support provisioned separate placement IDs for all four tool views.
+  const placements = {
+    alarm: {
+      desktop: "da8b4ca18aa474582835367a9da067ff",
+      mobile: "5cd403c621a96eff09faffd7bb0ea19e"
+    },
+    timer: {
+      desktop: "3753f3ac0331c324a30da85083b91b9b",
+      mobile: "00b088b7f9ffaf325114177919e9f419"
+    },
+    stopwatch: {
+      desktop: "185bb6347703c3bed86d52e8d00640ad",
+      mobile: "5d6cde9a8584bb848da4a49dc81db115"
+    },
+    worldClock: {
+      desktop: "b8a26c18b2e51fa7388f54cba2176cb3",
+      mobile: "63d8ae61ae1cc25b787a3122c624117c"
+    }
+  };
+
   const route = new URLSearchParams(location.search).get("clockTool");
-  if (route !== "alarm" && route !== "timer") return;
+  if (!Object.prototype.hasOwnProperty.call(placements, route)) return;
   const current = document.currentScript;
   const slot = current?.parentElement;
   const area = slot?.parentElement;
   const view = current?.dataset.view;
   const size = current?.dataset.size;
-  if (view !== route || !(view === "alarm" || view === "timer")) return;
+  if (view !== route || !Object.prototype.hasOwnProperty.call(placements[route], size)) return;
   if (!slot?.classList.contains("clock-ad-unit") ||
       !area?.classList.contains("clock-ad-area") ||
       area?.closest(".app-container")?.id !== view + "Container") return;
@@ -40,15 +58,19 @@
   } catch (_) { allowed = false; }
   if (!allowed) return;
 
-  const tags = {
-    desktop: "<script>\n  atOptions = {\n    'key' : 'da8b4ca18aa474582835367a9da067ff',\n    'format' : 'iframe',\n    'height' : 90,\n    'width' : 728,\n    'params' : {}\n  };\n</script>\n<script src=\"https://bauval.org/22/da8b4ca18aa474582835367a9da067ff\"></script>",
-    mobile: "<script>\n  atOptions = {\n    'key' : '5cd403c621a96eff09faffd7bb0ea19e',\n    'format' : 'iframe',\n    'height' : 50,\n    'width' : 320,\n    'params' : {}\n  };\n</script>\n<script src=\"https://bauval.org/22/5cd403c621a96eff09faffd7bb0ea19e\"></script>"
-  };
+  const key = placements[route][size];
+  const height = size === "desktop" ? 90 : 50;
+  const width = size === "desktop" ? 728 : 320;
+  const originalGetCode = "<script>\n  atOptions = {\n    'key' : '" + key +
+    "',\n    'format' : 'iframe',\n    'height' : " + height +
+    ",\n    'width' : " + width +
+    ",\n    'params' : {}\n  };\n</script>\n" +
+    '<script src="https://bauval.org/22/' + key + '"></script>';
   area.hidden = false;
   slot.hidden = false;
   const label = document.createElement("span");
   label.textContent = "Advertisement";
   label.className = "clock-ad-label";
   slot.insertBefore(label, current);
-  document.write(tags[size]);
+  document.write(originalGetCode);
 })();
