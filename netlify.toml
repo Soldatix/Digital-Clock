@@ -1,3 +1,9 @@
+# Build the Vite app before publishing previews. Publishing repository source
+# directly leaves /src/main.js bare imports unresolved in the browser.
+[build]
+  command = "npm run build"
+  publish = "dist"
+
 [[redirects]]
   from = "https://webappdigitalclock.netlify.app/*"
   to = "https://digitalclock.appsandgames.org/"
