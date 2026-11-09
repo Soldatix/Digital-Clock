@@ -1,21 +1,32 @@
-/* Digital Clock: ads only inside the full-page Alarm / Timer views.
- * ?clockTool=... is set by a real user click. Styles make the chosen view
- * visible before parser-time Adsterra loading so requests are never hidden.
- * No ads on the main clock, Stopwatch, World Clock, or screen saver.
+/* Digital Clock: one independent Adsterra placement per full-page tool view.
+ * Navigation to ?clockTool=alarm|timer|stopwatch|worldClock makes the active
+ * tool visible before parser-time loading. No ads on the ordinary clock,
+ * screen saver, or unselected tool views.
  */
 html[data-digital-clock-tool="timer"] .clock-container,
-html[data-digital-clock-tool="alarm"] .clock-container { display: none !important; }
+html[data-digital-clock-tool="alarm"] .clock-container,
+html[data-digital-clock-tool="stopwatch"] .clock-container,
+html[data-digital-clock-tool="worldClock"] .clock-container { display: none !important; }
 
 html[data-digital-clock-tool="timer"] #timerContainer,
-html[data-digital-clock-tool="alarm"] #alarmContainer { display: flex; }
+html[data-digital-clock-tool="alarm"] #alarmContainer,
+html[data-digital-clock-tool="stopwatch"] #stopwatchContainer,
+html[data-digital-clock-tool="worldClock"] #worldClockContainer { display: flex; }
 
-#timerContainer, #alarmContainer {
+#timerContainer, #alarmContainer,
+#stopwatchContainer, #worldClockContainer {
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
   padding-bottom: 36px;
 }
 
+#worldClockContainer #worldClocksGrid {
+  min-height: 0;
+  max-height: none;
+  flex: 1 1 auto;
+  align-content: start;
+}
 .clock-ad-area[hidden], .clock-ad-unit[hidden] { display: none !important; }
 .clock-ad-area {
   display: flex;
@@ -66,7 +77,8 @@ body.screen-saver-active .clock-privacy-footer { display: none !important; }
   .clock-ad-area { display: none !important; }
 }
 @media (max-height: 660px) {
-  #timerContainer, #alarmContainer { justify-content: flex-start; }
+  #timerContainer, #alarmContainer,
+  #stopwatchContainer, #worldClockContainer { justify-content: flex-start; }
   .clock-ad-area { margin-top: 22px; }
 }
 @media print {
