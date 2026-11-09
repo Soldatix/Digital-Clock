@@ -21,9 +21,20 @@ html[data-digital-clock-tool="worldClock"] #worldClockContainer { display: flex;
   padding-bottom: 36px;
 }
 
+/* Keep the World Clock close button inside the viewport at every width.
+ * The grid is border-box so its existing 10px padding cannot overflow.
+ */
+#worldClockContainer #closeWorldClockButton {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 2100;
+}
 #worldClockContainer #worldClocksGrid {
   min-height: 0;
   max-height: none;
+  min-width: 0;
+  box-sizing: border-box;
   flex: 1 1 auto;
   align-content: start;
 }
