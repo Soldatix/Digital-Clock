@@ -31,7 +31,7 @@
     <script>
       (() => {
         const tool = new URLSearchParams(location.search).get("clockTool");
-        if (tool === "alarm" || tool === "timer")
+        if (["alarm", "timer", "stopwatch", "worldClock"].includes(tool))
           document.documentElement.dataset.digitalClockTool = tool;
       })();
     </script>
@@ -245,6 +245,15 @@
             <h3 id="lapsTitle">Laps</h3>
             <ol id="lapsList"></ol>
         </div>
+        <!-- Original Adsterra banner; selected tool view only, advertising consent required. -->
+        <section class="clock-ad-area" id="stopwatch-ad-area" aria-label="Advertisement" hidden>
+          <div class="clock-ad-unit" data-size="728x90" hidden>
+            <script src="/digital-clock-adsterra-loader.js" data-view="stopwatch" data-size="desktop"></script>
+          </div>
+          <div class="clock-ad-unit" data-size="320x50" hidden>
+            <script src="/digital-clock-adsterra-loader.js" data-view="stopwatch" data-size="mobile"></script>
+          </div>
+        </section>
     </div>
 
     <div id="worldClockContainer" class="app-container">
@@ -257,6 +266,15 @@
             <button id="addWorldClockCity"><span id="worldClockAddBtn">Add City</span></button>
         </div>
         <div id="worldClocksGrid"></div>
+        <!-- Original Adsterra banner; selected tool view only, advertising consent required. -->
+        <section class="clock-ad-area" id="worldClock-ad-area" aria-label="Advertisement" hidden>
+          <div class="clock-ad-unit" data-size="728x90" hidden>
+            <script src="/digital-clock-adsterra-loader.js" data-view="worldClock" data-size="desktop"></script>
+          </div>
+          <div class="clock-ad-unit" data-size="320x50" hidden>
+            <script src="/digital-clock-adsterra-loader.js" data-view="worldClock" data-size="mobile"></script>
+          </div>
+        </section>
     </div>
 
     <div id="alarmContainer" class="app-container">
